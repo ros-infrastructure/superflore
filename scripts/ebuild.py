@@ -1,3 +1,4 @@
+# This generates Gentoo Linux ebuilds for ROS packages.
 
 class Ebuild(object):
     """
@@ -72,10 +73,13 @@ class Ebuild(object):
 
         ret += "\n\"\n\n"
 
+        # SLOT
+        ret += "SLOT=\"0/0\"\n"
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n\n"
 
-        ret += "src_prepare() {\n"
+        ret += "src_unpack() {\n"
+        ret += "    default\n"
         ret += "    mv *${P}* ${P}\n"
         ret += "}\n\n"
         
@@ -86,14 +90,21 @@ class Ebuild(object):
         ret += "    cp -R ${WORKDIR}/${P} ${WORKDIR}/src/${P}\n"
         ret += "}\n\n"
 
-        ret += "src_install() {\n"
-        ret += "    cd ../"
-        ret += "    source /opt/ros/" + self.distro + "/setup.bash"
-        ret += "    catkin_make_isolated --install --install-space=\"/opt/ros/" + self.distro + "\" || die"
+        ret += "src_compile() {\n"
+        ret += "    echo \"\"\n"
         ret += "}\n\n"
 
         ret += "src_install() {\n"
         ret += "    echo \"\"\n"
-        ret += "}\n"
-        
+        ret += "}\n\n"
+
+        ret += "pkg_postinst() {\n"
+        ret += "    cd ../work"
+        ret += "    source /opt/ros/" + self.distro + "/setup.bash"
+        ret += "    catkin_make_isolated --install --install-space=\"/opt/ros/" + self.distro + "\" || die"
+        ret += "}\n"        
+
+        """
+        @todo: is there really not a way to do it not in pkg_postinst?
+        """        
         return ret
