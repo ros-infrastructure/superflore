@@ -5,14 +5,15 @@ class Ebuild(object):
     This is where any necessary variables will be filled.
     """
     def __init__(self):
-        self.eapi = 6
+        self.eapi = str(6)
         self.description = None
         self.homepage = None
         self.src_uri = None
         self.upstream_license = None
-        self.keywords = None
-        self.rdepends = None
-        self.depends = None
+        self.keys = list()
+        self.rdepends = list()
+        self.depends = list()
+        self.distro = None
         self.cmake_package = True
 
     def add_build_depend(self, depend):
@@ -22,7 +23,7 @@ class Ebuild(object):
         self.rdepends.append(rdepend)
 
     def add_keyword(self, keyword):
-        self.keywords.append(keyword)
+        self.keys.append(keyword)
 
     def get_ebuild_text(self, distributor, license_text):
         """
@@ -34,7 +35,7 @@ class Ebuild(object):
         """
 
         ret  = "# Copyright 2017 " + distributor + "\n"
-        ret += "# Distributed under the terms of the " + license_text + "\n\n"
+        ret += "# Distributed under the terms of the " + license_text + " license\n\n"
 
         # EAPI=<eapi>
         ret += "EAPI=" + self.eapi + "\n\n"
@@ -45,22 +46,21 @@ class Ebuild(object):
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
         ret += "SRC_URI=\"" + self.src_uri + "\"\n\n"
         # license
-        ret += "LICENSE=\"" + self.upstream_license + "\n\n"
+        ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
 
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
-        x = 0
 
-        for i in range(len(self.keywords)):
-            ret += "~" + keywords[i]
-            if i != len(self.keywords) - 1:
-                ret += " "
+        for i in self.keys:
+            ret += "~" + i + " "
+
+        ret += "\"\n\n"
 
         # RDEPEND
         ret += "RDEPEND=\"\n"
 
         for rdep in self.rdepends:
-            ret += "    " + rdep + "\n"
+            ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
 
         ret += "\n\"\n"
 
@@ -68,17 +68,32 @@ class Ebuild(object):
         ret += "DEPEND=\"${RDEPEND}\n"
 
         for bdep in self.depends:
-            ret += "    " + bdep + "\n"
+            ret += "    " + "ros-" + distro + "/" + bdep + "\n"
 
         ret += "\n\"\n\n"
 
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n\n"
 
+        ret += "src_prepare() {\n"
+        ret += "    mv *${P}* ${P}\n"
+        ret += "}\n\n"
+        
         # source configuration
         ret += "src_configure() {\n"
-        ret += "    append-cxxflags -std=c++14" # because people don't add it as it is default now
-        ret += "    cmake-utils_src_configure"
-        ret += "}"
+        ret += "    append-cxxflags \"-std=c++14\"\n" # because people don't add it as it is default now
+        ret += "    mkdir ${WORKDIR}/src\n"
+        ret += "    cp -R ${WORKDIR}/${P} ${WORKDIR}/src/${P}\n"
+        ret += "}\n\n"
+
+        ret += "src_install() {\n"
+        ret += "    cd ../"
+        ret += "    source /opt/ros/" + self.distro + "/setup.bash"
+        ret += "    catkin_make_isolated --install --install-space=\"/opt/ros/" + self.distro + "\" || die"
+        ret += "}\n\n"
+
+        ret += "src_install() {\n"
+        ret += "    echo \"\"\n"
+        ret += "}\n"
         
         return ret
