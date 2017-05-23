@@ -52,13 +52,33 @@ class Ebuild(object):
         x = 0
 
         for i in range(len(self.keywords)):
-            ret += "~" + keywords[i] + (i == len(self.keywords) - 1 ? " " : "")
+            ret += "~" + keywords[i]
+            if i != len(self.keywords) - 1:
+                ret += " "
 
-        ret += "\"\n\n"
+        # RDEPEND
+        ret += "RDEPEND=\"\n"
 
-        """
-        @todo: rdepend
-        @todo: depend
-        @todo: CMAKE_BUILD_TYPE
-        """
+        for rdep in self.rdepends:
+            ret += "    " + rdep + "\n"
+
+        ret += "\n\"\n"
+
+        # DEPEND
+        ret += "DEPEND=\"${RDEPEND}\n"
+
+        for bdep in self.depends:
+            ret += "    " + bdep + "\n"
+
+        ret += "\n\"\n\n"
+
+        # CMAKE_BUILD_TYPE
+        ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n\n"
+
+        # source configuration
+        ret += "src_configure() {\n"
+        ret += "    append-cxxflags -std=c++14" # because people don't add it as it is default now
+        ret += "    cmake-utils_src_configure"
+        ret += "}"
+        
         return ret
