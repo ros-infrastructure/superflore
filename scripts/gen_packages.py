@@ -1,6 +1,10 @@
 # generates ebuilds from ros distribution data
+import xmltodict
+
 from rosinstall_generator.distro import get_distro, get_package_names, _generate_rosinstall
 from rosdistro.dependency_walker import DependencyWalker, SourceDependencyWalker
+from rosdistro.manifest_provider import get_release_tag
+from rosdistro.rosdistro import RosPackage
 
 from .ebuild import Ebuild
 from .metadata_xml import metadata_xml
@@ -9,6 +13,7 @@ def _gen_ebuild_for_package(distro_name, pkg_name):
     distro = get_distro(distro_name)
     pkg = distro.release_packages[pkg_name]
     repo = distro.repositories[pkg.repository_name].release_repository
+    ros_pkg = RosPackage(pkg_name, repo)
 
     pkg_rosinstall = _generate_rosinstall(pkg_name, repo.url, get_release_tag(repo, pkg_name), True)
     pkg_ebuild = Ebuild()
@@ -34,6 +39,14 @@ def _gen_ebuild_for_package(distro_name, pkg_name):
     for key in pkg_keywords:
         pkg_ebuild.add_keyword(key)
 
-    return pkg_ebuild
+    # parse throught package xml
+    pkg_xml = ros_pkg.get_package_xml(distro.name)
+    pkg_fields = xmltodict.parse(pkg_xml)
 
-    
+    pkg_ebuild.upstream_license = pkg_fields['package']['license']
+    pkg_ebuild.description = pkg_fields['package']['description']
+
+    """
+    @todo: homepage
+    """
+    return pkg_ebuild
