@@ -7,10 +7,10 @@ class Ebuild(object):
     """
     def __init__(self):
         self.eapi = str(6)
-        self.description = None
-        self.homepage = None
+        self.description = ""
+        self.homepage = "https://wiki.ros.org"
         self.src_uri = None
-        self.upstream_license = None
+        self.upstream_license = "LGPL-v2"
         self.keys = list()
         self.rdepends = list()
         self.depends = list()
@@ -20,7 +20,7 @@ class Ebuild(object):
     def add_build_depend(self, depend):
         self.depends.append(depend)
         
-    def add_run_rdepend(self, rdepend):
+    def add_run_depend(self, rdepend):
         self.rdepends.append(rdepend)
 
     def add_keyword(self, keyword):
@@ -41,7 +41,6 @@ class Ebuild(object):
         # EAPI=<eapi>
         ret += "EAPI=" + self.eapi + "\n\n"
         # inherits
-        ret += "inherit cmake-utils\n\n"
         # description, homepage, src_uri
         ret += "DESCRIPTION=\"" + self.description + "\"\n"
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
@@ -69,7 +68,7 @@ class Ebuild(object):
         ret += "DEPEND=\"${RDEPEND}\n"
 
         for bdep in self.depends:
-            ret += "    " + "ros-" + distro + "/" + bdep + "\n"
+            ret += "    " + "ros-" + self.distro + "/" + bdep + "\n"
 
         ret += "\n\"\n\n"
 
@@ -99,9 +98,9 @@ class Ebuild(object):
         ret += "}\n\n"
 
         ret += "pkg_postinst() {\n"
-        ret += "    cd ../work"
-        ret += "    source /opt/ros/" + self.distro + "/setup.bash"
-        ret += "    catkin_make_isolated --install --install-space=\"/opt/ros/" + self.distro + "\" || die"
+        ret += "    cd ../work\n"
+        ret += "    source /opt/ros/" + self.distro + "/setup.bash\n"
+        ret += "    catkin_make_isolated --install --install-space=\"/opt/ros/" + self.distro + "\" || die\n"
         ret += "}\n"        
 
         """
