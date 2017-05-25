@@ -103,6 +103,7 @@ class Ebuild(object):
         ret += "src_unpack() {\n"
         ret += "    wget -O ${P}.tar.gz ${SRC_URI}\n"
         ret += "    tar -xf ${P}.tar.gz\n"
+        ret += "    rm -f ${P}.tar.gz\n"
         ret += "    mv *${P}* ${P}\n"
         ret += "}\n\n"
         
