@@ -84,7 +84,6 @@ class Ebuild(object):
         
         # source configuration
         ret += "src_configure() {\n"
-        ret += "    append-cxxflags \"-std=c++14\"\n" # because people don't add it as it is default now
         ret += "    mkdir ${WORKDIR}/src\n"
         ret += "    cp -R ${WORKDIR}/${P} ${WORKDIR}/src/${P}\n"
         ret += "}\n\n"
