@@ -13,15 +13,23 @@ class Ebuild(object):
         self.upstream_license = "LGPL-v2"
         self.keys = list()
         self.rdepends = list()
+        self.rdepends_external = list()
         self.depends = list()
+        self.depends_external = list()
         self.distro = None
-        self.cmake_package = True
+        self.cmake_package = True        
 
-    def add_build_depend(self, depend):
-        self.depends.append(depend)
+    def add_build_depend(self, depend, internal=True):
+        if internal:
+            self.depends.append(depend)
+        else:
+            self.depends_external.append(depend)
         
-    def add_run_depend(self, rdepend):
-        self.rdepends.append(rdepend)
+    def add_run_depend(self, rdepend, internal=True):
+        if internal:
+            self.rdepends.append(rdepend)
+        else:
+            self.rdepends_external.append(rdepend)
 
     def add_keyword(self, keyword):
         self.keys.append(keyword)
@@ -42,17 +50,31 @@ class Ebuild(object):
         ret += "EAPI=" + self.eapi + "\n\n"
         # inherits
         # description, homepage, src_uri
-        ret += "DESCRIPTION=\"" + self.description + "\"\n"
+        if isinstance(self.description, str):
+            ret += "DESCRIPTION=\"" + self.description + "\"\n"
+        elif isinstance(self.description, unicode):
+            ret += "DESCRIPTION=\"" + self.description + "\"\n"
+        else:
+            ret += "DESCRIPTION=\"\"\n"
+
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
         ret += "SRC_URI=\"" + self.src_uri + "\"\n\n"
         # license
-        ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
-
+        if isinstance(self.upstream_license, str):
+            ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
+        elif isinstance(self.upstream_license, unicode):
+            ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
+        else:
+            ret += "LICENSE=\"UNKNOWN\"\n"
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
 
+        first = True
         for i in self.keys:
-            ret += "~" + i + " "
+            if not first:
+                ret += " "
+            ret += "~" + i
+            first = False
 
         ret += "\"\n\n"
 
@@ -61,16 +83,17 @@ class Ebuild(object):
 
         for rdep in self.rdepends:
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
-
-        ret += "\n\"\n"
+        for rdep in self.rdepends_external:
+            ret += "    " + rdep + "\n"
+        ret += "\"\n"
 
         # DEPEND
-        ret += "DEPEND=\"${RDEPEND}\n"
-
+        ret += "DEPEND=\"\n"
         for bdep in self.depends:
             ret += "    " + "ros-" + self.distro + "/" + bdep + "\n"
-
-        ret += "\n\"\n\n"
+        for bdep in self.depends_external:
+            ret += "    " + bdep + "\n"
+        ret += "\"\n\n"
 
         # SLOT
         ret += "SLOT=\"0/0\"\n"
@@ -78,7 +101,8 @@ class Ebuild(object):
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n\n"
 
         ret += "src_unpack() {\n"
-        ret += "    default\n"
+        ret += "    wget -O ${P}.tar.gz ${SRC_URI}\n"
+        ret += "    tar -xf ${P}.tar.gz\n"
         ret += "    mv *${P}* ${P}\n"
         ret += "}\n\n"
         

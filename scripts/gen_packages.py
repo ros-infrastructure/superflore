@@ -13,7 +13,7 @@ from .ebuild import Ebuild
 from .metadata_xml import metadata_xml
 
 org = "Open Source Robotics Foundation"
-org_license = "LGPL-v2"
+org_license = "BSD"
 
 def warn(string):
     print(colored(string, 'yellow'))
@@ -45,44 +45,42 @@ def generate_installers(distro_name):
     failed = 0
 
     for pkg in pkg_names[0]:
+        #try:
+        if os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, get_pkg_version(distro, pkg))):
+            ok(">>>> Ebuild for package {} up to date, skipping...".format(pkg))
+            continue
+        current = gentoo_installer(distro, pkg)        
+        # make the directory
+        ebuild_text = current.ebuild_text()
+        metadata_text = current.metadata_text()
+        make_dir("ros-{}/{}".format(distro_name, pkg))
+        ok(">>>> Succesfully generated installer for package \"{}.\"".format(pkg))
+        succeeded = succeeded + 1
+
         try:
-            current = gentoo_installer(distro, pkg)
-            
-            # make the directory
-            make_dir("ros-{}/{}".format(distro_name, pkg))
-            ebuild_text = current.ebuild_text()
-            metadata_text = current.metadata_text()
-
-            ok(">>>> Succesfully generated installer for package \"{}.\"".format(pkg))
-            succeeded = succeeded + 1
-
-            try:
-                ebuild_file = open("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, get_pkg_version(distro, pkg)), "w")
-                metadata_file = open("ros-{}/{}/metadata.xml".format(distro_name, pkg), "w")
-        
-                ebuild_file.write(ebuild_text)
-                metadata_file.write(metadata_text)
-            except:
-                err(">>>> Failed to write ebuild/metadata to disk!")
-            installers.append(current)
+            ebuild_file = open("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, get_pkg_version(distro, pkg)), "w")
+            metadata_file = open("ros-{}/{}/metadata.xml".format(distro_name, pkg), "w")
+                
+            ebuild_file.write(ebuild_text)
+            metadata_file.write(metadata_text)
         except:
-            warn("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
+            err("!!!! Failed to write ebuild/metadata to disk!")
+            installers.append(current)
+            err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
             bad_installers.append(current)
             failed = failed + 1
-
-    print("------------------   Generated {} / {} installers for distro \"{}\"".format(succeeded, failed + succeeded, distro_name))
+        
+    print("------ Generated {} / {} installers for distro \"{}\" ------".format(succeeded, failed + succeeded, distro_name))
     return installers
     
-def _gen_metadata_for_package(distro, pkg_name):
-    pkg = distro.release_packages[pkg_name]
-    repo = distro.repositories[pkg.repository_name].release_repository
-    ros_pkg = RosPackage(pkg_name, repo)
-
-    pkg_rosinstall = _generate_rosinstall(pkg_name, repo.url, get_release_tag(repo, pkg_name), True)
-    pkg_xml = ros_pkg.get_package_xml(distro.name)
+def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):
+    pkg_metadata_xml = metadata_xml()        
+    try:    
+        pkg_xml = ros_pkg.get_package_xml(distro.name)
+    except Exception as e:
+        warn(">>>> cannot fetch metadata for package {}".format(pkg_name))
+        return pkg_metadata_xml
     pkg_fields = xmltodict.parse(pkg_xml)
-
-    pkg_metadata_xml = metadata_xml()
 
     """
     @todo: upstream_maintainer
@@ -93,16 +91,12 @@ def _gen_metadata_for_package(distro, pkg_name):
     """
     return pkg_metadata_xml
 
-def _gen_ebuild_for_package(distro, pkg_name):
-    pkg = distro.release_packages[pkg_name]
-    repo = distro.repositories[pkg.repository_name].release_repository
-    ros_pkg = RosPackage(pkg_name, repo)
-
-    pkg_rosinstall = _generate_rosinstall(pkg_name, repo.url, get_release_tag(repo, pkg_name), True)
+def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):
     pkg_ebuild = Ebuild()
 
     pkg_ebuild.distro = distro.name
     pkg_ebuild.src_uri = pkg_rosinstall[0]['tar']['uri']
+    pkg_names = get_package_names(distro)
     pkg_dep_walker = DependencyWalker(distro)
 
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
@@ -112,26 +106,42 @@ def _gen_ebuild_for_package(distro, pkg_name):
 
     # add run dependencies
     for rdep in pkg_run_deps:
-        pkg_ebuild.add_run_depend(rdep)
+        pkg_ebuild.add_run_depend(rdep, rdep in pkg_names[0])
 
     # add build dependencies
     for bdep in pkg_build_deps:
-        pkg_ebuild.add_build_depend(bdep)
+        pkg_ebuild.add_build_depend(bdep, bdep in pkg_names[0])
 
     # add keywords
     for key in pkg_keywords:
         pkg_ebuild.add_keyword(key)
 
     # parse throught package xml
-    pkg_xml = ros_pkg.get_package_xml(distro.name)
+    try:    
+        pkg_xml = ros_pkg.get_package_xml(distro.name)
+    except Exception as e:
+        warn(">>>> cannot fetch metadata for package {}".format(pkg_name))
+        return pkg_ebuild
     pkg_fields = xmltodict.parse(pkg_xml)
     
     pkg_ebuild.upstream_license = pkg_fields['package']['license']
-
+    pkg_ebuild.description = pkg_fields['package']['description']
     try:
-        pkg_ebuild.description = pkg_fields['package']['description']
-    except:
-        warn(">>>> failed to get description field for package {}".format(pkg_name))
+        if 'url' not in pkg_fields['package']:
+            warn(">>>> no website field for package {}".format(pkg_name))        
+        elif isinstance(pkg_fields['package']['url'], unicode):
+            pkg_ebuild.homepage = pkg_fields['package']['url']
+        elif isinstance(pkg_fields['package']['url'], str):
+            pkg_ebuild.homepage = pkg_fields['package']['url']
+        elif '@type' in pkg_fields['package']['url']:
+            if pkg_fields['package']['url']['@type'] == 'website':
+                if '#text' in pkg_fields['package']['url']:
+                    pkg_ebuild.homepage = pkg_fields['package']['url']['#text']
+        else:
+            warn(">>>> failed to parse website field for package {}".format(pkg_name))
+    except TypeError as e:
+        warn(">>>> failed to parse website package {}: {}".format(pkg_name, e))
+
     """
     @todo: homepage
     """
@@ -139,8 +149,14 @@ def _gen_ebuild_for_package(distro, pkg_name):
 
 class gentoo_installer(object):
     def __init__(self, distro, pkg_name):
-        self.metadata_xml = _gen_metadata_for_package(distro, pkg_name)
-        self.ebuild       = _gen_ebuild_for_package(distro, pkg_name)
+        pkg = distro.release_packages[pkg_name]
+        repo = distro.repositories[pkg.repository_name].release_repository
+        ros_pkg = RosPackage(pkg_name, repo)
+
+        pkg_rosinstall = _generate_rosinstall(pkg_name, repo.url, get_release_tag(repo, pkg_name), True)
+
+        self.metadata_xml = _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall)
+        self.ebuild       = _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall)
 
     def metadata_text(self):
         return self.metadata_xml.get_metadata_text()
