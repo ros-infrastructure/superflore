@@ -9,6 +9,27 @@ from rosdistro.rosdistro import RosPackage
 from .ebuild import Ebuild
 from .metadata_xml import metadata_xml
 
+def _gen_metadata_for_package(distro_name, pkg_name):
+    distro = get_distro(distro_name)
+    pkg = distro.release_packages[pkg_name]
+    repo = distro.repositories[pkg.repository_name].release_repository
+    ros_pkg = RosPackage(pkg_name, repo)
+
+    pkg_rosinstall = _generate_rosinstall(pkg_name, repo.url, get_release_tag(repo, pkg_name), True)
+    pkg_xml = ros_pkg.get_package_xml(distro.name)
+    pkg_fields = xmltodict.parse(pkg_xml)
+
+    pkg_metadata_xml = metadata_xml()
+
+    """
+    @todo: upstream_maintainer
+    @todo: upstream_name
+    @todo: upstream_email
+    @todo: upstream_bug_url
+    @todo: longdescription
+    """
+    return pkg_metadata_xml
+
 def _gen_ebuild_for_package(distro_name, pkg_name):
     distro = get_distro(distro_name)
     pkg = distro.release_packages[pkg_name]
@@ -42,10 +63,13 @@ def _gen_ebuild_for_package(distro_name, pkg_name):
     # parse throught package xml
     pkg_xml = ros_pkg.get_package_xml(distro.name)
     pkg_fields = xmltodict.parse(pkg_xml)
-
+    
     pkg_ebuild.upstream_license = pkg_fields['package']['license']
-    pkg_ebuild.description = pkg_fields['package']['description']
 
+    try:
+        pkg_ebuild.description = pkg_fields['package']['description']
+    except:
+        print("Warning: failed to get description field for package {}".format(pkg_name))
     """
     @todo: homepage
     """

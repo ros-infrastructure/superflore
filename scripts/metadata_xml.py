@@ -13,7 +13,7 @@ class metadata_xml(object):
         self.upstream_email = None
         self.upstream_bug_url = None
 
-    def get_manifest_text(self):
+    def get_metadata_text(self):
         ret  = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         ret += "<!DOCTYPE pkgmetadata SYSTEM \"http://www.gentoo.org/dtd/metadata.dtd\">\n"
         ret += "<pkgmetadata>\n"
