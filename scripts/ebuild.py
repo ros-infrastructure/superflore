@@ -153,7 +153,8 @@ class Ebuild(object):
         ret += "src_install() {\n"
         ret += "    cd ../../work\n"
         ret += "    source /opt/ros/{}/setup.bash\n".format(self.distro)
-        ret += "    catkin_make_isolated --install --install-space=\"${D}\" || die\n"
+        ret += "    catkin_make_isolated --install --install-space=\"${D}"
+        ret +=      "/opt/ros/{}\" || die\n".format(self.distro)
         ret += "}\n\n"
 
         ret += "pkg_postinst() {\n"
@@ -166,9 +167,7 @@ class Ebuild(object):
 
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")            
-        """
-        @todo: is there really not a way to do it not in pkg_postinst?
-        """        
+
         return ret
 
     def get_unresolved(self):
