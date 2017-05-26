@@ -90,7 +90,7 @@ def generate_installers(distro_name):
             warn(">>>> {}:".format(broken))
             warn(">>>>   {}".format(borkd_pkgs[broken]))
 
-    return installers
+    return installers, borkd_pkgs
     
 def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):
     pkg_metadata_xml = metadata_xml()        
