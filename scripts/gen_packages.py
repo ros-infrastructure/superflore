@@ -88,8 +88,8 @@ def generate_installers(distro_name):
         warn(">>>> Unresolved:")
         for broken in borkd_pkgs.keys():
             warn(">>>> {}:".format(broken))
-            for dep in borkd_pkgs[broken]:
-                warn(">>>>   {}")
+            warn(">>>>   {}".format(borkd_pkgs[broken]))
+
     return installers
     
 def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):
