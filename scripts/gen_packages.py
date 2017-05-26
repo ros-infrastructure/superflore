@@ -9,7 +9,7 @@ from rosdistro.dependency_walker import DependencyWalker, SourceDependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
-from .ebuild import Ebuild
+from .ebuild import Ebuild, UnresolvedDependency
 from .metadata_xml import metadata_xml
 
 org = "Open Source Robotics Foundation"
@@ -51,7 +51,13 @@ def generate_installers(distro_name):
             continue
         current = gentoo_installer(distro, pkg)        
         # make the directory
-        ebuild_text = current.ebuild_text()
+        try:
+            ebuild_text = current.ebuild_text()
+        except UnresolvedDependency as msg:
+            err("!!!! {}".format(msg))
+            err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
+            failed = failed + 1
+            continue
         metadata_text = current.metadata_text()
         make_dir("ros-{}/{}".format(distro_name, pkg))
         ok(">>>> Succesfully generated installer for package \"{}.\"".format(pkg))
@@ -128,9 +134,10 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
     pkg_ebuild.description = pkg_fields['package']['description']
     try:
         if 'url' not in pkg_fields['package']:
-            warn(">>>> no website field for package {}".format(pkg_name))        
-        elif isinstance(pkg_fields['package']['url'], unicode):
-            pkg_ebuild.homepage = pkg_fields['package']['url']
+            warn(">>>> no website field for package {}".format(pkg_name))
+        elif sys.version_info <= (3, 0):
+            if isinstance(pkg_fields['package']['url'], unicode):
+                pkg_ebuild.homepage = pkg_fields['package']['url']
         elif isinstance(pkg_fields['package']['url'], str):
             pkg_ebuild.homepage = pkg_fields['package']['url']
         elif '@type' in pkg_fields['package']['url']:
@@ -140,7 +147,7 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
         else:
             warn(">>>> failed to parse website field for package {}".format(pkg_name))
     except TypeError as e:
-        warn(">>>> failed to parse website package {}: {}".format(pkg_name, e))
+        warn(">>>> failed to parse website package {}: {}".format(pkg_name, e))    
 
     """
     @todo: homepage
