@@ -39,13 +39,13 @@ def generate_installers(distro_name):
     make_dir("ros-{}".format(distro_name))
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
+    borkd_pkgs = dict()
     installers = []
     bad_installers = []
     succeeded = 0
     failed = 0
 
     for pkg in pkg_names[0]:
-        #try:
         if os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, get_pkg_version(distro, pkg))):
             ok(">>>> Ebuild for package {} up to date, skipping...".format(pkg))
             continue
@@ -54,7 +54,11 @@ def generate_installers(distro_name):
         try:
             ebuild_text = current.ebuild_text()
         except UnresolvedDependency as msg:
-            err("!!!! {}".format(msg))
+            err("!!!! Failed to resolve required dependencies for package {}!".format(pkg))
+            unresolved = current.ebuild.get_unresolved()
+            borkd_pkgs[pkg] = unresolved
+            for dep in unresolved:
+                err("!!!!  unresolved: \"{}\"".format(dep))
             err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
             failed = failed + 1
             continue
@@ -76,7 +80,15 @@ def generate_installers(distro_name):
             bad_installers.append(current)
             failed = failed + 1
         
-    print("------ Generated {} / {} installers for distro \"{}\" ------".format(succeeded, failed + succeeded, distro_name))
+            print("------ Generated {} / {} installers for distro \"{}\" ------".format(succeeded, failed + succeeded, distro_name))
+            print()
+
+            if len(borkd_pkgs) > 0:
+                warn(">>>> Unresolved:")
+                for broken in borkd_pkgs.keys():
+                    warn(">>>> {}:".format(broken))
+                    for dep in borkd_pkgs[broken]:
+                        warn(">>>>   {}")
     return installers
     
 def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):

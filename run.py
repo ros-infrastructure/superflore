@@ -2,4 +2,4 @@
 from scripts.gen_packages import generate_installers
 
 # generate installers for kinetic
-generate_installers("lunar")
+generate_installers("kinetic")

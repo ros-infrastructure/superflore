@@ -2,7 +2,10 @@
 import sys
 import yaml
 try:
-    from urllib2 import open as get_http
+    import requests
+
+    def get_http(url):
+        return requests.get(url).text
 except:
     from urllib.request import urlopen
 
@@ -10,8 +13,8 @@ except:
         response = urlopen(url)
         return response.read()
 
-base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
-python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
+base_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/base.yaml"
+python_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/python.yaml"
 
 print("Downloading latest base yml...")
 base_yml = yaml.load(get_http(base_url))
@@ -37,10 +40,14 @@ class Ebuild(object):
         self.distro = None
         self.cmake_package = True
         self.base_yml = None
-
+        self.unresolved_deps = list()
 
     def add_build_depend(self, depend, internal=True):
-        if internal:
+        if depend in self.rdepends:
+            return
+        elif depend in self.rdepends_external:
+            return
+        elif internal:
             self.depends.append(depend)
         else:
             self.depends_external.append(depend)
@@ -62,7 +69,6 @@ class Ebuild(object):
         @todo: make the year dynamic
         @todo: raise an exception if the distributor/license is invalid
         """
-
         ret  = "# Copyright 2017 " + distributor + "\n"
         ret += "# Distributed under the terms of the " + license_text + " license\n\n"
 
@@ -104,15 +110,22 @@ class Ebuild(object):
         for rdep in self.rdepends:
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
         for rdep in self.rdepends_external:
-            ret += "    " + self.resolve(rdep) + "\n"
+            try:
+                ret += "    " + self.resolve(rdep) + "\n"
+            except UnresolvedDependency as msg:
+                self.unresolved_deps.append(rdep)
+                
         ret += "\"\n"
 
         # DEPEND
-        ret += "DEPEND=\"\n"
+        ret += "DEPEND=\"${RDEPEND}\n"
         for bdep in self.depends:
             ret += "    " + "ros-" + self.distro + "/" + bdep + "\n"
         for bdep in self.depends_external:
-            ret += "    " + self.resolve(bdep) + "\n"
+            try:
+                ret += "    " + self.resolve(bdep) + "\n"
+            except UnresolvedDependency as bad_dep:
+                self.unresolved_deps.append(bdep)
         ret += "\"\n\n"
 
         # SLOT
@@ -138,92 +151,53 @@ class Ebuild(object):
         ret += "}\n\n"
 
         ret += "src_install() {\n"
-        ret += "    echo \"\"\n"
+        ret += "    cd ../../work\n"
+        ret += "    source /opt/ros/{}/setup.bash\n".format(self.distro)
+        ret += "    catkin_make_isolated --install --install-space=\"${D}\" || die\n"
         ret += "}\n\n"
 
         ret += "pkg_postinst() {\n"
-        ret += "    cd ../work\n"
-        ret += "    source /opt/ros/" + self.distro + "/setup.bash\n"
-        ret += "    catkin_make_isolated --install --install-space=\"/opt/ros/" + self.distro + "\" || die\n"
+        ret += "    cd ${D}\n"
+        ret += "    cp -R lib* /opt/ros/{}\n".format(self.distro)
+        ret += "    cp -R share /opt/ros/{}\n".format(self.distro)
+        ret += "    cp -R bin /opt/ros/{}\n".format(self.distro)
+        ret += "    cp -R include /opt/ros/{}\n".format(self.distro)
         ret += "}\n"        
 
+        if len(self.unresolved_deps) > 0:
+            raise UnresolvedDependency("failed to satisfy dependencies!")            
         """
         @todo: is there really not a way to do it not in pkg_postinst?
         """        
         return ret
 
+    def get_unresolved(self):
+        return self.unresolved_deps
+
     @staticmethod
     def resolve(pkg):
-        if pkg == 'libopenni-dev':
-            return "dev-libs/OpenNI"
-        elif pkg == "linux-headers-generic":
-            return "sys-kernel/linux-headers"
-        elif pkg == "liburdfdom-tools":
-            return "dev-libs/urdfdom"
-        elif pkg == "python-lxml":
-            return "dev-python/lxml"
-        elif pkg == "python-yaml":
-            return "dev-python/pyyaml"
-        elif pkg == "python-pyassimp":
-            return "dev-libs/assimp"
-        elif pkg == "libfcl-dev":
-            return "sci-libs/fcl"
-        elif pkg == "tinyxml2":
-            return "dev-libs/tinyxml2"
-        elif pkg == "python-future":
-            return "dev-python/future"
-        elif pkg == "python":
-            return "dev-lang/python\ndev-lang/python-exec"
-        elif pkg == "libqglviewer-qt4":
-            return "x11-libs/libQGLViewer"
-        elif pkg == "libqglviewer-qt4-dev":
-            return "x11-libs/libQGLViewer"
-        elif pkg == "python-setuptools":
-            return "dev-python/setuptools"
-        elif pkg == "ffmpeg":
-            return "virtual/ffmpeg"
-        elif pkg == "libv4l-dev":
-            return "media-libs/libv4l"
-        elif pkg == "libwebp-dev":
-            return "media-libs/libwebp"
-        elif pkg == "muparser":
-            return "dev-cpp/muParser"
-        elif pkg == "python-pyproj":
-            return "dev-python/pyproj"
-        elif pkg == "libxi-dev":
-            return "x11-libs/libXi"
-        elif pkg == "libxmu-dev":
-            return "x11-libs/libXmu"
-        elif pkg == "util-linux":
-            return "sys-apps/util-linux"
-        elif pkg == "uuid":
-            return "sys-apps/util-linux"
-        elif pkg == "python-argparse":
-            return "dev-lang/python\ndev-lang/python-exec"
-        elif pkg == "python-qt5-bindings-webkit":
-            return "dev-python/PyQt5"
-        elif pkg not in base_yml:
+        if pkg not in base_yml:
             if pkg not in python_yml:
-                raise UnresolvedDependency("unknown dependency {}".format(pkg))
+                raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
             elif 'gentoo'not in python_yml[pkg]:
                 raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
-            elif 'portage' in python_yml[pkg]['gentoo']:
+            elif 'portage' in python_yml[pkg]['gentoo']:                
                 resolution = python_yml[pkg]['gentoo']['portage']['packages'][0]
-                print("resolved: {} --> {}".format(pkg, resolution))
+                # print("resolved: {} --> {}".format(pkg, resolution))
                 return resolution
             else:
                 resolution = python_yml[pkg]['gentoo'][0]
-                print("resolved: {} --> {}".format(pkg, resolution))
+                # print("resolved: {} --> {}".format(pkg, resolution))
                 return resolution
         elif 'gentoo'not in base_yml[pkg]:
             raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
         elif 'portage' in base_yml[pkg]['gentoo']:
             resolution = base_yml[pkg]['gentoo']['portage']['packages'][0]
-            print("resolved: {} --> {}".format(pkg, resolution))
+            # print("resolved: {} --> {}".format(pkg, resolution))
             return resolution
         else:
             resolution = base_yml[pkg]['gentoo'][0]
-            print("resolved: {} --> {}".format(pkg, resolution))
+            # print("resolved: {} --> {}".format(pkg, resolution))
             return resolution 
 
 class UnresolvedDependency(Exception):
