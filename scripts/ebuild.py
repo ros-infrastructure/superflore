@@ -131,7 +131,8 @@ class Ebuild(object):
         # SLOT
         ret += "SLOT=\"0/0\"\n"
         # CMAKE_BUILD_TYPE
-        ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n\n"
+        ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
+        ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
 
         ret += "src_unpack() {\n"
         ret += "    wget -O ${P}.tar.gz ${SRC_URI}\n"
@@ -149,21 +150,14 @@ class Ebuild(object):
         ret += "src_compile() {\n"
         ret += "    echo \"\"\n"
         ret += "}\n\n"
-
+        
         ret += "src_install() {\n"
         ret += "    cd ../../work\n"
         ret += "    source /opt/ros/{}/setup.bash\n".format(self.distro)
-        ret += "    catkin_make_isolated --install --install-space=\"${D}"
-        ret +=      "/opt/ros/{}\" || die\n".format(self.distro)
-        ret += "}\n\n"
-
-        ret += "pkg_postinst() {\n"
-        ret += "    cd ${D}\n"
-        ret += "    cp -R lib* /opt/ros/{}\n".format(self.distro)
-        ret += "    cp -R share /opt/ros/{}\n".format(self.distro)
-        ret += "    cp -R bin /opt/ros/{}\n".format(self.distro)
-        ret += "    cp -R include /opt/ros/{}\n".format(self.distro)
-        ret += "}\n"        
+        ret += "    catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\"\n"
+        ret += "    rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
+        ret += "    rm -f ${D}/${ROS_PREFIX}/{setup.zsh,.rosinstall}\n"
+        ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")            
