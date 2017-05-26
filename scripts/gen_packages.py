@@ -61,7 +61,7 @@ def generate_installers(distro_name):
                 err("!!!!  unresolved: \"{}\"".format(dep))
             err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
             failed = failed + 1
-            continue
+            continue # do not generate an incomplete ebuild
         metadata_text = current.metadata_text()
         make_dir("ros-{}/{}".format(distro_name, pkg))
         ok(">>>> Succesfully generated installer for package \"{}.\"".format(pkg))
@@ -80,15 +80,15 @@ def generate_installers(distro_name):
             bad_installers.append(current)
             failed = failed + 1
         
-            print("------ Generated {} / {} installers for distro \"{}\" ------".format(succeeded, failed + succeeded, distro_name))
-            print()
+    print("------ Generated {} / {} installers for distro \"{}\" ------".format(succeeded, failed + succeeded, distro_name))
+    print()
 
-            if len(borkd_pkgs) > 0:
-                warn(">>>> Unresolved:")
-                for broken in borkd_pkgs.keys():
-                    warn(">>>> {}:".format(broken))
-                    for dep in borkd_pkgs[broken]:
-                        warn(">>>>   {}")
+    if len(borkd_pkgs) > 0:
+        warn(">>>> Unresolved:")
+        for broken in borkd_pkgs.keys():
+            warn(">>>> {}:".format(broken))
+            for dep in borkd_pkgs[broken]:
+                warn(">>>>   {}")
     return installers
     
 def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):
