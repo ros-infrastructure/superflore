@@ -56,9 +56,10 @@ def generate_installers(distro_name):
         except UnresolvedDependency as msg:
             err("!!!! Failed to resolve required dependencies for package {}!".format(pkg))
             unresolved = current.ebuild.get_unresolved()
-            borkd_pkgs[pkg] = list(unresolved)
+            borkd_pkgs[pkg] = list()
             for dep in unresolved:
                 err("!!!!  unresolved: \"{}\"".format(dep))
+                borkd_pkgs[pkg].append(dep)
             err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
             failed = failed + 1
             continue # do not generate an incomplete ebuild
