@@ -13,8 +13,8 @@ except:
         response = urlopen(url)
         return response.read()
 
-base_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/base.yaml"
-python_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/python.yaml"
+base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
+python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
 
 print("Downloading latest base yml...")
 base_yml = yaml.load(get_http(base_url))
