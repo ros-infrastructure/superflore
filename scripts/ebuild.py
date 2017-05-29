@@ -158,7 +158,7 @@ class Ebuild(object):
         ret += "src_install() {\n"
         ret += "    cd ../../work\n"
         ret += "    source /${ROS_PREFIX}/setup.bash\n"
-        ret += "    /usr/bin/catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
+        ret += "    catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
         ret += "    if [[ -e ${D}/${ROS_PREFIX}/setup.bash ]]; then\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{setup.zsh,.rosinstall}\n"
