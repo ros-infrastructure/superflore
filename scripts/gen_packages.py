@@ -101,11 +101,20 @@ def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinsta
         return pkg_metadata_xml
     pkg_fields = xmltodict.parse(pkg_xml)
 
+    if 'maintainer' in pkg_fields['package']:
+        if isinstance(pkg_fields['package']['maintainer'], list):
+            pkg_metadata_xml.upstream_email = pkg_fields['package']['maintainer'][0]['@email']
+            pkg_metadata_xml.upstream_name  = pkg_fields['package']['maintainer'][0]['#text']
+        elif isinstance(pkg_fields['package']['maintainer']['@email'], list):
+            pkg_metadata_xml.upstream_email = pkg_fields['package']['maintainer'][0]['@email']
+            pkg_metadata_xml.upstream_name = pkg_fields['package']['maintainer'][0]['#text']
+        else:
+            pkg_metadata_xml.upstream_email = pkg_fields['package']['maintainer']['@email']
+            pkg_metadata_xml.upstream_name = pkg_fields['package']['maintainer']['#text']
+
+    pkg_metadata_xml.upstream_bug_url = repo.url.replace("-release", "").replace(".git", "/issues")
+
     """
-    @todo: upstream_maintainer
-    @todo: upstream_name
-    @todo: upstream_email
-    @todo: upstream_bug_url
     @todo: longdescription
     """
     return pkg_metadata_xml
@@ -145,6 +154,10 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
     
     pkg_ebuild.upstream_license = pkg_fields['package']['license']
     pkg_ebuild.description = pkg_fields['package']['description']
+    if isinstance(pkg_ebuild.description, str):
+        pkg_ebuild.description = pkg_ebuild.description.replace('`', "")
+    if len(pkg_ebuild.description) > 80:
+        pkg_ebuild.description = pkg_ebuild.description[:80]
     try:
         if 'url' not in pkg_fields['package']:
             warn(">>>> no website field for package {}".format(pkg_name))

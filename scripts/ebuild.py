@@ -90,8 +90,12 @@ class Ebuild(object):
             ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
         elif sys.version_info <= (3, 0) and isinstance(self.upstream_license, unicode):
             ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
-        else:
-            ret += "LICENSE=\"UNKNOWN\"\n"
+        elif isinstance(self.upstream_license, list):
+            ret += "LICENSE=\"||( "
+            for l in self.upstream_license:
+                ret += "{} ".format(l)
+            ret += ")\"\n"
+                
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
 
@@ -153,10 +157,12 @@ class Ebuild(object):
         
         ret += "src_install() {\n"
         ret += "    cd ../../work\n"
-        ret += "    source /opt/ros/{}/setup.bash\n".format(self.distro)
-        ret += "    catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
-        ret += "    rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
-        ret += "    rm -f ${D}/${ROS_PREFIX}/{setup.zsh,.rosinstall}\n"
+        ret += "    source /${ROS_PREFIX}/setup.bash\n"
+        ret += "    /usr/bin/catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
+        ret += "    if [[ -e ${D}/${ROS_PREFIX}/setup.bash ]]; then\n"
+        ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
+        ret += "        rm -f ${D}/${ROS_PREFIX}/{setup.zsh,.rosinstall}\n"
+        ret += "    fi\n"
         ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
