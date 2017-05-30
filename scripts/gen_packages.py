@@ -33,7 +33,10 @@ def make_dir(dirname):
 def get_pkg_version(distro, pkg_name):
     pkg = distro.release_packages[pkg_name]
     repo = distro.repositories[pkg.repository_name].release_repository
-    return repo.version.split('-')[0]
+    maj_min_patch, deb_inc = repo.version.split('-')
+    if deb_inc != '0':        
+        return '{0}-r{1}'.format(maj_min_patch, deb_inc)
+    return maj_min_patch
     
 def generate_installers(distro_name):
     make_dir("ros-{}".format(distro_name))
@@ -46,7 +49,8 @@ def generate_installers(distro_name):
     failed = 0
 
     for pkg in pkg_names[0]:
-        if os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, get_pkg_version(distro, pkg))):
+        version = get_pkg_version(distro, pkg)
+        if os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, version)):
             ok(">>>> Ebuild for package {} up to date, skipping...".format(pkg))
             continue
         current = gentoo_installer(distro, pkg)        
@@ -69,8 +73,8 @@ def generate_installers(distro_name):
         succeeded = succeeded + 1
 
         try:
-            ebuild_file = open("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, get_pkg_version(distro, pkg)), "w")
-            metadata_file = open("ros-{}/{}/metadata.xml".format(distro_name, pkg), "w")
+            ebuild_file = open('ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version), "w")
+            metadata_file = open('ros-{0}/{1}/metadata.xml'.format(distro_name, pkg), "w")
                 
             ebuild_file.write(ebuild_text)
             metadata_file.write(metadata_text)
