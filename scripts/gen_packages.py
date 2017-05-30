@@ -110,7 +110,10 @@ def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinsta
             pkg_metadata_xml.upstream_name = pkg_fields['package']['maintainer'][0]['#text']
         else:
             pkg_metadata_xml.upstream_email = pkg_fields['package']['maintainer']['@email']
-            pkg_metadata_xml.upstream_name = pkg_fields['package']['maintainer']['#text']
+            if '#text' in pkg_fields['package']['maintainer']:
+                pkg_metadata_xml.upstream_name = pkg_fields['package']['maintainer']['#text']
+            else:
+                pkg_metadata_xml.upstream_name = "UNKNOWN"
 
     pkg_metadata_xml.upstream_bug_url = repo.url.replace("-release", "").replace(".git", "/issues")
 

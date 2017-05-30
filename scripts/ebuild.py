@@ -15,11 +15,14 @@ except:
 
 base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
 python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
+ruby_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
 
 print("Downloading latest base yml...")
 base_yml = yaml.load(get_http(base_url))
 print("Downloading latest python yml...")
 python_yml = yaml.load(get_http(python_url))
+print("Downloading latest ruby yml...")
+ruby_yml = yaml.load(get_http(ruby_url))
 
 class Ebuild(object):
     """
@@ -91,7 +94,7 @@ class Ebuild(object):
         elif sys.version_info <= (3, 0) and isinstance(self.upstream_license, unicode):
             ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
         elif isinstance(self.upstream_license, list):
-            ret += "LICENSE=\"||( "
+            ret += "LICENSE=\"|| ( "
             for l in self.upstream_license:
                 ret += "{} ".format(l)
             ret += ")\"\n"
@@ -159,7 +162,7 @@ class Ebuild(object):
         ret += "    cd ../../work\n"
         ret += "    source /${ROS_PREFIX}/setup.bash\n"
         ret += "    catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
-        ret += "    if [[ -e ${D}/${ROS_PREFIX}/setup.bash ]]; then\n"
+        ret += "    if [[ -e /${ROS_PREFIX}/setup.bash ]]; then\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{setup.zsh,.rosinstall}\n"
         ret += "    fi\n"
@@ -177,7 +180,18 @@ class Ebuild(object):
     def resolve(pkg):
         if pkg not in base_yml:
             if pkg not in python_yml:
-                raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
+                if pkg not in ruby_yml:
+                    raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
+                elif 'gentoo'not in ruby_yml[pkg]:
+                    raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
+                elif 'portage' in ruby_yml[pkg]['gentoo']:                
+                    resolution = ruby_yml[pkg]['gentoo']['portage']['packages'][0]
+                    # print("resolved: {} --> {}".format(pkg, resolution))
+                    return resolution
+                else:
+                    resolution = ruby_yml[pkg]['gentoo'][0]
+                    # print("resolved: {} --> {}".format(pkg, resolution))
+                    return resolution
             elif 'gentoo'not in python_yml[pkg]:
                 raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
             elif 'portage' in python_yml[pkg]['gentoo']:                
