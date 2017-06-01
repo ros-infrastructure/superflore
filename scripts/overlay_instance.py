@@ -3,6 +3,7 @@ from .repo_instance import repo_instance
 import random
 import string
 import time
+import os
 
 def get_random_tmp_dir():
     return '/tmp/{0}'.format(''.join(random.choice(string.ascii_letters) for x in range(10)))
@@ -28,6 +29,24 @@ class ros_overlay(repo_instance):
         commit_msg = 'rosdistro sync, {0}'.format(time.ctime())
         self.info('Committing to branch {0}...'.format(self.branch_name))
         self.git.commit(m='{0}'.format(commit_msg))
+
+    def regenerate_manifests(self):
+        self.info('Generating manifests...')
+        pid = os.fork()
+
+        if pid == 0:
+            os.chdir(self.repo_dir)
+            self.info('child: changed work directory to {0}'.format(os.getcwd()))
+            os.execlp('sudo', 'sudo', 'repoman', 'manifest')
+            self.error('Failed to run repoman!')
+            self.error('Do you have permissions?')
+            quit()
+        else:            
+            if os.waitpid(pid, 0)[1] != 0:
+                self.error('Manifest generation failed. Exiting...')
+                quit()
+            else:
+                self.happy('Manifest generation succeeded.')
 
     def pull_request(self, message):
         self.info('Filing pull-request for ros/ros-overlay...')

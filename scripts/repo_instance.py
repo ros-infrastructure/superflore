@@ -42,13 +42,13 @@ class repo_instance(object):
         """
         @todo: error checking
         """
-        print(self.git.checkout(branch_name))
+        self.git.checkout(branch_name)
 
     def rebase(self, target):
         """
         @todo: error checking
         """
-        print(self.git.rebase(i=target))
+        self.git.rebase(i=target)
 
     @staticmethod
     def info(string):

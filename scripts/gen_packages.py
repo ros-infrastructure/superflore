@@ -43,6 +43,7 @@ def generate_installers(distro_name):
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
     borkd_pkgs = dict()
+    changes = []
     installers = []
     bad_installers = []
     succeeded = 0
@@ -82,9 +83,11 @@ def generate_installers(distro_name):
         try:
             ebuild_file = open('ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version), "w")
             metadata_file = open('ros-{0}/{1}/metadata.xml'.format(distro_name, pkg), "w")
-                
+
             ebuild_file.write(ebuild_text)
             metadata_file.write(metadata_text)
+            changes.append('*{0} --> {1}*'.format(pkg, version))
+
         except:
             err("!!!! Failed to write ebuild/metadata to disk!")
             installers.append(current)
@@ -101,7 +104,7 @@ def generate_installers(distro_name):
             warn(">>>> {}:".format(broken))
             warn(">>>>   {}".format(borkd_pkgs[broken]))
 
-    return installers, borkd_pkgs
+    return installers, borkd_pkgs, changes
     
 def _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):
     pkg_metadata_xml = metadata_xml()        
