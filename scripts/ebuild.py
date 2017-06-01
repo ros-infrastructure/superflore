@@ -87,7 +87,7 @@ class Ebuild(object):
             ret += "DESCRIPTION=\"\"\n"
 
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
-        ret += "SRC_URI=\"" + self.src_uri + "\"\n\n"
+        ret += "SRC_URI=\"" + self.src_uri + " -> ${P}.tar.gz\"\n\n"
         # license
         if isinstance(self.upstream_license, str):
             ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
@@ -142,9 +142,7 @@ class Ebuild(object):
         ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
 
         ret += "src_unpack() {\n"
-        ret += "    wget -O ${P}.tar.gz ${SRC_URI}\n"
-        ret += "    tar -xf ${P}.tar.gz\n"
-        ret += "    rm -f ${P}.tar.gz\n"
+        ret += "    default\n"
         ret += "    mv *${P}* ${P}\n"
         ret += "}\n\n"
         
