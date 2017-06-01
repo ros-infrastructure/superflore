@@ -52,11 +52,13 @@ def generate_installers(distro_name):
         version = get_pkg_version(distro, pkg)
         if os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, version)):
             ok(">>>> Ebuild for package {} up to date, skipping...".format(pkg))
+            succeeded = succeeded + 1
             continue
         current = gentoo_installer(distro, pkg)        
         # make the directory
         try:
             ebuild_text = current.ebuild_text()
+            metadata_text = current.metadata_text()            
         except UnresolvedDependency as msg:
             err("!!!! Failed to resolve required dependencies for package {}!".format(pkg))
             unresolved = current.ebuild.get_unresolved()
@@ -67,7 +69,12 @@ def generate_installers(distro_name):
             err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
             failed = failed + 1
             continue # do not generate an incomplete ebuild
-        metadata_text = current.metadata_text()
+        except KeyError as key:
+            err("!!!! Failed to parse data for package {}!".format(pkg))
+            unresolved = current.ebuild.get_unresolved()
+            err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
+            failed = failed + 1
+            continue # do not generate an incomplete ebuild            
         make_dir("ros-{}/{}".format(distro_name, pkg))
         ok(">>>> Succesfully generated installer for package \"{}.\"".format(pkg))
         succeeded = succeeded + 1
