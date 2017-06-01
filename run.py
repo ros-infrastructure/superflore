@@ -51,15 +51,13 @@ inst_list = sorted(inst_list)
 missing_deps  ="Missing Dependencies:"
 missing_deps +="---------------------"
 for pkg in inst_list:
-    missing_deps += " * [ ] {}".format(pkg)
+    missing_deps += " * [ ] {0}\n".format(pkg)
 
-# Clone repo
+"""
+We don't need to remove files anymore.
+
 overlay.clean_ros_ebuild_dirs()
-
-# Copy ros-* to ebuild directory
-# shutil.copytree('ros-indigo', overlay.repo_dir)
-# shutil.copytree('ros-kinetic', overlay.repo_dir)
-# shutil.copytree('ros-lunar', overlay.repo_dir)
+"""
 
 # Commit changes and file pull request
 overlay.commit_changes()
