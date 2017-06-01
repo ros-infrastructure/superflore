@@ -54,25 +54,24 @@ delta += "========\n"
 if len(indigo_changes) > 0:
     delta += "Indigo Changes:\n"
     delta += "---------------\n"
-    sorted(indigo_changes)
     
-    for d in indigo_changes:
+    for d in sorted(indigo_changes):
         delta += '* {0}\n'.format(d)
     delta += "\n"
 
 if len(kinetic_changes) > 0:
     delta += "Kinetic Changes:\n"
     delta += "----------------\n"
-    sorted(kinetic_changes)
-    for d in kinetic_changes:
+
+    for d in sorted(kinetic_changes):
         delta += '* {0}\n'.format(d)
     delta += "\n"
 
 if len(lunar_changes) > 0:
     delta += "Lunar Changes:\n"
     delta += "--------------\n"
-    sorted(lunar_changes)
-    for d in lunar_changes:
+
+    for d in sorted(lunar_changes):
         delta += '* {0}\n'.format(d)
     delta += "\n"
 
@@ -100,3 +99,9 @@ except Exception as e:
 # Clean up...
 ros_overlay.info('Cleaning up temporary directory {0}...'.format(overlay.repo_dir))
 shutil.rmtree(overlay.repo_dir)
+ros_overlay.info('Cleaning up symbolic links...')
+
+for x in [ 'ros-lunar', 'ros-kinetic', 'ros-indigo' ]:
+        os.remove(x)
+
+ros_overlay.happy('Successfully synchronized repositories!')
