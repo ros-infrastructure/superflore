@@ -27,9 +27,9 @@ class ros_overlay(repo_instance):
         self.git.add('ros-*')
         commit_msg = 'rosdistro sync, {0}'.format(time.ctime())
         self.info('Committing to branch {0}...'.format(self.branch_name))
-        self.git.commit(m='"{0}"'.format(commit_msg))
+        self.git.commit(m='{0}'.format(commit_msg))
 
     def pull_request(self, message):
         self.info('Filing pull-request for ros/ros-overlay...')
-        self.git.pull_request(m=message)
+        self.git.pull_request(m='{0}'.format(message))
         self.happy('Successfully filed a pull request with the ros/ros-overlay repo.')
