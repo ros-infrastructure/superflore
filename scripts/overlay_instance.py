@@ -31,9 +31,6 @@ class ros_overlay(repo_instance):
 
     def pull_request(self, message):
         self.info('Filing pull-request for ros/ros-overlay...')
-        if len(message) > 256:
-            self.warn('Maximum message length is 256 characters (at {0})!'.format(len(message)))
-            self.warn('Message will be truncated!')
-            message = message[:256]
-        self.git.pull_request(m='{0}'.format(message))
+        title = 'rosdistro sync, {0}'.format(time.ctime())        
+        self.git.pull_request(m='{0}\n\n{1}'.format(title, message))
         self.happy('Successfully filed a pull request with the ros/ros-overlay repo.')
