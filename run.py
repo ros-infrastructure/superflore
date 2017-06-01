@@ -6,30 +6,42 @@ import os
 
 # clone current repo
 overlay = ros_overlay()
+active_distros = [ 'ros-indigo', 'ros-kinetic', 'ros-lunar' ]
 
 def link_existing_files():
     global overlay
-    ros_overlay.info('Symbolicly linking files from {0}...'.format(overlay.repo_dir + '/ros-indigo'))
-    os.symlink(overlay.repo_dir + '/ros-indigo', './ros-indigo')
-    ros_overlay.info('Symbolicly linking files from {0}...'.format(overlay.repo_dir + '/ros-kinetic'))
-    os.symlink(overlay.repo_dir + '/ros-kinetic', './ros-kinetic')
-    ros_overlay.info('Symbolicly linking files from {0}...'.format(overlay.repo_dir + '/ros-lunar'))
-    os.symlink(overlay.repo_dir + '/ros-lunar', './ros-lunar')
+    for x in active_distros:
+        ros_overlay.info('Symbolicly linking files from {0}/{1}...'.format(overlay.repo_dir, x))
+        os.symlink(overlay.repo_dir + '/' + x, './' + x)
+
+def clean_up():
+    ros_overlay.info('Cleaning up temporary directory {0}...'.format(overlay.repo_dir))
+    shutil.rmtree(overlay.repo_dir)
+    ros_overlay.info('Cleaning up symbolic links...')
+
+    for x in active_distros:
+        os.remove(x)
 
 try:
     link_existing_files()
 except FileExistsError as fe:
     ros_overlay.warn('Detected existing rosdistro ebuild structure... Removing and overwriting.')
-    for x in [ 'ros-lunar', 'ros-kinetic', 'ros-indigo' ]:
+    for x in active_distros:
         os.remove(x)
-        os.symlink(overlay.repo_dir + '/' + x, './' + x)
+    link_existing_files()
 
 # generate installers for kinetic
 indigo_installers, indigo_broken, indigo_changes = generate_installers("indigo")
 kinetic_installers, kinetic_broken, kinetic_changes = generate_installers("kinetic")
 lunar_installers, lunar_broken, lunar_changes = generate_installers("lunar")
 
-master_list = lunar_broken.copy()
+if len(indigo_changes) + len(kinetic_changes) + len(lunar_changes) == 0:
+    ros_overlay.info('ROS distro is up to date.')
+    ros_overlay.info('Exiting...')
+    clean_up()
+    quit()
+
+master_list = indigo_broken.copy()
 
 for p in kinetic_broken.keys():
     if p not in master_list.keys():
@@ -96,12 +108,5 @@ except Exception as e:
     overlay.error('Failed to file PR with ros/ros-overlay repo!')
     overlay.error('Exception: {0}'.format(e))
 
-# Clean up...
-ros_overlay.info('Cleaning up temporary directory {0}...'.format(overlay.repo_dir))
-shutil.rmtree(overlay.repo_dir)
-ros_overlay.info('Cleaning up symbolic links...')
-
-for x in [ 'ros-lunar', 'ros-kinetic', 'ros-indigo' ]:
-        os.remove(x)
-
+clean_up()
 ros_overlay.happy('Successfully synchronized repositories!')
