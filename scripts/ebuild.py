@@ -96,7 +96,7 @@ class Ebuild(object):
         elif isinstance(self.upstream_license, list):
             ret += "LICENSE=\"|| ( "
             for l in self.upstream_license:
-                ret += "{} ".format(l)
+                ret += "\"{}\" ".format(l)
             ret += ")\"\n"
                 
         # iterate through the keywords, adding to the KEYWORDS line.
@@ -106,14 +106,14 @@ class Ebuild(object):
         for i in self.keys:
             if not first:
                 ret += " "
-            ret += "~" + i
+            ret += i
             first = False
 
         ret += "\"\n\n"
 
         # RDEPEND
         ret += "RDEPEND=\"\n"
-
+        self.rdepends = sorted(self.rdepends)
         for rdep in self.rdepends:
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
         for rdep in self.rdepends_external:
@@ -125,7 +125,8 @@ class Ebuild(object):
         ret += "\"\n"
 
         # DEPEND
-        ret += "DEPEND=\"${RDEPEND}\n"
+        self.depends = sorted(self.depends)
+        ret += "DEPEND=\"${RDEPEND}\n"        
         for bdep in self.depends:
             ret += "    " + "ros-" + self.distro + "/" + bdep + "\n"
         for bdep in self.depends_external:
