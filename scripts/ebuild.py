@@ -87,7 +87,7 @@ class Ebuild(object):
             ret += "DESCRIPTION=\"\"\n"
 
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
-        ret += "SRC_URI=\"" + self.src_uri + " -> ${P}.tar.gz\"\n\n"
+        ret += "SRC_URI=\"" + self.src_uri + " -> ${P}-${PV}.tar.gz\"\n\n"
         # license
         if isinstance(self.upstream_license, str):
             ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
