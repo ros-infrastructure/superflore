@@ -113,10 +113,9 @@ class Ebuild(object):
 
         # RDEPEND
         ret += "RDEPEND=\"\n"
-        self.rdepends = sorted(self.rdepends)
-        for rdep in self.rdepends:
+        for rdep in sorted(self.rdepends):
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
-        for rdep in self.rdepends_external:
+        for rdep in sorted(self.rdepends_external):
             try:
                 ret += "    " + self.resolve(rdep) + "\n"
             except UnresolvedDependency as msg:
@@ -125,11 +124,10 @@ class Ebuild(object):
         ret += "\"\n"
 
         # DEPEND
-        self.depends = sorted(self.depends)
         ret += "DEPEND=\"${RDEPEND}\n"        
-        for bdep in self.depends:
+        for bdep in sorted(self.depends):
             ret += "    " + "ros-" + self.distro + "/" + bdep + "\n"
-        for bdep in self.depends_external:
+        for bdep in sorted(self.depends_external):
             try:
                 ret += "    " + self.resolve(bdep) + "\n"
             except UnresolvedDependency as bad_dep:
