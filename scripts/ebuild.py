@@ -158,6 +158,8 @@ class Ebuild(object):
         ret += "src_install() {\n"
         ret += "    cd ../../work\n"
         ret += "    source /${ROS_PREFIX}/setup.bash\n"
+        ret += "    export PYTHONPATH=\"/${ROS_PREFIX}/lib/python3.5/site-packages:${PYTHONPATH}\""
+        ret += "    export PYTHONPATH=\"/${ROS_PREFIX}/lib64/python3.5/site-packages:${PYTHONPATH}\""
         ret += "    catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
         ret += "    if [[ -e /${ROS_PREFIX}/setup.bash ]]; then\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
@@ -166,7 +168,7 @@ class Ebuild(object):
         ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
-            raise UnresolvedDependency("failed to satisfy dependencies!")            
+            raise UnresolvedDependency("failed to satisfy dependencies!")
 
         return ret
 
