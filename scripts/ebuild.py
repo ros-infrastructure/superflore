@@ -126,7 +126,7 @@ class Ebuild(object):
         ret += "DEPEND=\"${RDEPEND}\n"
         ret =+ "    dev-python/catkin\n"
         for bdep in sorted(self.depends):
-            ret += "    " + 'ros-{0}/{1}'.format(self.distro, bdep)"\n"
+            ret += "    " + 'ros-{0}/{1}\n'.format(self.distro, bdep)
         for bdep in sorted(self.depends_external):
             try:
                 ret += "    " + self.resolve(bdep) + "\n"
