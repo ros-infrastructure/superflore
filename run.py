@@ -5,33 +5,16 @@ import shutil
 import sys
 import os
 
-all_mode = False
-
-if len(sys.argv) == 2:
-    arg1 = sys.argv[1]
-    if arg1 == '--all':
-        all_mode = True
-    else:
-        ros_overlay
-# clone current repo
-overlay = ros_overlay()
-active_distros = [ 'ros-indigo', 'ros-kinetic', 'ros-lunar' ]
-
-if all_mode:
-    """
-    Clean existing ros-* files
-    """
-    ros_overlay.warn('"All" mode detected... This may take a while!')
-    overlay.clean_ros_ebuild_dirs()
-    for x in active_distros:
-        ros_overlay.info('Creating directory {0}/{1}...'.format(overlay.repo_dir, x))
-        os.makedirs('{0}/{1}'.format(overlay.repo_dir, x))
+# Modify if a new distro is added
+active_distros = [ 'indigo', 'kinetic', 'lunar' ]
+# just update packages, by default.
+mode = 'update'
 
 def link_existing_files():
     global overlay
     for x in active_distros:
-        ros_overlay.info('Symbolicly linking files from {0}/{1}...'.format(overlay.repo_dir, x))
-        os.symlink(overlay.repo_dir + '/' + x, './' + x)
+        ros_overlay.info('Symbolicly linking files from {0}/ros-{1}...'.format(overlay.repo_dir, x))
+        os.symlink('{0}/ros-{1}'.format(overlay.repo_dir, x), './ros-' + x)
 
 def clean_up():
     ros_overlay.info('Cleaning up temporary directory {0}...'.format(overlay.repo_dir))
@@ -39,14 +22,58 @@ def clean_up():
     ros_overlay.info('Cleaning up symbolic links...')
 
     for x in active_distros:
-        os.remove(x)
+        os.remove('ros-{0}'.format(x))
+
+def print_usage():
+    usage = 'Usage: {0} [ --all'.format(sys.argv[0])
+    for distro in active_distros:
+        usage += '| --{0}'.format(distro)
+    usage += ' ]'
+    ros_overlay.info(usage)
+    
+if len(sys.argv) == 2:
+    arg1 = sys.argv[1].replace('--', '')
+
+    if arg1 == 'all' or arg1 == 'update':
+        mode = arg1
+    else:
+        if not arg1 in active_distros:
+            ros_overlay.error('Unknown ros distro "{0}"'.format(arg1))
+            ros_overlay.error('Exiting...')
+            sys.exit(1)
+        else:
+            ros_overlay.info('Regenerating all packages for distro "{0}"'.format(arg1))
+            mode = arg1
+elif len(sys.argv) >= 2:
+    ros_overlay.error('Invalid arguments!')
+    print_usage()
+
+# clone current repo
+overlay = ros_overlay()
+
+if mode == 'all':
+    """
+    Clean existing ros-* files
+    """
+    ros_overlay.warn('"All" mode detected... This may take a while!')
+    overlay.clean_ros_ebuild_dirs()
+    for x in active_distros:
+        ros_overlay.info('Creating directory {0}/ros-{1}...'.format(overlay.repo_dir, x))
+        os.makedirs('{0}/ros-{1}'.format(overlay.repo_dir, x))
+elif mode != 'update':
+    """
+    Clean ros-[mode] files
+    """
+    overlay.clean_ros_ebuild_dirs(mode)
+    ros_overlay.info('Creating directory {0}/ros-{1}...'.format(overlay.repo_dir, mode))
+    os.makedirs('{0}/ros-{1}'.format(overlay.repo_dir, mode))
 
 try:
     link_existing_files()
 except FileExistsError as fe:
     ros_overlay.warn('Detected existing rosdistro ebuild structure... Removing and overwriting.')
     for x in active_distros:
-        os.remove(x)
+        os.remove('ros-{0}'.format(x))
     link_existing_files()
 
 # generate installers for kinetic
@@ -58,7 +85,7 @@ if len(indigo_changes) + len(kinetic_changes) + len(lunar_changes) == 0:
     ros_overlay.info('ROS distro is up to date.')
     ros_overlay.info('Exiting...')
     clean_up()
-    quit()
+    sys.exit(0)
 
 master_list = indigo_broken.copy()
 

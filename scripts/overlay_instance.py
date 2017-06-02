@@ -20,9 +20,13 @@ class ros_overlay(repo_instance):
         repo_instance.info('Creating new branch {0}...'.format(self.branch_name))
         self.create_branch(self.branch_name)
 
-    def clean_ros_ebuild_dirs(self):
-        self.info('Cleaning up ros-* directories...')
-        self.git.rm('-rf', 'ros-*')
+    def clean_ros_ebuild_dirs(self, distro=None):
+        if distro is not None:
+            self.info('Cleaning up ros-{0} directory...'.format(distro))
+            self.git.rm('-rf', 'ros-{0}'.format(distro))
+        else:
+            self.info('Cleaning up ros-* directories...')
+            self.git.rm('-rf', 'ros-*')
 
     def commit_changes(self):
         self.info('Adding changes...')
@@ -41,11 +45,11 @@ class ros_overlay(repo_instance):
             os.execlp('sudo', 'sudo', 'repoman', 'manifest')
             self.error('Failed to run repoman!')
             self.error('Do you have permissions?')
-            quit()
+            sys.exit(1)
         else:            
             if os.waitpid(pid, 0)[1] != 0:
                 self.error('Manifest generation failed. Exiting...')
-                quit()
+                sys.exit(1)
             else:
                 self.happy('Manifest generation succeeded.')
 

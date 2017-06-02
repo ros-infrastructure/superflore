@@ -36,7 +36,7 @@ class repo_instance(object):
         """
         @todo: error checking
         """
-        print(self.git.branch('-D', branch_name))
+        self.git.branch('-D', branch_name)
 
     def change_branch(self, branch_name):
         """
