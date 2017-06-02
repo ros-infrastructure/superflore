@@ -70,7 +70,6 @@ class Ebuild(object):
         and the license text.
     
         @todo: make the year dynamic
-        @todo: raise an exception if the distributor/license is invalid
         """
         ret  = "# Copyright 2017 " + distributor + "\n"
         ret += "# Distributed under the terms of the " + license_text + " license\n\n"
