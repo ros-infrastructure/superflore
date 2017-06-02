@@ -144,11 +144,13 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
     pkg_names = get_package_names(distro)
     pkg_dep_walker = DependencyWalker(distro)
 
-    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
-    pkg_run_deps   = pkg_dep_walker.get_depends(pkg_name, "run")
+    pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
+    pkg_build_deps     = pkg_dep_walker.get_depends(pkg_name, "build")
+    pkg_run_deps       = pkg_dep_walker.get_depends(pkg_name, "run")
 
-    pkg_keywords = [ 'x86', 'amd64', 'arm', 'arm64' ]
-
+    
+    pkg_keywords = [ 'x86', 'amd64', 'arm', '~arm64' ]
+    
     # add run dependencies
     for rdep in pkg_run_deps:
         pkg_ebuild.add_run_depend(rdep, rdep in pkg_names[0])
@@ -156,6 +158,10 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
     # add build dependencies
     for bdep in pkg_build_deps:
         pkg_ebuild.add_build_depend(bdep, bdep in pkg_names[0])
+
+    # add build tool dependencies
+    for tdep in pkg_buildtool_deps:
+        pkg_ebuild.add_build_depend(tdep, tdep in pkg_names[0])
 
     # add keywords
     for key in pkg_keywords:
