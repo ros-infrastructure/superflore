@@ -21,6 +21,7 @@ class ros_overlay(repo_instance):
         self.create_branch(self.branch_name)
 
     def clean_ros_ebuild_dirs(self):
+        self.info('Cleaning up ros-* directories...')
         self.git.rm('-rf', 'ros-*')
 
     def commit_changes(self):

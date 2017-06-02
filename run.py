@@ -2,11 +2,30 @@
 from scripts.gen_packages import generate_installers
 from scripts.overlay_instance import ros_overlay
 import shutil
+import sys
 import os
 
+all_mode = False
+
+if len(sys.argv) == 2:
+    arg1 = sys.argv[1]
+    if arg1 == '--all':
+        all_mode = True
+    else:
+        ros_overlay
 # clone current repo
 overlay = ros_overlay()
 active_distros = [ 'ros-indigo', 'ros-kinetic', 'ros-lunar' ]
+
+if all_mode:
+    """
+    Clean existing ros-* files
+    """
+    ros_overlay.warn('"All" mode detected... This may take a while!')
+    overlay.clean_ros_ebuild_dirs()
+    for x in active_distros:
+        ros_overlay.info('Creating directory {0}/{1}...'.format(overlay.repo_dir, x))
+        os.makedirs('{0}/{1}'.format(overlay.repo_dir, x))
 
 def link_existing_files():
     global overlay
