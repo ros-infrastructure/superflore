@@ -1,6 +1,9 @@
 # This generates Gentoo Linux ebuilds for ROS packages.
-import sys
+from termcolor import colored
 import yaml
+import sys
+import re
+
 try:
     import requests
 
@@ -17,12 +20,56 @@ base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.y
 python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
 ruby_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
 
-print("Downloading latest base yml...")
+print(colored("Downloading latest base yml...", 'cyan'))
 base_yml = yaml.load(get_http(base_url))
-print("Downloading latest python yml...")
+print(colored("Downloading latest python yml...", 'cyan'))
 python_yml = yaml.load(get_http(python_url))
-print("Downloading latest ruby yml...")
+print(colored("Downloading latest ruby yml...", 'cyan'))
 ruby_yml = yaml.load(get_http(ruby_url))
+
+def get_license(l):
+    bsd_re = '^(BSD)((.)*([1234]))?'
+    gpl_re = '^(GPL)((.)*([123]))?'
+    lgpl_re = '^(LGPL)((.)*([23]))?'
+    apache_re = '^(Apache)((.)*(1\.0|1\.1|2\.0))?'
+    none_re = '^(Public Domain)'
+    cc_re = '^Creative Commons'
+    moz_re = '^(Mozilla)((.)*(1\.1))?'
+    mit_re = '^MIT'
+    f = re.IGNORECASE
+
+    if re.search(apache_re, l, f) is not None:
+        version = re.search(apache_re, l, f).group(4)
+        if version is not None:
+            return 'Apache-{0}'.format(version)
+        return 'Apache-1.0'
+    elif re.search(bsd_re, l, f) is not None:
+        version = re.search(bsd_re, l, f).group(4)
+        if version is not None:
+            return 'BSD-{0}'.format(version)
+        return 'BSD'
+    elif re.search(gpl_re, l, f) is not None:
+        version = re.search(gpl_re, l, f).group(4)
+        if version is not None:
+            return 'GPL-{0}'.format(version)
+        return 'GPL-1'
+    elif re.search(lgpl_re, l, f) is not None:
+        version = re.search(lgpl_re, l, f).group(4)
+        if version is not None:
+            return 'LGPL-{0}'.format(version)
+        return 'LGPL-2'
+    elif re.search(moz_re, l, f) is not None:
+        version = re.search(moz_re, l, f).group(4)
+        if version is not None:
+            return 'MPL-{0}'.group(4)
+        return 'MPL-2.0'
+    elif re.search(mit_re, l, f) is not None:
+        return 'MIT'
+    elif re.search(none_re, l, f) is not None:
+        return ''
+    else:
+        print(colored('Could not find a match for license "{0}".'.format(l), 'red'))
+        return l
 
 class Ebuild(object):
     """
@@ -89,13 +136,14 @@ class Ebuild(object):
         ret += "SRC_URI=\"" + self.src_uri + " -> ${P}-${PV}.tar.gz\"\n\n"
         # license
         if isinstance(self.upstream_license, str):
-            ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
+            ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"
         elif sys.version_info <= (3, 0) and isinstance(self.upstream_license, unicode):
-            ret += "LICENSE=\"" + self.upstream_license + "\"\n\n"
+            ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"
         elif isinstance(self.upstream_license, list):
             ret += "LICENSE=\"|| ( "
             for l in self.upstream_license:
-                ret += "\"{}\" ".format(l)
+                l = get_license(l)
+                ret += '{0} '.format(l)
             ret += ")\"\n"
                 
         # iterate through the keywords, adding to the KEYWORDS line.
@@ -215,5 +263,9 @@ class Ebuild(object):
             return resolution 
 
 class UnresolvedDependency(Exception):
+    def __init__(self, message):
+        self.message = message
+
+class UnknownLicense(Exception):
     def __init__(self, message):
         self.message = message
