@@ -33,7 +33,7 @@ def get_license(l):
     lgpl_re = '^(LGPL)((.)*([23]))?'
     apache_re = '^(Apache)((.)*(1\.0|1\.1|2\.0))?'
     none_re = '^(Public Domain)'
-    cc_re = '^Creative Commons'
+    cc_re = '^(Creative\ Commons)'
     moz_re = '^(Mozilla)((.)*(1\.1))?'
     mit_re = '^MIT'
     f = re.IGNORECASE
@@ -65,6 +65,8 @@ def get_license(l):
         return 'MPL-2.0'
     elif re.search(mit_re, l, f) is not None:
         return 'MIT'
+    elif re.search(cc_re, l, f) is not None:
+        return 'CC-BY-SA-3.0'
     elif re.search(none_re, l, f) is not None:
         return ''
     else:
