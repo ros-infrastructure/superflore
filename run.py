@@ -50,6 +50,7 @@ elif len(sys.argv) >= 2:
 
 # clone current repo
 overlay = ros_overlay()
+selected_targets = active_distros
 
 if mode == 'all':
     """
@@ -67,7 +68,7 @@ elif mode != 'update':
     overlay.clean_ros_ebuild_dirs(mode)
     ros_overlay.info('Creating directory {0}/ros-{1}...'.format(overlay.repo_dir, mode))
     os.makedirs('{0}/ros-{1}'.format(overlay.repo_dir, mode))
-
+    selected_targets = [ mode ]
 try:
     link_existing_files()
 except FileExistsError as fe:
@@ -76,67 +77,64 @@ except FileExistsError as fe:
         os.remove('ros-{0}'.format(x))
     link_existing_files()
 
-# generate installers for kinetic
-indigo_installers, indigo_broken, indigo_changes = generate_installers("indigo")
-kinetic_installers, kinetic_broken, kinetic_changes = generate_installers("kinetic")
-lunar_installers, lunar_broken, lunar_changes = generate_installers("lunar")
+# generate installers
+total_installers = dict()
+total_broken = set()
+total_changes = dict()
 
-if len(indigo_changes) + len(kinetic_changes) + len(lunar_changes) == 0:
+for distro in selected_targets:
+    distro_installers, distro_broken, distro_changes = generate_installers(distro)
+    for key in distro_broken.keys():
+        for pkg in distro_broken[key]:
+            total_broken.add(pkg)
+
+    total_changes[distro] = distro_changes
+    total_installers[distro] = distro_installers
+
+num_changes = 0
+for distro_name in total_changes.keys():
+    num_changes += len(distro_changes[distro_name])
+
+if num_changes == 0:
     ros_overlay.info('ROS distro is up to date.')
     ros_overlay.info('Exiting...')
     clean_up()
     sys.exit(0)
 
-master_list = indigo_broken.copy()
-
-for p in kinetic_broken.keys():
-    if p not in master_list.keys():
-        master_list[p] = kinetic_broken[p]
-
-for p in lunar_broken.keys():
-    if p not in master_list.keys():
-        master_list[p] = lunar_broken[p]
-
-inst_list = set()
-
-for broken in master_list.keys():
-    for pkg in master_list[broken]:
-        inst_list.add(pkg)
-
 # remove duplicates
-inst_list = sorted(inst_list)
+inst_list = total_broken
 
 delta  = "Changes:\n"
 delta += "========\n" 
 
-if len(indigo_changes) > 0:
+if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
     delta += "Indigo Changes:\n"
     delta += "---------------\n"
     
-    for d in sorted(indigo_changes):
+    for d in sorted(total_changes['indigo']):
         delta += '* {0}\n'.format(d)
     delta += "\n"
 
-if len(kinetic_changes) > 0:
+if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
     delta += "Kinetic Changes:\n"
     delta += "----------------\n"
 
-    for d in sorted(kinetic_changes):
+    for d in sorted(total_changes['kinetic']):
         delta += '* {0}\n'.format(d)
     delta += "\n"
 
-if len(lunar_changes) > 0:
+if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
     delta += "Lunar Changes:\n"
     delta += "--------------\n"
 
-    for d in sorted(lunar_changes):
+    for d in sorted(total_changes['lunar']):
         delta += '* {0}\n'.format(d)
     delta += "\n"
 
 if len(inst_list) > 0:
     missing_deps  ="Missing Dependencies:\n"
     missing_deps +="=====================\n"
-    for pkg in inst_list:
+    for pkg in sorted(inst_list):
         missing_deps += " * [ ] {0}\n".format(pkg)
 
 """

@@ -160,6 +160,8 @@ class Ebuild(object):
         ret += "    source /${ROS_PREFIX}/setup.bash\n"
         ret += "    export PYTHONPATH=\"/${ROS_PREFIX}/lib/python3.5/site-packages:${PYTHONPATH}\"\n"
         ret += "    export PYTHONPATH=\"/${ROS_PREFIX}/lib64/python3.5/site-packages:${PYTHONPATH}\"\n"
+        ret += "    export PYTHONPATH=\"${D}/${ROS_PREFIX}/lib/python3.5/site-packages:${PYTHONPATH}\"\n"
+        ret += "    export PYTHONPATH=\"${D}/${ROS_PREFIX}/lib64/python3.5/site-packages:${PYTHONPATH}\"\n"
         ret += "    catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
         ret += "    if [[ -e /${ROS_PREFIX}/setup.bash ]]; then\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
