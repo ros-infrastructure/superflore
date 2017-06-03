@@ -92,8 +92,8 @@ for distro in selected_targets:
     total_installers[distro] = distro_installers
 
 num_changes = 0
-for distro_name in total_changes.keys():
-    num_changes += len(distro_changes[distro_name])
+for distro_name in total_changes:
+    num_changes += len(total_changes[distro_name])
 
 if num_changes == 0:
     ros_overlay.info('ROS distro is up to date.')
