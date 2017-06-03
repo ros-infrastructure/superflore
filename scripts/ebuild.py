@@ -61,7 +61,7 @@ def get_license(l):
     elif re.search(moz_re, l, f) is not None:
         version = re.search(moz_re, l, f).group(4)
         if version is not None:
-            return 'MPL-{0}'.group(4)
+            return 'MPL-{0}'.format(version)
         return 'MPL-2.0'
     elif re.search(mit_re, l, f) is not None:
         return 'MIT'
