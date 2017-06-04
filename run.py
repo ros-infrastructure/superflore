@@ -154,8 +154,8 @@ overlay.clean_ros_ebuild_dirs()
 """
 
 # Commit changes and file pull request
-overlay.regenerate_manifests()
-overlay.commit_changes()
+overlay.regenerate_manifests(mode)
+overlay.commit_changes(mode)
 try:
     overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
 except Exception as e:

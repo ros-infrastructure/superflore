@@ -28,19 +28,31 @@ class ros_overlay(repo_instance):
             self.info('Cleaning up ros-* directories...')
             self.git.rm('-rf', 'ros-*')
 
-    def commit_changes(self):
+    def commit_changes(self, distro):
         self.info('Adding changes...')
-        self.git.add('ros-*')
-        commit_msg = 'rosdistro sync, {0}'.format(time.ctime())
+        if distro == 'all' or distro == 'update':
+            self.git.add('ros-*')
+        else:
+            self.git.add('ros-{0}'.format(distro))
+        commit_msg = {
+            'update' : 'rosdistro sync, {0}',
+            'all' : 'regenerate all distros, {0}',
+            'lunar' : 'regenerate ros-lunar, {0}',
+            'indigo' : 'regenerate ros-indigo, {0}',
+            'kinetic' : 'regenerate ros-kinetic, {0}',
+        }[mode].format(time.ctime())
         self.info('Committing to branch {0}...'.format(self.branch_name))
         self.git.commit(m='{0}'.format(commit_msg))
 
-    def regenerate_manifests(self):
+    def regenerate_manifests(self, mode):
         self.info('Generating manifests...')
         pid = os.fork()
 
         if pid == 0:
-            os.chdir(self.repo_dir)
+            if mode == 'all' or mode == 'update':
+                os.chdir(self.repo_dir)
+            else:
+                os.chdir('{0}/ros-{1}'.format(self.repo_dir, mode))
             self.info('child: changed work directory to {0}'.format(os.getcwd()))
             os.execlp('sudo', 'sudo', 'repoman', 'manifest')
             self.error('Failed to run repoman!')
