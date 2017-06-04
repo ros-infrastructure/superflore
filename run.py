@@ -12,17 +12,27 @@ mode = 'update'
 
 def link_existing_files():
     global overlay
-    for x in active_distros:
-        ros_overlay.info('Symbolicly linking files from {0}/ros-{1}...'.format(overlay.repo_dir, x))
-        os.symlink('{0}/ros-{1}'.format(overlay.repo_dir, x), './ros-' + x)
+    global mode
+    if mode == 'all' or mode == 'update':
+        for x in active_distros:
+            ros_overlay.info('Symbolicly linking files from {0}/ros-{1}...'.format(overlay.repo_dir, x))
+            os.symlink('{0}/ros-{1}'.format(overlay.repo_dir, x), './ros-' + x)
+    else:
+        # only link the relevant directory.
+        ros_overlay.info('Symbolicly linking files from {0}/ros-{1}...'.format(overlay.repo_dir, mode))
+        os.symlink('{0}/ros-{1}'.format(overlay.repo_dir, mode), './ros-' + mode)        
 
 def clean_up():
+    global mode
     ros_overlay.info('Cleaning up temporary directory {0}...'.format(overlay.repo_dir))
     shutil.rmtree(overlay.repo_dir)
     ros_overlay.info('Cleaning up symbolic links...')
 
-    for x in active_distros:
-        os.remove('ros-{0}'.format(x))
+    if mode != 'all' and mode != 'update':
+        os.remove('ros-{0}'.format(mode))
+    else:
+        for x in active_distros:
+            os.remove('ros-{0}'.format(x))
 
 def print_usage():
     usage = 'Usage: {0} [ --all'.format(sys.argv[0])
