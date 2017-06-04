@@ -30,7 +30,7 @@ ruby_yml = yaml.load(get_http(ruby_url))
 def get_license(l):
     bsd_re = '^(BSD)((.)*([1234]))?'
     gpl_re = '^(GPL)((.)*([123]))?'
-    lgpl_re = '^(LGPL)((.)*([23]))?'
+    lgpl_re = '^(LGPL)((.)*([23]|2\.1))?'
     apache_re = '^(Apache)((.)*(1\.0|1\.1|2\.0))?'
     none_re = '^(Public Domain)'
     cc_re = '^(Creative\ Commons)'
@@ -83,7 +83,7 @@ class Ebuild(object):
         self.description = ""
         self.homepage = "https://wiki.ros.org"
         self.src_uri = None
-        self.upstream_license = "LGPL-v2"
+        self.upstream_license = "LGPL-2"
         self.keys = list()
         self.rdepends = list()
         self.rdepends_external = list()
@@ -138,9 +138,28 @@ class Ebuild(object):
         ret += "SRC_URI=\"" + self.src_uri + " -> ${P}-${PV}.tar.gz\"\n\n"
         # license
         if isinstance(self.upstream_license, str):
-            ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"
+            split = self.upstream_license.split(',')
+            if len(split) > 1:
+                # they did something like "BSD,GPL,blah"
+                ret += 'LICENSE="|| ( '
+                for l in split:
+                    l = get_license(l.replace(' ', ''))
+                    ret += '{0} '.format(l)
+                ret += ')"\n'
+            else:
+                ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"
         elif sys.version_info <= (3, 0) and isinstance(self.upstream_license, unicode):
-            ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"
+            self.upstream_license = self.upstream_license.decode()
+            split = self.upstream_license.split(',')
+            if len(split) > 1:
+                # they did something like "BSD,GPL,blah"
+                ret += 'LICENSE="|| ( '
+                for l in split:
+                    l = get_license(l.replace(' ', ''))
+                    ret += '{0} '.format(l)
+                ret += ')"\n'            
+            else:
+                ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"            
         elif isinstance(self.upstream_license, list):
             ret += "LICENSE=\"|| ( "
             for l in self.upstream_license:
