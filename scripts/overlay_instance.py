@@ -40,7 +40,7 @@ class ros_overlay(repo_instance):
             'lunar' : 'regenerate ros-lunar, {0}',
             'indigo' : 'regenerate ros-indigo, {0}',
             'kinetic' : 'regenerate ros-kinetic, {0}',
-        }[mode].format(time.ctime())
+        }[distro].format(time.ctime())
         self.info('Committing to branch {0}...'.format(self.branch_name))
         self.git.commit(m='{0}'.format(commit_msg))
 
