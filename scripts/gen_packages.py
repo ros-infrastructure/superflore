@@ -55,8 +55,11 @@ def generate_installers(distro_name):
             ok(">>>> Ebuild for package {} up to date, skipping...".format(pkg))
             succeeded = succeeded + 1
             continue
-        current = gentoo_installer(distro, pkg)        
-        # make the directory
+        try:
+            current = gentoo_installer(distro, pkg)
+        except Exception as e:
+            err('!!!! Failed to generate gentoo installer for package {}!'.format(pkg))
+            err('!!!!   exception: {0}'.format(e))
         try:
             ebuild_text = current.ebuild_text()
             metadata_text = current.metadata_text()            
