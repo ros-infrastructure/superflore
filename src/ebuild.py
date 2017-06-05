@@ -207,11 +207,7 @@ class Ebuild(object):
         ret += "SLOT=\"0\"\n"
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
-        ret += "ROS_PREFIX=\"opt/ros/{}\"\n".format(self.distro)
-        ret += "CMAKE_ROS_FLAGS=\"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\"\n"
-        ret += "CMAKE_ROS_FLAGS=\"-DCMAKE_INSTALL_PREFIX=/${ROS_PREFIX} ${CMAKE_ROS_FLAGS}\"\n"
-        ret += "CMAKE_ROS_FLAGS=\"-DCATKIN_DEVEL_PREFIX=../devel ${CMAKE_ROS_FLAGS}\"\n"
-        ret += "CMAKE_ROS_FLAGS=\"-DCMAKE_PREFIX_PATH=/${ROS_PREFIX}:${CMAKE_PREFIX_PATH}\"\n\n"
+        ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
 
         ret += "src_unpack() {\n"
         ret += "    default\n"
@@ -228,7 +224,8 @@ class Ebuild(object):
         ret += "    mkdir ${WORKDIR}/${P}/build\n"
         ret += "    mkdir ${WORKDIR}/${P}/devel\n"
         ret += "    cd ${WORKDIR}/${P}/build\n"
-        ret += "    cmake $(echo ${CMAKE_ROS_FLAGS}) ..\n"
+        ret += "    cmake -DCMAKE_INSTALL_PREFIX=/${ROS_PREFIX} -DCMAKE_PREFIX_PATH=/${ROS_PREFIX} "
+        ret +=           "-DCATKIN_DEVEL_PREFIX=../devel ..\n"
         ret += "    make -j$(nproc) -l$(nproc) || die\n"
         ret += "}\n\n"
 
