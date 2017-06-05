@@ -1,6 +1,6 @@
 #!/usr/bin/python
-from scripts.gen_packages import generate_installers
-from scripts.overlay_instance import ros_overlay
+from ..src.gen_packages import generate_installers
+from ..src.overlay_instance import ros_overlay
 import shutil
 import sys
 import os

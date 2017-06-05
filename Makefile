@@ -1,8 +1,7 @@
 all: run-all
 
-run-all: regen-all-parallel.c
-	gcc regen-all-parallel.c -o regen-all-parallel
-
+run-all: src/regen-all-parallel.c
+	gcc src/regen-all-parallel.c -o bin/regen-all-parallel
 
 clean:
-	rm -f *~ *.o regen-all-parallel
+	rm -f src/*.pyc bin/*.pyc *~ src/*~ bin/regen-all-parallel
