@@ -30,11 +30,11 @@ ruby_yml = yaml.load(get_http(ruby_url))
 def get_license(l):
     bsd_re = '^(BSD)((.)*([1234]))?'
     gpl_re = '^(GPL)((.)*([123]))?'
-    lgpl_re = '^(LGPL)((.)*([23]|2\.1))?'
-    apache_re = '^(Apache)((.)*(1\.0|1\.1|2\.0))?'
+    lgpl_re = '^(LGPL)((.)*([23]|2\\.1))?'
+    apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
     none_re = '^(Public Domain)'
-    cc_re = '^(Creative\ Commons)'
-    moz_re = '^(Mozilla)((.)*(1\.1))?'
+    cc_re = '^(Creative Commons)|'
+    moz_re = '^(Mozilla)((.)*(1\\.1))?'
     mit_re = '^MIT'
     f = re.IGNORECASE
 
@@ -204,7 +204,7 @@ class Ebuild(object):
         ret += "\"\n\n"
 
         # SLOT
-        ret += "SLOT=\"0/0\"\n"
+        ret += "SLOT=\"0\"\n"
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
         ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
@@ -221,7 +221,10 @@ class Ebuild(object):
         ret += "}\n\n"
 
         ret += "src_compile() {\n"
-        ret += "    echo \"\"\n"
+        ret += "    mkdir ${WORKDIR}/${P}/build\n"
+        ret += "    cd ${WORKDIR}/${P}/build\n"
+        ret += "    cmake -DCMAKE_INSTALL_PREFIX=\"${D}/${ROS_PREFIX}\" ..\n"
+        ret += "    make -j$(nproc) -l$(nproc) || die\n"
         ret += "}\n\n"
         
         ret += "src_install() {\n"
@@ -234,7 +237,8 @@ class Ebuild(object):
         ret += "    if [[ ! -d ${D}/${ROS_PREFIX}/lib64/python3.5/site-packages ]]; then\n"
         ret += "        mkdir -p ${D}/${ROS_PREFIX}/lib64/python3.5/site-packages\n"
         ret += "    fi\n\n"
-        ret += "    catkin_make_isolated --install --install-space=\"${D}/${ROS_PREFIX}\" || die\n"
+        ret += "    cd ${P}/build\n"
+        ret += "    make install || die\n"
         ret += "    if [[ -e /${ROS_PREFIX}/setup.bash ]]; then\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{setup.zsh,.rosinstall}\n"

@@ -49,7 +49,7 @@ def generate_installers(distro_name):
     succeeded = 0
     failed = 0
 
-    for pkg in pkg_names[0]:
+    for pkg in sorted(pkg_names[0]):
         version = get_pkg_version(distro, pkg)
         if os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, version)):
             ok(">>>> Ebuild for package {} up to date, skipping...".format(pkg))
@@ -62,7 +62,7 @@ def generate_installers(distro_name):
             err('!!!!   exception: {0}'.format(e))
         try:
             ebuild_text = current.ebuild_text()
-            metadata_text = current.metadata_text()            
+            metadata_text = current.metadata_text()
         except UnresolvedDependency as msg:
             err("!!!! Failed to resolve required dependencies for package {}!".format(pkg))
             unresolved = current.ebuild.get_unresolved()
