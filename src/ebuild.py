@@ -193,7 +193,6 @@ class Ebuild(object):
 
         # DEPEND
         ret += "DEPEND=\"${RDEPEND}\n"
-        ret += "    dev-python/catkin\n"
         for bdep in sorted(self.depends):
             ret += "    " + 'ros-{0}/{1}\n'.format(self.distro, bdep)
         for bdep in sorted(self.depends_external):
@@ -224,22 +223,13 @@ class Ebuild(object):
         ret += "    mkdir ${WORKDIR}/${P}/build\n"
         ret += "    mkdir ${WORKDIR}/${P}/devel\n"
         ret += "    cd ${WORKDIR}/${P}/build\n"
-        ret += "    cmake -DCMAKE_INSTALL_PREFIX=/${ROS_PREFIX} -DCMAKE_PREFIX_PATH=/${ROS_PREFIX} "
+        ret += "    cmake -DCMAKE_INSTALL_PREFIX=${D}/${ROS_PREFIX} -DCMAKE_PREFIX_PATH=/${ROS_PREFIX} "
         ret +=           "-DCATKIN_DEVEL_PREFIX=../devel ..\n"
         ret += "    make -j$(nproc) -l$(nproc) || die\n"
         ret += "}\n\n"
 
         ret += "src_install() {\n"
-        ret += "    cd ../../work\n"
-        ret += "    source /${ROS_PREFIX}/setup.bash\n"
-        ret += "    export PYTHONPATH=\"/${ROS_PREFIX}/lib/python3.5/site-packages:${PYTHONPATH}\"\n"
-        ret += "    export PYTHONPATH=\"/${ROS_PREFIX}/lib64/python3.5/site-packages:${PYTHONPATH}\"\n"
-        ret += "    export PYTHONPATH=\"${D}/${ROS_PREFIX}/lib/python3.5/site-packages:${PYTHONPATH}\"\n"
-        ret += "    export PYTHONPATH=\"${D}/${ROS_PREFIX}/lib64/python3.5/site-packages:${PYTHONPATH}\"\n"
-        ret += "    if [[ ! -d ${D}/${ROS_PREFIX}/lib64/python3.5/site-packages ]]; then\n"
-        ret += "        mkdir -p ${D}/${ROS_PREFIX}/lib64/python3.5/site-packages\n"
-        ret += "    fi\n\n"
-        ret += "    cd ${P}/build\n"
+        ret += "    cd ${WORKDIR}/${P}/build\n"
         ret += "    make install || die\n"
         ret += "    if [[ -e /${ROS_PREFIX}/setup.bash ]]; then\n"
         ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
