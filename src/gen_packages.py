@@ -67,6 +67,7 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             overlay.remove_file(existing[0])
         try:
             current = gentoo_installer(distro, pkg, has_patches)
+            current.ebuild.name = pkg
         except Exception as e:
             err('!!!! Failed to generate gentoo installer for package {}!'.format(pkg))
             err('!!!!   exception: {0}'.format(e))
