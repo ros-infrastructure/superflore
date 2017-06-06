@@ -226,7 +226,7 @@ class Ebuild(object):
         # source configuration
         ret += "src_configure() {\n"
         ret += "    append-cxxflags \"-std=c++11\"\n"
-        ret += "    export DEST_SETUP_DIR=/${ROS_PREFIX}"
+        ret += "    export DEST_SETUP_DIR=\"/${ROS_PREFIX}\"\n"
         ret += "    local mycmakeargs=(\n"
         ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
         ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
@@ -235,10 +235,10 @@ class Ebuild(object):
         ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
 
-        if die_msg is not None:
-            die_msg = ' {0}'.format(die_msg)
+        if self.die_msg is not None:
+            self.die_msg = ' {0}'.format(die_msg)
         else:
-            die_msg = ''
+            self.die_msg = ''
 
         ret += "src_install() {\n"
         ret += "    cd ${WORKDIR}/${P}/build\n"
