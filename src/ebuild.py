@@ -128,6 +128,11 @@ class Ebuild(object):
 
         # EAPI=<eapi>
         ret += "EAPI=" + self.eapi + "\n\n"
+        """
+        @todo: don't hard code this
+        """
+        ret += "inherit cmake-utils eutils\n\n"
+
         # inherits
         # description, homepage, src_uri
         if isinstance(self.description, str):
@@ -217,7 +222,8 @@ class Ebuild(object):
         # Patch source if needed.
         if self.has_patches:
             ret += "    cd ${P}\n"
-            ret += "    epatch \"${PATCHFILES}/*\"\n"
+            ret += "    EPATCH_SOURCE=\"${FILESDIR}\" EPATCH_SUFFIX=\"patch\" \\\n"
+            ret += "                 EPATCH_FORCE=\"yes\" epatch\n"
         ret += "}\n\n"
 
         # If we're writing the ebuild for catkin, don't build in binary mode.
@@ -230,7 +236,9 @@ class Ebuild(object):
         ret += "    local mycmakeargs=(\n"
         ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
         ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
-        ret += "        -DCATKIN_BUILD_BINARY_PATCKAGE={0}\n".format(binary_package)            
+        if self.name != 'catkin':
+            ret += "        -DPYTHON_EXECUTABLE=\"/opt/ros/lunar/env.sh python3.5\"\n"
+        ret += "        -DCATKIN_BUILD_BINARY_PACKAGE={0}\n".format(binary_package)            
         ret += "     )\n"
         ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
@@ -241,7 +249,7 @@ class Ebuild(object):
             self.die_msg = ''
 
         ret += "src_install() {\n"
-        ret += "    cd ${WORKDIR}/${P}/build\n"
+        ret += "    cd ${WORKDIR}/${P}_build\n"
         ret += "    make install || die{0}\n".format(self.die_msg)
         ret += "}\n"
 
