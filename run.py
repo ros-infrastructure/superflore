@@ -134,7 +134,7 @@ if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
         delta += '* {0}\n'.format(d)
     delta += "\n"
 
-missign_deps = ''
+missing_deps = ''
 
 if len(inst_list) > 0:
     missing_deps  ="Missing Dependencies:\n"

@@ -55,7 +55,8 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
         version = get_pkg_version(distro, pkg)        
         ebuild_exists = os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, version))
         has_patches = os.path.exists("ros-{}/{}/files".format(distro_name, pkg))
-        percent = float(i) / total
+        percent = '%.1f' % (100 * (float(i) / total))
+
         if preserve_existing and ebuild_exists:
             ok(">>>> {0}%: Ebuild for package {1} up to date, skipping...".format(percent, pkg))
             succeeded = succeeded + 1
