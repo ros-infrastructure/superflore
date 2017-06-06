@@ -2,6 +2,7 @@
 import sys
 import os
 import xmltodict
+import glob
 from termcolor import colored
 
 from rosinstall_generator.distro import get_distro, get_package_names, _generate_rosinstall
@@ -38,10 +39,11 @@ def get_pkg_version(distro, pkg_name):
         return '{0}-r{1}'.format(maj_min_patch, deb_inc)
     return maj_min_patch
     
-def generate_installers(distro_name):
+def generate_installers(distro_name, overlay, preserve_existing=True):
     make_dir("ros-{}".format(distro_name))
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
+    total = float(len(pkg_names[0]))
     borkd_pkgs = dict()
     changes = []
     installers = []
@@ -49,17 +51,26 @@ def generate_installers(distro_name):
     succeeded = 0
     failed = 0
 
-    for pkg in sorted(pkg_names[0]):
-        version = get_pkg_version(distro, pkg)
-        if os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, version)):
-            ok(">>>> Ebuild for package {} up to date, skipping...".format(pkg))
+    for i, pkg in enumerate(sorted(pkg_names[0])):
+        version = get_pkg_version(distro, pkg)        
+        ebuild_exists = os.path.exists("ros-{}/{}/{}-{}.ebuild".format(distro_name, pkg, pkg, version))
+        has_patches = os.path.exists("ros-{}/{}/files".format(distro_name, pkg))
+        percent = float(i) / total
+        if preserve_existing and ebuild_exists:
+            ok(">>>> {0}%: Ebuild for package {1} up to date, skipping...".format(percent, pkg))
             succeeded = succeeded + 1
             continue
+        # otherwise, remove a (potentially) existing ebuild.
+        existing = glob.glob('ros-{0}/{1}/*.ebuild'.format(distro_name, pkg))
+        if len(existing) > 0:
+            overlay.remove_file(existing[0])
         try:
-            current = gentoo_installer(distro, pkg)
+            current = gentoo_installer(distro, pkg, has_patches)
         except Exception as e:
             err('!!!! Failed to generate gentoo installer for package {}!'.format(pkg))
             err('!!!!   exception: {0}'.format(e))
+            failed = failed + 1
+            continue
         try:
             ebuild_text = current.ebuild_text()
             metadata_text = current.metadata_text()
@@ -80,7 +91,7 @@ def generate_installers(distro_name):
             failed = failed + 1
             continue # do not generate an incomplete ebuild            
         make_dir("ros-{}/{}".format(distro_name, pkg))
-        ok(">>>> Succesfully generated installer for package \"{}.\"".format(pkg))
+        ok(">>>> {0}%: Succesfully generated installer for package \"{1}.\"".format(percent, pkg))
         succeeded = succeeded + 1
 
         try:
@@ -94,7 +105,7 @@ def generate_installers(distro_name):
         except:
             err("!!!! Failed to write ebuild/metadata to disk!")
             installers.append(current)
-            err("!!!! Failed to generate gentoo installer for package {}!".format(pkg))
+            err("!!!! {0}%: Failed to generate gentoo installer for package {1}!".format(percent, pkg))
             bad_installers.append(current)
             failed = failed + 1
         
@@ -150,7 +161,6 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps     = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_run_deps       = pkg_dep_walker.get_depends(pkg_name, "run")
-
     
     pkg_keywords = [ 'x86', 'amd64', 'arm', '~arm64' ]
     
@@ -207,7 +217,7 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
     return pkg_ebuild
 
 class gentoo_installer(object):
-    def __init__(self, distro, pkg_name):
+    def __init__(self, distro, pkg_name, has_patches=False):
         pkg = distro.release_packages[pkg_name]
         repo = distro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
@@ -216,6 +226,7 @@ class gentoo_installer(object):
 
         self.metadata_xml = _gen_metadata_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall)
         self.ebuild       = _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall)
+        self.ebuild.has_patches = has_patches
 
     def metadata_text(self):
         return self.metadata_xml.get_metadata_text()

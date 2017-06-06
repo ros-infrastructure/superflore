@@ -2,6 +2,7 @@
 # from github import Github
 from termcolor import colored
 from git import Git, Repo
+from git.exc import GitCommandError as GitGotGot
 import shutil
 import os
 
@@ -25,6 +26,15 @@ class repo_instance(object):
         msg += '...'
         repo_instance.info(msg)
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
+
+    def remove_file(self, filename, ignore_fail=False):
+        try:
+            self.git.rm('-f', filename)
+        except GitGotGot as g:
+            if ignore_fail:
+                return
+            self.error('Failed to remove file {0} from source control.'.format(filename))
+            self.error(' Exception: {0}'.format(g))
 
     def create_branch(self, branch_name):
         """

@@ -93,6 +93,9 @@ class Ebuild(object):
         self.cmake_package = True
         self.base_yml = None
         self.unresolved_deps = list()
+        self.name = None
+        self.has_patches = False
+        self.die_msg = None
 
     def add_build_depend(self, depend, internal=True):
         if depend in self.rdepends:
@@ -113,7 +116,7 @@ class Ebuild(object):
     def add_keyword(self, keyword):
         self.keys.append(keyword)
 
-    def get_ebuild_text(self, distributor, license_text):
+    def get_ebuild_text(self, distributor, license_text, die_msg=None):
         """
         Generate the ebuild in text, given the distributor line
         and the license text.
@@ -211,30 +214,35 @@ class Ebuild(object):
         ret += "src_unpack() {\n"
         ret += "    default\n"
         ret += "    mv *${P}* ${P}\n"
+        # Patch source if needed.
+        if self.has_patches:
+            ret += "    cd ${P}\n"
+            ret += "    epatch \"${PATCHFILES}/*\"\n"
         ret += "}\n\n"
+
+        # If we're writing the ebuild for catkin, don't build in binary mode.
+        binary_package = '0' if self.name == 'catkin' else '1'
 
         # source configuration
         ret += "src_configure() {\n"
-        ret += "    mkdir ${WORKDIR}/src\n"
-        ret += "    cp -R ${WORKDIR}/${P} ${WORKDIR}/src/${P}\n"
+        ret += "    append-cxxflags \"-std=c++11\"\n"
+        ret += "    export DEST_SETUP_DIR=/${ROS_PREFIX}"
+        ret += "    local mycmakeargs=(\n"
+        ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
+        ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
+        ret += "        -DCATKIN_BUILD_BINARY_PATCKAGE={0}\n".format(binary_package)            
+        ret += "     )\n"
+        ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
 
-        ret += "src_compile() {\n"
-        ret += "    mkdir ${WORKDIR}/${P}/build\n"
-        ret += "    mkdir ${WORKDIR}/${P}/devel\n"
-        ret += "    cd ${WORKDIR}/${P}/build\n"
-        ret += "    cmake -DCMAKE_INSTALL_PREFIX=${D}/${ROS_PREFIX} -DCMAKE_PREFIX_PATH=/${ROS_PREFIX} "
-        ret +=           "-DCATKIN_DEVEL_PREFIX=../devel ..\n"
-        ret += "    make -j$(nproc) -l$(nproc) || die\n"
-        ret += "}\n\n"
+        if die_msg is not None:
+            die_msg = ' {0}'.format(die_msg)
+        else:
+            die_msg = ''
 
         ret += "src_install() {\n"
         ret += "    cd ${WORKDIR}/${P}/build\n"
-        ret += "    make install || die\n"
-        ret += "    if [[ -e /${ROS_PREFIX}/setup.bash ]]; then\n"
-        ret += "        rm -f ${D}/${ROS_PREFIX}/{.catkin,_setup_util.py,env.sh,setup.bash,setup.sh}\n"
-        ret += "        rm -f ${D}/${ROS_PREFIX}/{setup.zsh,.rosinstall}\n"
-        ret += "    fi\n"
+        ret += "    make install || die{0}\n".format(self.die_msg)
         ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
@@ -255,31 +263,25 @@ class Ebuild(object):
                     raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
                 elif 'portage' in ruby_yml[pkg]['gentoo']:                
                     resolution = ruby_yml[pkg]['gentoo']['portage']['packages'][0]
-                    # print("resolved: {} --> {}".format(pkg, resolution))
                     return resolution
                 else:
                     resolution = ruby_yml[pkg]['gentoo'][0]
-                    # print("resolved: {} --> {}".format(pkg, resolution))
                     return resolution
             elif 'gentoo'not in python_yml[pkg]:
                 raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
             elif 'portage' in python_yml[pkg]['gentoo']:                
                 resolution = python_yml[pkg]['gentoo']['portage']['packages'][0]
-                # print("resolved: {} --> {}".format(pkg, resolution))
                 return resolution
             else:
                 resolution = python_yml[pkg]['gentoo'][0]
-                # print("resolved: {} --> {}".format(pkg, resolution))
                 return resolution
         elif 'gentoo'not in base_yml[pkg]:
             raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
         elif 'portage' in base_yml[pkg]['gentoo']:
             resolution = base_yml[pkg]['gentoo']['portage']['packages'][0]
-            # print("resolved: {} --> {}".format(pkg, resolution))
             return resolution
         else:
             resolution = base_yml[pkg]['gentoo'][0]
-            # print("resolved: {} --> {}".format(pkg, resolution))
             return resolution 
 
 class UnresolvedDependency(Exception):
