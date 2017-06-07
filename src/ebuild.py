@@ -16,9 +16,9 @@ except:
         response = urlopen(url)
         return response.read()
 
-base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
-python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
-ruby_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
+base_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/base.yaml"
+python_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/python.yaml"
+ruby_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/ruby.yaml"
 
 print(colored("Downloading latest base yml...", 'cyan'))
 base_yml = yaml.load(get_http(base_url))
@@ -237,7 +237,7 @@ class Ebuild(object):
         ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
         ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
         if self.name != 'catkin':
-            ret += "        -DPYTHON_EXECUTABLE=\"/opt/ros/lunar/env.sh python3.5\"\n"
+            ret += "        -DPYTHON_EXECUTABLE=/usr/bin/ros-python\n"
         ret += "        -DCATKIN_BUILD_BINARY_PACKAGE={0}\n".format(binary_package)            
         ret += "     )\n"
         ret += "    cmake-utils_src_configure\n"
