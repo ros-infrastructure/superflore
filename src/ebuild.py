@@ -16,6 +16,9 @@ except:
         response = urlopen(url)
         return response.read()
 
+"""
+@todo: change these back to ros/rosdistro (waiting on ros/rosdistro#15179 to merge
+"""
 base_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/base.yaml"
 python_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/python.yaml"
 ruby_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/ruby.yaml"
@@ -185,8 +188,11 @@ class Ebuild(object):
             ret += i
             first = False
 
-        ret += "\"\n\n"
-
+        ret += "\"\n"
+        """
+        @todo: uh... probably shouldn't force PYTHON 3.5
+        """
+        ret += "PYTHON_DEPEND=\"3::3.5\"\n\n"
         # RDEPEND
         ret += "RDEPEND=\"\n"
         for rdep in sorted(self.rdepends):
@@ -231,17 +237,30 @@ class Ebuild(object):
 
         # source configuration
         ret += "src_configure() {\n"
-        ret += "    append-cxxflags \"-std=c++11\"\n"
+        if self.name != 'stage':
+            ret += "    append-cxxflags \"-std=c++11\"\n"
         ret += "    export DEST_SETUP_DIR=\"/${ROS_PREFIX}\"\n"
         ret += "    local mycmakeargs=(\n"
         ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
         ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
+        ret += "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"
+        ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
         if self.name != 'catkin':
-            ret += "        -DPYTHON_EXECUTABLE=/usr/bin/ros-python\n"
-        ret += "        -DCATKIN_BUILD_BINARY_PACKAGE={0}\n".format(binary_package)            
+            ret += "        -DPYTHON_EXECUTABLE=/usr/bin/ros-python-{0}\n".format(self.distro)
+        ret += "        -DCATKIN_BUILD_BINARY_PACKAGE={0}\n".format(binary_package)
+        if self.name == 'opencv3':
+            ret += "        -DCMAKE_CXX_FLAGS=\"-O2 -pipe\"\n"
+            ret += "        -DCMAKE_C_FLAGS=\"-O2 -pipe\"\n"
         ret += "     )\n"
         ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
+
+        if self.name == 'catkin':
+            ret += "src_compile() {\n"
+            ret += "    gcc ${FILESDIR}/ros-python.c -o ${WORKDIR}/${P}/ros-python-"
+            ret += "{0} || die 'could not compile ros-python!'\n".format(self.distro)
+            ret += "    cmake-utils_src_compile\n"
+            ret += "}\n\n"
 
         if self.die_msg is not None:
             self.die_msg = ' {0}'.format(die_msg)
@@ -249,6 +268,10 @@ class Ebuild(object):
             self.die_msg = ''
 
         ret += "src_install() {\n"
+        if self.name == 'catkin':
+            ret += "    cd ${WORKDIR}/${P}\n"
+            ret += "    mkdir -p ${D}/usr/bin\n"
+            ret += "    cp ros-python-{0} ".format(self.distro) + "${D}/usr/bin || die 'could not install ros-python!'\n"
         ret += "    cd ${WORKDIR}/${P}_build\n"
         ret += "    make install || die{0}\n".format(self.die_msg)
         ret += "}\n"
