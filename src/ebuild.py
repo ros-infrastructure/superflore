@@ -16,12 +16,9 @@ except:
         response = urlopen(url)
         return response.read()
 
-"""
-@todo: change these back to ros/rosdistro (waiting on ros/rosdistro#15179 to merge
-"""
-base_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/base.yaml"
-python_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/python.yaml"
-ruby_url = "https://raw.githubusercontent.com/allenh1/rosdistro/master/rosdep/ruby.yaml"
+base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
+python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
+ruby_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
 
 print(colored("Downloading latest base yml...", 'cyan'))
 base_yml = yaml.load(get_http(base_url))
