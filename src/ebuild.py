@@ -73,6 +73,17 @@ def get_license(l):
         print(colored('Could not find a match for license "{0}".'.format(l), 'red'))
         return l
 
+class ebuild_keyword(object):
+    def __init__(self, arch, stable):
+        self.arch = arch
+        self.stable = stable
+
+    def to_string(self):
+        if (self.stable):
+            return self.arch
+        else:
+            return '~{0}'.format(self.arch)
+
 class Ebuild(object):
     """
     Basic definition of an ebuild.
@@ -113,8 +124,8 @@ class Ebuild(object):
         else:
             self.rdepends_external.append(rdepend)
 
-    def add_keyword(self, keyword):
-        self.keys.append(keyword)
+    def add_keyword(self, keyword, stable=False):
+        self.keys.append(ebuild_keyword(keyword, stable))
 
     def get_ebuild_text(self, distributor, license_text, die_msg=None):
         """
@@ -182,7 +193,7 @@ class Ebuild(object):
         for i in self.keys:
             if not first:
                 ret += " "
-            ret += i
+            ret += i.to_string()
             first = False
 
         ret += "\"\n"
