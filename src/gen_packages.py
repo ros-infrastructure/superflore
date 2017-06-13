@@ -164,7 +164,7 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
     pkg_build_deps     = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_run_deps       = pkg_dep_walker.get_depends(pkg_name, "run")
     
-    pkg_keywords = [ 'x86', 'amd64', 'arm', '~arm64' ]
+    pkg_keywords = [ 'x86', 'amd64', 'arm', 'arm64' ]
     
     # add run dependencies
     for rdep in pkg_run_deps:
