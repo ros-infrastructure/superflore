@@ -1,0 +1,12 @@
+language: python
+python:
+  - "2.7"
+  - "3.3"
+  - "3.5"
+  # PyPy versions
+  - "pypy3" # Pypy3 2.4.0
+# command to install dependencies
+install:
+  - pip install nose pylint
+# command to run tests
+script: nosetests && pylint
