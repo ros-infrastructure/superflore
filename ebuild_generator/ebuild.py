@@ -18,7 +18,8 @@ except:
 from termcolor import colored
 
 base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
-python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
+python_url = \
+  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
 ruby_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
 
 print(colored("Downloading latest base yml...", 'cyan'))
@@ -27,6 +28,7 @@ print(colored("Downloading latest python yml...", 'cyan'))
 python_yml = yaml.load(get_http(python_url))
 print(colored("Downloading latest ruby yml...", 'cyan'))
 ruby_yml = yaml.load(get_http(ruby_url))
+
 
 def get_license(l):
     bsd_re = '^(BSD)((.)*([1234]))?'
@@ -71,19 +73,22 @@ def get_license(l):
     elif re.search(none_re, l, f) is not None:
         return ''
     else:
-        print(colored('Could not find a match for license "{0}".'.format(l), 'red'))
+        print(colored('Could not match license "{0}".'.format(l), 'red'))
         return l
+
 
 class ebuild_keyword(object):
     def __init__(self, arch, stable):
         self.arch = arch
         self.stable = stable
 
+
     def to_string(self):
         if self.stable:
             return self.arch
         else:
             return '~{0}'.format(self.arch)
+
 
 class Ebuild(object):
     """
@@ -109,6 +114,7 @@ class Ebuild(object):
         self.has_patches = False
         self.die_msg = None
 
+
     def add_build_depend(self, depend, internal=True):
         if depend in self.rdepends:
             return
@@ -119,14 +125,17 @@ class Ebuild(object):
         else:
             self.depends_external.append(depend)
 
+
     def add_run_depend(self, rdepend, internal=True):
         if internal:
             self.rdepends.append(rdepend)
         else:
             self.rdepends_external.append(rdepend)
 
+
     def add_keyword(self, keyword, stable=False):
         self.keys.append(ebuild_keyword(keyword, stable))
+
 
     def get_ebuild_text(self, distributor, license_text, die_msg=None):
         """
@@ -255,7 +264,8 @@ class Ebuild(object):
         ret += "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"
         ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
         if self.name != 'catkin':
-            ret += "        -DPYTHON_EXECUTABLE=/usr/bin/ros-python-{0}\n".format(self.distro)
+            python_exec = "-DPYTHON_EXECUTABLE=/usr/bin/ros-python-{0}".format(self.distro)
+            ret += "        {0}\n".format(python_exec)
         ret += "        -DCATKIN_BUILD_BINARY_PACKAGE={0}\n".format(binary_package)
         if self.name == 'opencv3':
             ret += "        -DCMAKE_CXX_FLAGS=\"-O2 -pipe\"\n"
@@ -280,7 +290,8 @@ class Ebuild(object):
         if self.name == 'catkin':
             ret += "    cd ${WORKDIR}/${P}\n"
             ret += "    mkdir -p ${D}/usr/bin\n"
-            ret += "    cp ros-python-{0} ".format(self.distro) + "${D}/usr/bin || die 'could not install ros-python!'\n"
+            ret += "    cp ros-python-{0} ".format(self.distro) + "${D}/usr/bin "
+            ret += "|| die 'could not install ros-python!'\n"
         ret += "    cd ${WORKDIR}/${P}_build\n"
         ret += "    make install || die{0}\n".format(self.die_msg)
         ret += "}\n"
@@ -290,8 +301,10 @@ class Ebuild(object):
 
         return ret
 
+
     def get_unresolved(self):
         return self.unresolved_deps
+
 
     @staticmethod
     def resolve(pkg):
@@ -324,9 +337,11 @@ class Ebuild(object):
             resolution = base_yml[pkg]['gentoo'][0]
             return resolution
 
+
 class UnresolvedDependency(Exception):
     def __init__(self, message):
         self.message = message
+
 
 class UnknownLicense(Exception):
     def __init__(self, message):
