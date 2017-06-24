@@ -1,6 +1,8 @@
 """
 Generate the metadata.xml file for a package.
 """
+
+
 class metadata_xml(object):
     def __init__(self):
         self.email = "hunter@openrobotics.org"
