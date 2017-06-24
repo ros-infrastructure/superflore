@@ -9,4 +9,4 @@ python:
 install:
   - pip install nose pylint
 # command to run tests
-script: nosetests && pylint
+script: nosetests && pylint ebuild_generator
