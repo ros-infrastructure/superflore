@@ -157,7 +157,7 @@ class Ebuild(object):
         py_ver = sys.version_info
         if isinstance(self.description, str):
             ret += "DESCRIPTION=\"" + self.description + "\"\n"
-        elif py_ver <= (3 , 0) and isinstance(self.description, unicode):
+        elif py_ver <= (3, 0) and isinstance(self.description, unicode):
             ret += "DESCRIPTION=\"" + self.description + "\"\n"
         else:
             ret += "DESCRIPTION=\"\"\n"
@@ -219,7 +219,7 @@ class Ebuild(object):
         for rdep in sorted(self.rdepends_external):
             try:
                 ret += "    " + self.resolve(rdep) + "\n"
-            except UnresolvedDependency as msg:
+            except UnresolvedDependency:
                 self.unresolved_deps.append(rdep)
 
         ret += "\"\n"
@@ -231,7 +231,7 @@ class Ebuild(object):
         for bdep in sorted(self.depends_external):
             try:
                 ret += "    " + self.resolve(bdep) + "\n"
-            except UnresolvedDependency as bad_dep:
+            except UnresolvedDependency:
                 self.unresolved_deps.append(bdep)
         ret += "\"\n\n"
 
@@ -268,7 +268,7 @@ class Ebuild(object):
         if self.name != 'catkin':
             py_exec = "-DPYTHON_EXECUTABLE=/usr/bin/ros-python-{0}"
             py_exec = py_exec.format(self.distro)
-            ret += "        {0}\n".format(python_exec)
+            ret += "        {0}\n".format(py_exec)
         bin_pkg = "-DCATKIN_BUILD_BINARY_PACAKGE={0}\n"
         bin_pkg = bin_pkg.format(binary_package)
         ret += "        {0}\n".format(bin_pkg)
@@ -316,10 +316,10 @@ class Ebuild(object):
         if pkg not in base_yml:
             if pkg not in python_yml:
                 if pkg not in ruby_yml:
-                    raise UnresolvedDependency(\
+                    raise UnresolvedDependency(
                         "could not resolve package {} for Gentoo.".format(pkg))
                 elif 'gentoo'not in ruby_yml[pkg]:
-                    raise UnresolvedDependency(\
+                    raise UnresolvedDependency(
                         "could not resolve package {} for Gentoo.".format(pkg))
                 elif 'portage' in ruby_yml[pkg]['gentoo']:
                     return ruby_yml[pkg]['gentoo']['portage']['packages'][0]
@@ -327,7 +327,7 @@ class Ebuild(object):
                     resolution = ruby_yml[pkg]['gentoo'][0]
                     return resolution
             elif 'gentoo'not in python_yml[pkg]:
-                raise UnresolvedDependency(\
+                raise UnresolvedDependency(
                     "could not resolve package {} for Gentoo.".format(pkg))
             elif 'portage' in python_yml[pkg]['gentoo']:
                 return python_yml[pkg]['gentoo']['portage']['packages'][0]
@@ -335,7 +335,7 @@ class Ebuild(object):
                 resolution = python_yml[pkg]['gentoo'][0]
                 return resolution
         elif 'gentoo'not in base_yml[pkg]:
-            raise UnresolvedDependency(\
+            raise UnresolvedDependency(
                 "could not resolve package {} for Gentoo.".format(pkg))
         elif 'portage' in base_yml[pkg]['gentoo']:
             resolution = base_yml[pkg]['gentoo']['portage']['packages'][0]
