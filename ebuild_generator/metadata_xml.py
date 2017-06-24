@@ -1,9 +1,7 @@
-
+"""
+Generate the metadata.xml file for a package.
+"""
 class metadata_xml(object):
-    """
-    Basic definition of a metadata.xml file.
-    """
-
     def __init__(self):
         self.email = "hunter@openrobotics.org"
         self.name = "Hunter L. Allen"
@@ -13,8 +11,9 @@ class metadata_xml(object):
         self.maintainer_type = "person"
 
     def get_metadata_text(self):
-        ret  = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        ret += "<!DOCTYPE pkgmetadata SYSTEM \"http://www.gentoo.org/dtd/metadata.dtd\">\n"
+        ret = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        ret += "<!DOCTYPE pkgmetadata SYSTEM "
+        ret += "\"http://www.gentoo.org/dtd/metadata.dtd\">\n"
         ret += "<pkgmetadata>\n"
         ret += "  <maintainer type=\"" + self.maintainer_type + "\">\n"
         ret += "    <email>" + self.email + "</email>\n"
@@ -30,5 +29,4 @@ class metadata_xml(object):
                 ret += "    <bugs-to>" + self.upstream_bug_url + "</bugs-to>\n"
             ret += "  </upstream>\n"
         ret += "</pkgmetadata>\n"
-
         return ret

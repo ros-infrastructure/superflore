@@ -88,7 +88,7 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
         try:
             ebuild_text = current.ebuild_text()
             metadata_text = current.metadata_text()
-        except UnresolvedDependency as msg:
+        except UnresolvedDependency:
             dep_err = 'Failed to resolve required dependencies for'
             err("{0} package {1}!".format(dep_err, pkg))
             unresolved = current.ebuild.get_unresolved()
@@ -99,7 +99,7 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             err("Failed to generate installer for package {}!".format(pkg))
             failed = failed + 1
             continue  # do not generate an incomplete ebuild
-        except KeyError as key:
+        except KeyError:
             err("Failed to parse data for package {}!".format(pkg))
             unresolved = current.ebuild.get_unresolved()
             err("Failed to generate installer for package {}!".format(pkg))
@@ -146,7 +146,7 @@ def _gen_metadata_for_package(distro, pkg_name, pkg,
     pkg_metadata_xml = metadata_xml()
     try:
         pkg_xml = ros_pkg.get_package_xml(distro.name)
-    except Exception as e:
+    except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
     pkg_fields = xmltodict.parse(pkg_xml)
@@ -155,7 +155,7 @@ def _gen_metadata_for_package(distro, pkg_name, pkg,
         if isinstance(pkg_fields['package']['maintainer'], list):
             pkg_metadata_xml.upstream_email =\
                 pkg_fields['package']['maintainer'][0]['@email']
-            pkg_metadata_xml.upstream_name  =\
+            pkg_metadata_xml.upstream_name =\
                 pkg_fields['package']['maintainer'][0]['#text']
         elif isinstance(pkg_fields['package']['maintainer']['@email'], list):
             pkg_metadata_xml.upstream_email =\
@@ -190,10 +190,10 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
     pkg_dep_walker = DependencyWalker(distro)
 
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
-    pkg_build_deps     = pkg_dep_walker.get_depends(pkg_name, "build")
-    pkg_run_deps       = pkg_dep_walker.get_depends(pkg_name, "run")
+    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
+    pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
 
-    pkg_keywords = [ 'x86', 'amd64', 'arm', 'arm64' ]
+    pkg_keywords = ['x86', 'amd64', 'arm', 'arm64']
 
     # add run dependencies
     for rdep in pkg_run_deps:
@@ -215,7 +215,7 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
     try:
         pkg_xml = ros_pkg.get_package_xml(distro.name)
     except Exception as e:
-        warn(">>>> cannot fetch metadata for package {}".format(pkg_name))
+        warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild
     pkg_fields = xmltodict.parse(pkg_xml)
 
@@ -227,7 +227,7 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
         pkg_ebuild.description = pkg_ebuild.description[:80]
     try:
         if 'url' not in pkg_fields['package']:
-            warn(">>>> no website field for package {}".format(pkg_name))
+            warn("no website field for package {}".format(pkg_name))
         elif sys.version_info <= (3, 0):
             if isinstance(pkg_fields['package']['url'], unicode):
                 pkg_ebuild.homepage = pkg_fields['package']['url']
@@ -241,10 +241,6 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
             warn("failed to parse website for package {}".format(pkg_name))
     except TypeError as e:
         warn("failed to parse website package {}: {}".format(pkg_name, e))
-
-    """
-    @todo: homepage
-    """
     return pkg_ebuild
 
 
@@ -254,16 +250,16 @@ class gentoo_installer(object):
         repo = distro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
 
-        pkg_rosinstall = \
+        pkg_rosinstall =\
             _generate_rosinstall(pkg_name, repo.url,
                                  get_release_tag(repo, pkg_name), True)
 
-        self.metadata_xml = \
+        self.metadata_xml =\
             _gen_metadata_for_package(distro, pkg_name,
                                       pkg, repo, ros_pkg, pkg_rosinstall)
-        self.ebuild       = \
-                _gen_ebuild_for_package(distro, pkg_name,
-                                        pkg, repo, ros_pkg, pkg_rosinstall)
+        self.ebuild =\
+            _gen_ebuild_for_package(distro, pkg_name,
+                                    pkg, repo, ros_pkg, pkg_rosinstall)
         self.ebuild.has_patches = has_patches
 
     def metadata_text(self):
