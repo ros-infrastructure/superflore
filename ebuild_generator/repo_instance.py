@@ -1,22 +1,23 @@
 # Git operations
 # from github import Github
 from termcolor import colored
-from git import Git, Repo
+from git import Repo
 from git.exc import GitCommandError as GitGotGot
 import shutil
-import os
+
 
 class repo_instance(object):
     def __init__(self, repo_owner, repo_name, repo_dir=None):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
-        self.repo_url = 'https://github.com/{0}/{1}'.format(self.repo_owner, self.repo_name)
+        repo_url = 'https://github.com/{0}/{1}'
+        self.repo_url = repo_url.format(self.repo_owner, self.repo_name)
         if repo_dir is not None:
             self.repo_dir = repo_dir
         else:
             self.repo_dir = self.repo_name
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
-        self.git = self.repo.git        
+        self.git = self.repo.git
 
     def clone(self):
         shutil.rmtree(self.repo_dir)
@@ -33,7 +34,9 @@ class repo_instance(object):
         except GitGotGot as g:
             if ignore_fail:
                 return
-            self.error('Failed to remove file {0} from source control.'.format(filename))
+            fail_msg = 'Failed to remove file {0}'.format(filename)
+            fail_msg += 'from source control.'
+            self.error)
             self.error(' Exception: {0}'.format(g))
 
     def create_branch(self, branch_name):
@@ -76,9 +79,11 @@ class repo_instance(object):
     def happy(string):
         print(colored(string, 'green'))
 
+
 class CloneException(Exception):
     def __init__(self, message):
         self.message = message
+
 
 class BranchException(Exception):
     def __init__(self, message):

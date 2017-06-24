@@ -3,11 +3,12 @@ from .repo_instance import repo_instance
 import random
 import string
 import time
+import sys
 import os
 
 def get_random_tmp_dir():
     rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
-    return '/tmp/{0}'.format(tmp_dir)
+    return '/tmp/{0}'.format(rand_str)
 
 
 def get_random_branch_name():
@@ -41,11 +42,11 @@ class ros_overlay(repo_instance):
         else:
             self.git.add('ros-{0}'.format(distro))
         commit_msg = {
-            'update' : 'rosdistro sync, {0}',
-            'all' : 'regenerate all distros, {0}',
-            'lunar' : 'regenerate ros-lunar, {0}',
-            'indigo' : 'regenerate ros-indigo, {0}',
-            'kinetic' : 'regenerate ros-kinetic, {0}',
+            'update': 'rosdistro sync, {0}',
+            'all': 'regenerate all distros, {0}',
+            'lunar': 'regenerate ros-lunar, {0}',
+            'indigo': 'regenerate ros-indigo, {0}',
+            'kinetic': 'regenerate ros-kinetic, {0}',
         }[distro].format(time.ctime())
         self.info('Committing to branch {0}...'.format(self.branch_name))
         self.git.commit(m='{0}'.format(commit_msg))
