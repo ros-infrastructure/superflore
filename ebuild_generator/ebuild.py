@@ -17,10 +17,12 @@ except:
 
 from termcolor import colored
 
-base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
+base_url = \
+  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
 python_url = \
   "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
-ruby_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
+ruby_url = \
+  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
 
 print(colored("Downloading latest base yml...", 'cyan'))
 base_yml = yaml.load(get_http(base_url))
@@ -28,7 +30,6 @@ print(colored("Downloading latest python yml...", 'cyan'))
 python_yml = yaml.load(get_http(python_url))
 print(colored("Downloading latest ruby yml...", 'cyan'))
 ruby_yml = yaml.load(get_http(ruby_url))
-
 
 def get_license(l):
     bsd_re = '^(BSD)((.)*([1234]))?'
@@ -82,7 +83,6 @@ class ebuild_keyword(object):
         self.arch = arch
         self.stable = stable
 
-
     def to_string(self):
         if self.stable:
             return self.arch
@@ -114,7 +114,6 @@ class Ebuild(object):
         self.has_patches = False
         self.die_msg = None
 
-
     def add_build_depend(self, depend, internal=True):
         if depend in self.rdepends:
             return
@@ -125,17 +124,14 @@ class Ebuild(object):
         else:
             self.depends_external.append(depend)
 
-
     def add_run_depend(self, rdepend, internal=True):
         if internal:
             self.rdepends.append(rdepend)
         else:
             self.rdepends_external.append(rdepend)
 
-
     def add_keyword(self, keyword, stable=False):
         self.keys.append(ebuild_keyword(keyword, stable))
-
 
     def get_ebuild_text(self, distributor, license_text, die_msg=None):
         """
@@ -301,10 +297,8 @@ class Ebuild(object):
 
         return ret
 
-
     def get_unresolved(self):
         return self.unresolved_deps
-
 
     @staticmethod
     def resolve(pkg):
