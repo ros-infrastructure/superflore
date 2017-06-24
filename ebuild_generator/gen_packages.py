@@ -17,6 +17,7 @@ from .metadata_xml import metadata_xml
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
+
 def warn(string):
     print(colored('>>>> '.format(string), 'yellow'))
 
@@ -97,13 +98,13 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
                 borkd_pkgs[pkg].append(dep)
             err("Failed to generate installer for package {}!".format(pkg))
             failed = failed + 1
-            continue # do not generate an incomplete ebuild
+            continue  # do not generate an incomplete ebuild
         except KeyError as key:
             err("Failed to parse data for package {}!".format(pkg))
             unresolved = current.ebuild.get_unresolved()
             err("Failed to generate installer for package {}!".format(pkg))
             failed = failed + 1
-            continue # do not generate an incomplete ebuild
+            continue  # do not generate an incomplete ebuild
         make_dir("ros-{}/{}".format(distro_name, pkg))
         success_msg = 'Successfully generated installer for package'
         ok('{0}%: {1}.'.format(percent, success_msg, pkg))
@@ -132,45 +133,45 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
     print()
 
     if len(borkd_pkgs) > 0:
-        warn(">>>> Unresolved:")
+        warn("Unresolved:")
         for broken in borkd_pkgs.keys():
-            warn(">>>> {}:".format(broken))
-            warn(">>>>   {}".format(borkd_pkgs[broken]))
+            warn("{}:".format(broken))
+            warn("  {}".format(borkd_pkgs[broken]))
 
     return installers, borkd_pkgs, changes
 
 
-    def _gen_metadata_for_package(distro, pkg_name, pkg,
-                                  repo, ros_pkg, pkg_rosinstall):
+def _gen_metadata_for_package(distro, pkg_name, pkg,
+                              repo, ros_pkg, pkg_rosinstall):
     pkg_metadata_xml = metadata_xml()
     try:
         pkg_xml = ros_pkg.get_package_xml(distro.name)
     except Exception as e:
-        warn(">>>> cannot fetch metadata for package {}".format(pkg_name))
+        warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
     pkg_fields = xmltodict.parse(pkg_xml)
 
     if 'maintainer' in pkg_fields['package']:
         if isinstance(pkg_fields['package']['maintainer'], list):
-            pkg_metadata_xml.upstream_email = \
+            pkg_metadata_xml.upstream_email =\
                 pkg_fields['package']['maintainer'][0]['@email']
-            pkg_metadata_xml.upstream_name  = \
+            pkg_metadata_xml.upstream_name  =\
                 pkg_fields['package']['maintainer'][0]['#text']
         elif isinstance(pkg_fields['package']['maintainer']['@email'], list):
-            pkg_metadata_xml.upstream_email = \
+            pkg_metadata_xml.upstream_email =\
                 pkg_fields['package']['maintainer'][0]['@email']
-            pkg_metadata_xml.upstream_name = \
+            pkg_metadata_xml.upstream_name =\
                 pkg_fields['package']['maintainer'][0]['#text']
         else:
-            pkg_metadata_xml.upstream_email = \
+            pkg_metadata_xml.upstream_email =\
                 pkg_fields['package']['maintainer']['@email']
             if '#text' in pkg_fields['package']['maintainer']:
-                pkg_metadata_xml.upstream_name = \
+                pkg_metadata_xml.upstream_name =\
                     pkg_fields['package']['maintainer']['#text']
             else:
                 pkg_metadata_xml.upstream_name = "UNKNOWN"
 
-        pkg_metadata_xml.upstream_bug_url = \
+        pkg_metadata_xml.upstream_bug_url =\
             repo.url.replace("-release", "").replace(".git", "/issues")
 
     """
