@@ -1,5 +1,4 @@
 # This generates Gentoo Linux ebuilds for ROS packages.
-from termcolor import colored
 import yaml
 import sys
 import re
@@ -15,6 +14,8 @@ except:
     def get_http(url):
         response = urlopen(url)
         return response.read()
+
+from termcolor import colored
 
 base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
 python_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
@@ -79,7 +80,7 @@ class ebuild_keyword(object):
         self.stable = stable
 
     def to_string(self):
-        if (self.stable):
+        if self.stable:
             return self.arch
         else:
             return '~{0}'.format(self.arch)
@@ -117,7 +118,7 @@ class Ebuild(object):
             self.depends.append(depend)
         else:
             self.depends_external.append(depend)
-        
+
     def add_run_depend(self, rdepend, internal=True):
         if internal:
             self.rdepends.append(rdepend)
@@ -131,10 +132,10 @@ class Ebuild(object):
         """
         Generate the ebuild in text, given the distributor line
         and the license text.
-    
+
         @todo: make the year dynamic
         """
-        ret  = "# Copyright 2017 " + distributor + "\n"
+        ret = "# Copyright 2017 " + distributor + "\n"
         ret += "# Distributed under the terms of the " + license_text + " license\n\n"
 
         # EAPI=<eapi>
@@ -176,16 +177,16 @@ class Ebuild(object):
                 for l in split:
                     l = get_license(l.replace(' ', ''))
                     ret += '{0} '.format(l)
-                ret += ')"\n'            
+                ret += ')"\n'
             else:
-                ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"            
+                ret += "LICENSE=\"" + get_license(self.upstream_license) + "\"\n\n"
         elif isinstance(self.upstream_license, list):
             ret += "LICENSE=\"|| ( "
             for l in self.upstream_license:
                 l = get_license(l)
                 ret += '{0} '.format(l)
             ret += ")\"\n"
-                
+
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
 
@@ -210,7 +211,7 @@ class Ebuild(object):
                 ret += "    " + self.resolve(rdep) + "\n"
             except UnresolvedDependency as msg:
                 self.unresolved_deps.append(rdep)
-                
+
         ret += "\"\n"
 
         # DEPEND
@@ -300,7 +301,7 @@ class Ebuild(object):
                     raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
                 elif 'gentoo'not in ruby_yml[pkg]:
                     raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
-                elif 'portage' in ruby_yml[pkg]['gentoo']:                
+                elif 'portage' in ruby_yml[pkg]['gentoo']:
                     resolution = ruby_yml[pkg]['gentoo']['portage']['packages'][0]
                     return resolution
                 else:
@@ -308,7 +309,7 @@ class Ebuild(object):
                     return resolution
             elif 'gentoo'not in python_yml[pkg]:
                 raise UnresolvedDependency("could not resolve package {} for Gentoo.".format(pkg))
-            elif 'portage' in python_yml[pkg]['gentoo']:                
+            elif 'portage' in python_yml[pkg]['gentoo']:
                 resolution = python_yml[pkg]['gentoo']['portage']['packages'][0]
                 return resolution
             else:
@@ -321,7 +322,7 @@ class Ebuild(object):
             return resolution
         else:
             resolution = base_yml[pkg]['gentoo'][0]
-            return resolution 
+            return resolution
 
 class UnresolvedDependency(Exception):
     def __init__(self, message):

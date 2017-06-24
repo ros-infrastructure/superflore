@@ -7,6 +7,6 @@ python:
   - "pypy3" # Pypy3 2.4.0
 # command to install dependencies
 install:
-  - pip install nose pylint
+  - pip install nose flake8
 # command to run tests
-script: nosetests && pylint ebuild_generator
+script: nosetests
