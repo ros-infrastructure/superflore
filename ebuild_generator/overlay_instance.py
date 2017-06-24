@@ -6,6 +6,7 @@ import time
 import sys
 import os
 
+
 def get_random_tmp_dir():
     rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
     return '/tmp/{0}'.format(rand_str)

@@ -36,7 +36,7 @@ class repo_instance(object):
                 return
             fail_msg = 'Failed to remove file {0}'.format(filename)
             fail_msg += 'from source control.'
-            self.error)
+            self.error(fail_msg)
             self.error(' Exception: {0}'.format(g))
 
     def create_branch(self, branch_name):
