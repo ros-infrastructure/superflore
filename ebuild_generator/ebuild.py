@@ -177,7 +177,7 @@ class Ebuild(object):
             else:
                 ret += "LICENSE=\""
                 ret += get_license(self.upstream_license) + "\"\n\n"
-        elif py_ver and isinstance(self.upstream_license, unicode):
+        elif py_ver < (3, 0) and isinstance(self.upstream_license, unicode):
             self.upstream_license = self.upstream_license.decode()
             split = self.upstream_license.split(',')
             if len(split) > 1:

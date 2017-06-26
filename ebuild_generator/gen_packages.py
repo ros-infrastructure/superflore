@@ -19,15 +19,15 @@ org_license = "BSD"
 
 
 def warn(string):
-    print(colored('>>>> '.format(string), 'yellow'))
+    print(colored('>>>> {0}'.format(string), 'yellow'))
 
 
 def ok(string):
-    print(colored('>>>> '.format(string), 'green'))
+    print(colored('>>>> {0}'.format(string), 'green'))
 
 
 def err(string):
-    print(colored('!!!! '.format(string), 'red'))
+    print(colored('!!!! {0}'.format(string), 'red'))
 
 
 def make_dir(dirname):
