@@ -151,7 +151,7 @@ class Ebuild(object):
         """
         @todo: don't hard code this
         """
-        
+
         # inherits
         ret += "inherit cmake-utils eutils python-single-r1"
         if self.name == 'opencv3':
