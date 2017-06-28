@@ -247,7 +247,6 @@ class Ebuild(object):
         ret += "}\n\n"
 
         # Patch source if needed.
-
         if self.has_patches:
             ret += "src_prepare() {\n"
             ret += "    cd ${P}\n"
