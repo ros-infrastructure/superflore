@@ -150,9 +150,10 @@ class Ebuild(object):
         """
         @todo: don't hard code this
         """
-        ret += "inherit cmake-utils eutils\n\n"
 
         # inherits
+        ret += "inherit cmake-utils eutils flag-o-matic\n\n"
+
         # description, homepage, src_uri
         py_ver = sys.version_info
         if isinstance(self.description, str):
