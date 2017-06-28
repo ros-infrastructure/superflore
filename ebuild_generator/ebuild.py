@@ -236,7 +236,7 @@ class Ebuild(object):
         ret += "\"\n\n"
 
         # SLOT
-        ret += "SLOT=\"0\"\n"
+        ret += "SLOT=\"{}\"\n".format(self.distro)
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
         ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
