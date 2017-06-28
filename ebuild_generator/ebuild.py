@@ -150,9 +150,13 @@ class Ebuild(object):
         """
         @todo: don't hard code this
         """
-        ret += "inherit cmake-utils eutils\n\n"
 
         # inherits
+        ret += "inherit cmake-utils eutils"
+        if self.name == 'opencv3':
+            ret += " flag-o-matic"
+        ret += "\n\n"
+
         # description, homepage, src_uri
         py_ver = sys.version_info
         if isinstance(self.description, str):
@@ -260,6 +264,8 @@ class Ebuild(object):
 
         # source configuration
         ret += "src_configure() {\n"
+        if self.name == 'opencv3':
+            ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
         if self.name != 'stage':
             ret += "    append-cxxflags \"-std=c++11\"\n"
         ret += "    export DEST_SETUP_DIR=\"${ROS_PREFIX}\"\n"
@@ -275,9 +281,6 @@ class Ebuild(object):
         bin_pkg = "-DCATKIN_BUILD_BINARY_PACAKGE={0}\n"
         bin_pkg = bin_pkg.format(binary_package)
         ret += "        {0}\n".format(bin_pkg)
-        if self.name == 'opencv3':
-            ret += "        -DCMAKE_CXX_FLAGS=\"-O2 -pipe\"\n"
-            ret += "        -DCMAKE_C_FLAGS=\"-O2 -pipe\"\n"
         ret += "    -DBoost_PYTHON3_FOUND=1\n"
         ret += ('    -DBoost_PYTHON3_LIBRARY_RELEASE='
                 '/usr/lib/libboost_python-3.5.so\n')
