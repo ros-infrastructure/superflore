@@ -76,7 +76,7 @@ def get_license(l):
         return ''
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
-        return l
+        return l.replace(' ', '')
 
 
 class ebuild_keyword(object):
@@ -151,9 +151,13 @@ class Ebuild(object):
         """
         @todo: don't hard code this
         """
-        ret += "inherit cmake-utils eutils python-single-r1\n\n"
-
+        
         # inherits
+        ret += "inherit cmake-utils eutils python-single-r1"
+        if self.name == 'opencv3':
+            ret += " flag-o-matic"
+        ret += "\n\n"
+
         # description, homepage, src_uri
         py_ver = sys.version_info
         if isinstance(self.description, str):
@@ -170,9 +174,9 @@ class Ebuild(object):
             split = self.upstream_license.split(',')
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
-                ret += 'LICENSE="|| ( '
+                ret += 'LICENSE="( '
                 for l in split:
-                    l = get_license(l.replace(' ', ''))
+                    l = get_license(l)
                     ret += '{0} '.format(l)
                 ret += ')"\n'
             else:
@@ -183,7 +187,7 @@ class Ebuild(object):
             split = self.upstream_license.split(',')
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
-                ret += 'LICENSE="|| ( '
+                ret += 'LICENSE="( '
                 for l in split:
                     l = get_license(l.replace(' ', ''))
                     ret += '{0} '.format(l)
@@ -192,7 +196,7 @@ class Ebuild(object):
                 ret += "LICENSE=\""
                 ret += get_license(self.upstream_license) + "\"\n\n"
         elif isinstance(self.upstream_license, list):
-            ret += "LICENSE=\"|| ( "
+            ret += "LICENSE=\"( "
             for l in self.upstream_license:
                 l = get_license(l)
                 ret += '{0} '.format(l)
@@ -240,7 +244,7 @@ class Ebuild(object):
         ret += "SLOT=\"{}\"\n".format(self.distro)
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
-        ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
+        ret += "ROS_PREFIX=\"/opt/ros/{}\"\n\n".format(self.distro)
 
         ret += "src_unpack() {\n"
         ret += "    default\n"
@@ -261,12 +265,14 @@ class Ebuild(object):
 
         # source configuration
         ret += "src_configure() {\n"
+        if self.name == 'opencv3':
+            ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
         if self.name != 'stage':
             ret += "    append-cxxflags \"-std=c++11\"\n"
-        ret += "    export DEST_SETUP_DIR=\"/${ROS_PREFIX}\"\n"
+        ret += "    export DEST_SETUP_DIR=\"${ROS_PREFIX}\"\n"
         ret += "    local mycmakeargs=(\n"
-        ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
-        ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
+        ret += "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"
+        ret += "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"
         ret += "        -DPYTHON_INSTALL_DIR=lib/${EPYTHON}/site-packages\n"
         ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
         if self.name != 'catkin':
@@ -276,16 +282,13 @@ class Ebuild(object):
         bin_pkg = "-DCATKIN_BUILD_BINARY_PACAKGE={0}\n"
         bin_pkg = bin_pkg.format(binary_package)
         ret += "        {0}\n".format(bin_pkg)
-        if self.name == 'opencv3':
-            ret += "        -DCMAKE_CXX_FLAGS=\"-O2 -pipe\"\n"
-            ret += "        -DCMAKE_C_FLAGS=\"-O2 -pipe\"\n"
         ret += "     )\n"
         ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
 
         if self.name == 'catkin':
             ret += "src_compile() {\n"
-            ret += "    gcc ${FILESDIR}/ros-python.c"
+            ret += "    ${CC} ${FILESDIR}/ros-python.c"
             ret += "-o ${WORKDIR}/${P}/ros-python-{0}".format(self.distro)
             ret += " || die 'could not build ros-python!'\n"
             ret += "    cmake-utils_src_compile\n"
@@ -299,9 +302,9 @@ class Ebuild(object):
         ret += "src_install() {\n"
         if self.name == 'catkin':
             ret += "    cd ${WORKDIR}/${P}\n"
-            ret += "    mkdir -p ${D}/usr/bin\n"
+            ret += "    mkdir -p ${D%/}/usr/bin\n"
             ret += "    cp ros-python-{0} ".format(self.distro)
-            ret += "${D}/usr/bin "
+            ret += "${D%/}/usr/bin "
             ret += "|| die 'could not install ros-python!'\n"
         ret += "    cd ${WORKDIR}/${P}_build\n"
         ret += "    make install || die{0}\n".format(self.die_msg)
