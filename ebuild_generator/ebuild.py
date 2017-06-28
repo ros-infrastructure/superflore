@@ -276,7 +276,7 @@ class Ebuild(object):
             ret += "        -DCMAKE_CXX_FLAGS=\"-O2 -pipe\"\n"
             ret += "        -DCMAKE_C_FLAGS=\"-O2 -pipe\"\n"
         ret += "    -DBoost_PYTHON3_FOUND=1\n"
-        ret+="-DBoost_PYTHON3_LIBRARY_RELEASE=/usr/lib/libboost_python-3.5.so\n"
+        ret += "-DBoost_PYTHON3_LIBRARY_RELEASE=/usr/lib/libboost_python-3.5.so\n"
         ret += "     )\n"
         ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
