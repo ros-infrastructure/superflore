@@ -262,8 +262,7 @@ class Ebuild(object):
         # source configuration
         ret += "src_configure() {\n"
         if self.name == 'opencv3':
-            ret += "    replace-cpu-flags '*' ''\n"
-            ret += "    filter-flags -march=\n"
+            ret += "    filter-flags \'-march=*\' \'-mtune=*\'\n"
         if self.name != 'stage':
             ret += "    append-cxxflags \"-std=c++11\"\n"
         ret += "    export DEST_SETUP_DIR=\"/${ROS_PREFIX}\"\n"
