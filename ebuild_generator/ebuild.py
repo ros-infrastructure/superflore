@@ -257,6 +257,9 @@ class Ebuild(object):
 
         # source configuration
         ret += "src_configure() {\n"
+        if self.name == 'opencv3':
+            ret += "    replace-cpu-flags '*' ''\n"
+            ret += "    filter-flags -march=\n"
         if self.name != 'stage':
             ret += "    append-cxxflags \"-std=c++11\"\n"
         ret += "    export DEST_SETUP_DIR=\"/${ROS_PREFIX}\"\n"
@@ -272,9 +275,6 @@ class Ebuild(object):
         bin_pkg = "-DCATKIN_BUILD_BINARY_PACAKGE={0}\n"
         bin_pkg = bin_pkg.format(binary_package)
         ret += "        {0}\n".format(bin_pkg)
-        if self.name == 'opencv3':
-            ret += "        -DCMAKE_CXX_FLAGS=\"${CXXFLAGS}\"\n"
-            ret += "        -DCMAKE_C_FLAGS=\"${CFLAGS}\"\n"
         ret += "     )\n"
         ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
