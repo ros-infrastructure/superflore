@@ -152,7 +152,10 @@ class Ebuild(object):
         """
 
         # inherits
-        ret += "inherit cmake-utils eutils flag-o-matic\n\n"
+        ret += "inherit cmake-utils eutils"
+        if self.name == 'opencv3':
+            ret += " flag-o-matic"
+        ret += "\n\n"
 
         # description, homepage, src_uri
         py_ver = sys.version_info
