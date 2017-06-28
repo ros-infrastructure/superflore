@@ -76,7 +76,7 @@ def get_license(l):
         return ''
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
-        return l
+        return l.replace(' ', '')
 
 
 class ebuild_keyword(object):
@@ -169,9 +169,9 @@ class Ebuild(object):
             split = self.upstream_license.split(',')
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
-                ret += 'LICENSE="|| ( '
+                ret += 'LICENSE="( '
                 for l in split:
-                    l = get_license(l.replace(' ', ''))
+                    l = get_license(l)
                     ret += '{0} '.format(l)
                 ret += ')"\n'
             else:
@@ -182,7 +182,7 @@ class Ebuild(object):
             split = self.upstream_license.split(',')
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
-                ret += 'LICENSE="|| ( '
+                ret += 'LICENSE="( '
                 for l in split:
                     l = get_license(l.replace(' ', ''))
                     ret += '{0} '.format(l)
@@ -191,7 +191,7 @@ class Ebuild(object):
                 ret += "LICENSE=\""
                 ret += get_license(self.upstream_license) + "\"\n\n"
         elif isinstance(self.upstream_license, list):
-            ret += "LICENSE=\"|| ( "
+            ret += "LICENSE=\"( "
             for l in self.upstream_license:
                 l = get_license(l)
                 ret += '{0} '.format(l)
@@ -239,7 +239,7 @@ class Ebuild(object):
         ret += "SLOT=\"{}\"\n".format(self.distro)
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
-        ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
+        ret += "ROS_PREFIX=\"/opt/ros/{}\"\n\n".format(self.distro)
 
         ret += "src_unpack() {\n"
         ret += "    default\n"
@@ -262,10 +262,10 @@ class Ebuild(object):
         ret += "src_configure() {\n"
         if self.name != 'stage':
             ret += "    append-cxxflags \"-std=c++11\"\n"
-        ret += "    export DEST_SETUP_DIR=\"/${ROS_PREFIX}\"\n"
+        ret += "    export DEST_SETUP_DIR=\"${ROS_PREFIX}\"\n"
         ret += "    local mycmakeargs=(\n"
-        ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
-        ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
+        ret += "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"
+        ret += "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"
         ret += "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"
         ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
         if self.name != 'catkin':
@@ -287,7 +287,7 @@ class Ebuild(object):
 
         if self.name == 'catkin':
             ret += "src_compile() {\n"
-            ret += "    gcc ${FILESDIR}/ros-python.c"
+            ret += "    ${CC} ${FILESDIR}/ros-python.c"
             ret += "-o ${WORKDIR}/${P}/ros-python-{0}".format(self.distro)
             ret += " || die 'could not build ros-python!'\n"
             ret += "    cmake-utils_src_compile\n"
@@ -301,9 +301,9 @@ class Ebuild(object):
         ret += "src_install() {\n"
         if self.name == 'catkin':
             ret += "    cd ${WORKDIR}/${P}\n"
-            ret += "    mkdir -p ${D}/usr/bin\n"
+            ret += "    mkdir -p ${D%/}/usr/bin\n"
             ret += "    cp ros-python-{0} ".format(self.distro)
-            ret += "${D}/usr/bin "
+            ret += "${D%/}/usr/bin "
             ret += "|| die 'could not install ros-python!'\n"
         ret += "    cd ${WORKDIR}/${P}_build\n"
         ret += "    make install || die{0}\n".format(self.die_msg)
