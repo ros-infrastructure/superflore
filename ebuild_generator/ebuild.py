@@ -76,7 +76,7 @@ def get_license(l):
         return ''
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
-        return l
+        return l.replace(' ', '')
 
 
 class ebuild_keyword(object):
@@ -171,7 +171,7 @@ class Ebuild(object):
                 # they did something like "BSD,GPL,blah"
                 ret += 'LICENSE="( '
                 for l in split:
-                    l = get_license(l.replace(' ', ''))
+                    l = get_license(l)
                     ret += '{0} '.format(l)
                 ret += ')"\n'
             else:
