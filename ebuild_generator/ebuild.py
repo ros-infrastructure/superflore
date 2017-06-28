@@ -284,7 +284,7 @@ class Ebuild(object):
 
         if self.name == 'catkin':
             ret += "src_compile() {\n"
-            ret += "    gcc ${FILESDIR}/ros-python.c"
+            ret += "    ${CC} ${FILESDIR}/ros-python.c"
             ret += "-o ${WORKDIR}/${P}/ros-python-{0}".format(self.distro)
             ret += " || die 'could not build ros-python!'\n"
             ret += "    cmake-utils_src_compile\n"
