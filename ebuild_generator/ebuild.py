@@ -244,13 +244,16 @@ class Ebuild(object):
         ret += "src_unpack() {\n"
         ret += "    default\n"
         ret += "    mv *${P}* ${P}\n"
+        ret += "}\n\n"
+
         # Patch source if needed.
         if self.has_patches:
+            ret += "src_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += "EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "                 EPATCH_FORCE=\"yes\" epatch\n"
-        ret += "}\n\n"
+            ret += "}\n\n"
 
         # If we're writing the ebuild for catkin, don't build in binary mode.
         binary_package = '0' if self.name == 'catkin' else '1'
