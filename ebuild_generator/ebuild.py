@@ -163,7 +163,7 @@ class Ebuild(object):
             ret += "DESCRIPTION=\"\"\n"
 
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
-        ret += "SRC_URI=\"" + self.src_uri + " -> ${P}-${PV}.tar.gz\"\n\n"
+        ret += "SRC_URI=\"" + self.src_uri + " -> ${PN}-${PV}.tar.gz\"\n\n"
         # license
         if isinstance(self.upstream_license, str):
             split = self.upstream_license.split(',')
