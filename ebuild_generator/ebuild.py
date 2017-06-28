@@ -235,7 +235,7 @@ class Ebuild(object):
         ret += "\"\n\n"
 
         ret += "REQUIRED_USE=\"${PYTHON_REQUIRED_USE}\"\n\n"
-        
+
         # SLOT
         ret += "SLOT=\"0\"\n"
         # CMAKE_BUILD_TYPE
