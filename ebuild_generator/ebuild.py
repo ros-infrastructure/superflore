@@ -76,7 +76,7 @@ def get_license(l):
         return ''
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
-        return l
+        return l.replace(' ', '')
 
 
 class ebuild_keyword(object):
@@ -171,12 +171,12 @@ class Ebuild(object):
                 # they did something like "BSD,GPL,blah"
                 ret += 'LICENSE="|| ( '
                 for l in split:
-                    l = get_license(l.replace(' ', ''))
+                    l = get_license(l)
                     ret += '{0} '.format(l)
                 ret += ')"\n'
             else:
                 ret += "LICENSE=\""
-                ret += get_license(self.upstream_license.replace(' ', '')) + "\"\n\n"
+                ret += get_license(self.upstream_license) + "\"\n\n"
         elif py_ver < (3, 0) and isinstance(self.upstream_license, unicode):
             self.upstream_license = self.upstream_license.decode()
             split = self.upstream_license.split(',')
