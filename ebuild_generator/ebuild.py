@@ -237,7 +237,7 @@ class Ebuild(object):
         ret += "REQUIRED_USE=\"${PYTHON_REQUIRED_USE}\"\n\n"
 
         # SLOT
-        ret += "SLOT=\"0\"\n"
+        ret += "SLOT=\"{}\"\n".format(self.distro)
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
         ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
@@ -245,13 +245,16 @@ class Ebuild(object):
         ret += "src_unpack() {\n"
         ret += "    default\n"
         ret += "    mv *${P}* ${P}\n"
+        ret += "}\n\n"
+
         # Patch source if needed.
         if self.has_patches:
+            ret += "src_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += "EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "                 EPATCH_FORCE=\"yes\" epatch\n"
-        ret += "}\n\n"
+            ret += "}\n\n"
 
         # If we're writing the ebuild for catkin, don't build in binary mode.
         binary_package = '0' if self.name == 'catkin' else '1'
