@@ -239,7 +239,7 @@ class Ebuild(object):
         ret += "SLOT=\"{}\"\n".format(self.distro)
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
-        ret += "ROS_PREFIX=\"opt/ros/{}\"\n\n".format(self.distro)
+        ret += "ROS_PREFIX=\"/opt/ros/{}\"\n\n".format(self.distro)
 
         ret += "src_unpack() {\n"
         ret += "    default\n"
@@ -262,10 +262,10 @@ class Ebuild(object):
         ret += "src_configure() {\n"
         if self.name != 'stage':
             ret += "    append-cxxflags \"-std=c++11\"\n"
-        ret += "    export DEST_SETUP_DIR=\"/${ROS_PREFIX}\"\n"
+        ret += "    export DEST_SETUP_DIR=\"${ROS_PREFIX}\"\n"
         ret += "    local mycmakeargs=(\n"
-        ret += "        -DCMAKE_INSTALL_PREFIX=${D}${ROS_PREFIX}\n"
-        ret += "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"
+        ret += "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"
+        ret += "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"
         ret += "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"
         ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
         if self.name != 'catkin':
@@ -298,9 +298,9 @@ class Ebuild(object):
         ret += "src_install() {\n"
         if self.name == 'catkin':
             ret += "    cd ${WORKDIR}/${P}\n"
-            ret += "    mkdir -p ${D}/usr/bin\n"
+            ret += "    mkdir -p ${D%/}/usr/bin\n"
             ret += "    cp ros-python-{0} ".format(self.distro)
-            ret += "${D}/usr/bin "
+            ret += "${D%/}/usr/bin "
             ret += "|| die 'could not install ros-python!'\n"
         ret += "    cd ${WORKDIR}/${P}_build\n"
         ret += "    make install || die{0}\n".format(self.die_msg)
