@@ -12,23 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+from termcolor import colored
 import yaml
 import sys
 import re
 
-try:
+if sys.version_info[0] == 2:
     import requests
 
     def get_http(url):
         return requests.get(url).text
-except:
+else:
     from urllib.request import urlopen
 
     def get_http(url):
         response = urlopen(url)
         return response.read()
 
-from termcolor import colored
 
 base_url = \
   "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
