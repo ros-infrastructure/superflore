@@ -1,5 +1,5 @@
 # Instance of the ROS Overlay
-from ebuild_generator import repo_instance
+from superflore import repo_instance
 import random
 import string
 import time
@@ -23,7 +23,7 @@ class ros_overlay(repo_instance):
         repo_instance.__init__(self, 'ros',
                                'ros-overlay', get_random_tmp_dir())
         self.branch_name = get_random_branch_name()
-        self.clone()
+        self.clone(b="upstream-eclass")
         branch_msg = 'Creating new branch {0}...'.format(self.branch_name)
         repo_instance.info(branch_msg)
         self.create_branch(self.branch_name)

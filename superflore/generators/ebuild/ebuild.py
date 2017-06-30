@@ -90,7 +90,7 @@ def get_license(l):
         return ''
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
-        return l.replace(' ', '')
+        raise BadLicense('bad license')
 
 
 class ebuild_keyword(object):
@@ -166,10 +166,7 @@ class Ebuild(object):
         """
 
         # inherits
-        ret += "inherit cmake-utils eutils"
-        if self.name == 'opencv3':
-            ret += " flag-o-matic"
-        ret += "\n\n"
+        ret += "inherit ros-cmake\n"
 
         # description, homepage, src_uri
         py_ver = sys.version_info
@@ -178,43 +175,45 @@ class Ebuild(object):
         elif py_ver <= (3, 0) and isinstance(self.description, unicode):
             ret += "DESCRIPTION=\"" + self.description + "\"\n"
         else:
-            ret += "DESCRIPTION=\"\"\n"
+            ret += "DESCRIPTION=\"NONE\"\n"
 
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
         ret += "SRC_URI=\"" + self.src_uri + " -> ${PN}-${PV}.tar.gz\"\n\n"
-        # license
-        if isinstance(self.upstream_license, str):
-            split = self.upstream_license.split(',')
-            if len(split) > 1:
-                # they did something like "BSD,GPL,blah"
-                ret += 'LICENSE="( '
-                for l in split:
+        try:
+            # license -- only add if valid
+            if isinstance(self.upstream_license, str):
+                split = self.upstream_license.split(',')
+                if len(split) > 1:
+                    # they did something like "BSD,GPL,blah"
+                    ret += 'LICENSE="( '
+                    for l in split:
+                        l = get_license(l)
+                        ret += '{0} '.format(l)
+                        ret += ')"\n'
+                else:
+                    ret += "LICENSE=\""
+                    ret += get_license(self.upstream_license) + "\"\n\n"
+            elif py_ver < (3, 0) and isinstance(self.upstream_license, unicode):
+                self.upstream_license = self.upstream_license.decode()
+                split = self.upstream_license.split(',')
+                if len(split) > 1:
+                    # they did something like "BSD,GPL,blah"
+                    ret += 'LICENSE="( '
+                    for l in split:
+                        l = get_license(l.replace(' ', ''))
+                        ret += '{0} '.format(l)
+                    ret += ')"\n'
+                else:
+                    ret += "LICENSE=\""
+                    ret += get_license(self.upstream_license) + "\"\n\n"
+            elif isinstance(self.upstream_license, list):
+                ret += "LICENSE=\"( "
+                for l in self.upstream_license:
                     l = get_license(l)
                     ret += '{0} '.format(l)
-                ret += ')"\n'
-            else:
-                ret += "LICENSE=\""
-                ret += get_license(self.upstream_license) + "\"\n\n"
-        elif py_ver < (3, 0) and isinstance(self.upstream_license, unicode):
-            self.upstream_license = self.upstream_license.decode()
-            split = self.upstream_license.split(',')
-            if len(split) > 1:
-                # they did something like "BSD,GPL,blah"
-                ret += 'LICENSE="( '
-                for l in split:
-                    l = get_license(l.replace(' ', ''))
-                    ret += '{0} '.format(l)
-                ret += ')"\n'
-            else:
-                ret += "LICENSE=\""
-                ret += get_license(self.upstream_license) + "\"\n\n"
-        elif isinstance(self.upstream_license, list):
-            ret += "LICENSE=\"( "
-            for l in self.upstream_license:
-                l = get_license(l)
-                ret += '{0} '.format(l)
-            ret += ")\"\n"
-
+                ret += ")\"\n"
+        except:
+            pass
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
 
@@ -257,12 +256,8 @@ class Ebuild(object):
         ret += "SLOT=\"{}\"\n".format(self.distro)
         # CMAKE_BUILD_TYPE
         ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
-        ret += "ROS_PREFIX=\"/opt/ros/{}\"\n\n".format(self.distro)
-
-        ret += "src_unpack() {\n"
-        ret += "    default\n"
-        ret += "    mv *${P}* ${P}\n"
-        ret += "}\n\n"
+        ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
+        ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n\n"
 
         # Patch source if needed.
         if self.has_patches:
@@ -271,40 +266,38 @@ class Ebuild(object):
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += "EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "                 EPATCH_FORCE=\"yes\" epatch\n"
+            ret += "ros-cmake_src_prepare\n"
             ret += "}\n\n"
 
         # If we're writing the ebuild for catkin, don't build in binary mode.
         binary_package = '0' if self.name == 'catkin' else '1'
 
+        special_pkgs = ['catkin', 'opencv3', 'stage']
+        catkin_cmake_args = "    local mycmakeargs=(\n"\
+            + "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"\
+            + "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"\
+            + "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"\
+            + "        -DCATKIN_BUILD_BINARY_PACKAGE=0\n"\
+            + "    )\n"
         # source configuration
-        ret += "src_configure() {\n"
-        if self.name == 'opencv3':
-            ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
-        if self.name != 'stage':
-            ret += "    append-cxxflags \"-std=c++11\"\n"
-        ret += "    export DEST_SETUP_DIR=\"${ROS_PREFIX}\"\n"
-        ret += "    local mycmakeargs=(\n"
-        ret += "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"
-        ret += "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"
-        ret += "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"
-        ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
-        if self.name != 'catkin':
-            py_exec = "-DPYTHON_EXECUTABLE=/usr/bin/ros-python-{0}"
-            py_exec = py_exec.format(self.distro)
-            ret += "        {0}\n".format(py_exec)
-        bin_pkg = "-DCATKIN_BUILD_BINARY_PACAKGE={0}\n"
-        bin_pkg = bin_pkg.format(binary_package)
-        ret += "        {0}\n".format(bin_pkg)
-        ret += "     )\n"
-        ret += "    cmake-utils_src_configure\n"
-        ret += "}\n\n"
+        if self.name in special_pkgs:
+            ret += "src_configure() {\n"
+            if self.name == 'openvc3':
+                ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
+            elif self.name == 'stage':
+                ret += "    filter-flags '-std=*'\n"
+            elif self.name == 'catkin':
+                ret += catkin_cmake_args
+            ret += "    cmake-utils_src_configure\n"
+            ret += "}\n\n"
 
         if self.name == 'catkin':
             ret += "src_compile() {\n"
             ret += "    ${CC} ${FILESDIR}/ros-python.c"
-            ret += "-o ${WORKDIR}/${P}/ros-python-{0}".format(self.distro)
+            ret += "-o ${WORKDIR}/${P}/"
+            ret += "ros-python-{0}".format(self.distro)
             ret += " || die 'could not build ros-python!'\n"
-            ret += "    cmake-utils_src_compile\n"
+            ret += "    ros-cmake_src_compile\n"
             ret += "}\n\n"
 
         if self.die_msg is not None:
@@ -312,21 +305,19 @@ class Ebuild(object):
         else:
             self.die_msg = ''
 
-        ret += "src_install() {\n"
         if self.name == 'catkin':
+            ret += "src_install() {\n"
             ret += "    cd ${WORKDIR}/${P}\n"
             ret += "    mkdir -p ${D%/}/usr/bin\n"
             ret += "    cp ros-python-{0} ".format(self.distro)
             ret += "${D%/}/usr/bin "
             ret += "|| die 'could not install ros-python!'\n"
-        ret += "    cd ${WORKDIR}/${P}_build\n"
-        ret += "    make install || die{0}\n".format(self.die_msg)
-        ret += "}\n"
+            ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")
 
-        return ret
+        return ret.replace('    ', '\t')
 
     def get_unresolved(self):
         return self.unresolved_deps
