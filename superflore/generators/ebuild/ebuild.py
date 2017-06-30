@@ -51,7 +51,6 @@ def get_license(l):
     gpl_re = '^(GPL)((.)*([123]))?'
     lgpl_re = '^(LGPL)((.)*([23]|2\\.1))?'
     apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
-    none_re = '^(Public Domain)'
     cc_re = '^(Creative Commons)|'
     moz_re = '^(Mozilla)((.)*(1\\.1))?'
     mit_re = '^MIT'
@@ -86,8 +85,6 @@ def get_license(l):
         return 'MIT'
     elif re.search(cc_re, l, f) is not None:
         return 'CC-BY-SA-3.0'
-    elif re.search(none_re, l, f) is not None:
-        return ''
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
         raise BadLicense('bad license')
@@ -189,7 +186,7 @@ class Ebuild(object):
                     for l in split:
                         l = get_license(l)
                         ret += '{0} '.format(l)
-                        ret += ')"\n'
+                    ret += ')"\n'
                 else:
                     ret += "LICENSE=\""
                     ret += get_license(self.upstream_license) + "\"\n\n"
@@ -264,8 +261,8 @@ class Ebuild(object):
             ret += "src_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
-            ret += "EPATCH_SUFFIX=\"patch\" \\\n"
-            ret += "                 EPATCH_FORCE=\"yes\" epatch\n"
+            ret += " EPATCH_SUFFIX=\"patch\" \\\n"
+            ret += "    EPATCH_FORCE=\"yes\" epatch\n"
             ret += "ros-cmake_src_prepare\n"
             ret += "}\n\n"
 
