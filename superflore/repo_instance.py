@@ -37,7 +37,7 @@ class repo_instance(object):
         if self.repo_dir != self.repo_name:
             msg += (' into directory {0}'.format(self.repo_dir))
         msg += '...'
-        repo_instance.info(msg)        
+        repo_instance.info(msg)
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         if branch is not None:
             self.git.checkout(branch)
