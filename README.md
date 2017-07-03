@@ -1,14 +1,20 @@
-Ebuild Generator:
+Super Flore:
 =================
-This is a python module for generating Gentoo Linux
-ebuilds.
+Latin for "Super Bloom", this is an extended release manager for
+ROS.
 
-Dependencies:
---------------
-You may use either Python 2 or Python 3, tested with 2.7, 3.4 and 3.5.
+Supported Platforms:
+--------------------
+ * Gentoo
 
-Please install the following `pip` packages:
+Installation:
+=============
+
 ```
-pip install git-pull-request xmltodict termcolor rosdistro rosinstall_generator gitpython --user
+ $ sudo ./setup.py install
 ```
 
+Note:
+=====
+ * In order to run the Gentoo system, you must have a gentoo system,
+   `repoman`, and have set up the gentoo system for signing ebuilds.

@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ebuild_generator.generators.ebuild.gen_packages import generate_installers
-from ebuild_generator.generators.ebuild.overlay_instance import ros_overlay
+from superflore.generators.ebuild.gen_packages import generate_installers
+from superflore.generators.ebuild.overlay_instance import ros_overlay
 import shutil
 import sys
 import os
@@ -44,6 +44,7 @@ def link_existing_files():
 
 
 def clean_up():
+    global overlay
     global mode
     clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
     ros_overlay.info(clean_msg)
@@ -65,6 +66,8 @@ def print_usage():
 
 
 def main():
+    global overlay
+    global mode
     if len(sys.argv) == 2:
         arg1 = sys.argv[1].replace('--', '')
 
@@ -86,7 +89,6 @@ def main():
         print_usage()
 
     # clone current repo
-    overlay = ros_overlay()
     selected_targets = active_distros
 
     if mode == 'all':

@@ -31,7 +31,7 @@ class repo_instance(object):
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         self.git = self.repo.git
 
-    def clone(self):
+    def clone(self, branch=None):
         shutil.rmtree(self.repo_dir)
         msg = 'Cloning repo {0}/{1}'.format(self.repo_owner, self.repo_name)
         if self.repo_dir != self.repo_name:
@@ -39,6 +39,8 @@ class repo_instance(object):
         msg += '...'
         repo_instance.info(msg)
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
+        if branch is not None:
+            self.git.checkout(branch)
 
     def remove_file(self, filename, ignore_fail=False):
         try:
