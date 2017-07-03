@@ -294,6 +294,9 @@ class Ebuild(object):
         bin_pkg = "-DCATKIN_BUILD_BINARY_PACAKGE={0}\n"
         bin_pkg = bin_pkg.format(binary_package)
         ret += "        {0}\n".format(bin_pkg)
+        ret += "    -DBoost_PYTHON3_FOUND=1\n"
+        ret += ('    -DBoost_PYTHON3_LIBRARY_RELEASE='
+                '/usr/lib/libboost_python-3.5.so\n')
         ret += "     )\n"
         ret += "    cmake-utils_src_configure\n"
         ret += "}\n\n"
