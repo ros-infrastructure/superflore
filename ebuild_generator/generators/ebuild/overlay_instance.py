@@ -1,5 +1,5 @@
 # Instance of the ROS Overlay
-from .repo_instance import repo_instance
+from ebuild_generator import repo_instance
 import random
 import string
 import time
