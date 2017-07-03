@@ -285,7 +285,7 @@ class Ebuild(object):
         ret += "    local mycmakeargs=(\n"
         ret += "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"
         ret += "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"
-        ret += "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"
+        ret += "        -DPYTHON_INSTALL_DIR=lib/python3.5/site-packages\n"
         ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
         if self.name != 'catkin':
             py_exec = "-DPYTHON_EXECUTABLE=/usr/bin/ros-python-{0}"
