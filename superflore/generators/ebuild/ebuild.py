@@ -157,13 +157,11 @@ class Ebuild(object):
         ret += " license\n\n"
 
         # EAPI=<eapi>
-        ret += "EAPI=" + self.eapi + "\n\n"
-        """
-        @todo: don't hard code this
-        """
+        ret += "EAPI=" + self.eapi + "\n"
+        ret += "PYTHON_COMPAT=( python{2_7,3_5} )\n\n"
 
         # inherits
-        ret += "inherit ros-cmake\n"
+        ret += "inherit ros-cmake\n\n"
 
         # description, homepage, src_uri
         py_ver = sys.version_info
@@ -222,10 +220,6 @@ class Ebuild(object):
             first = False
 
         ret += "\"\n"
-        """
-        @todo: uh... probably shouldn't force PYTHON 3.5
-        """
-        ret += "PYTHON_DEPEND=\"3::3.5\"\n\n"
         # RDEPEND
         ret += "RDEPEND=\"\n"
         for rdep in sorted(self.rdepends):
@@ -250,9 +244,8 @@ class Ebuild(object):
         ret += "\"\n\n"
 
         # SLOT
-        ret += "SLOT=\"{}\"\n".format(self.distro)
+        ret += "SLOT=\"0\"\n"
         # CMAKE_BUILD_TYPE
-        ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n\n"
 
@@ -263,34 +256,32 @@ class Ebuild(object):
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += " EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "    EPATCH_FORCE=\"yes\" epatch\n"
-            ret += "ros-cmake_src_prepare\n"
+            ret += "    ros-cmake_src_prepare\n"
             ret += "}\n\n"
 
-        # If we're writing the ebuild for catkin, don't build in binary mode.
-        binary_package = '0' if self.name == 'catkin' else '1'
-
         special_pkgs = ['catkin', 'opencv3', 'stage']
-        catkin_cmake_args = "    local mycmakeargs=(\n"\
-            + "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"\
-            + "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"\
-            + "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"\
+        catkin_cmake_args = "local sitedir=\"$(python_get_sitedir)\"\n"\
+            + "    local mycmakeargs=(\n"\
+            + "        -DCMAKE_INSTALL_PREFIX=/${ROS_PREFIX}\n"\
+            + "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"\
+            + "        -DPYTHON_INSTALL_DIR=${sitedir#${EPREFIX}}/${ROS_PREFIX}\n"\
             + "        -DCATKIN_BUILD_BINARY_PACKAGE=0\n"\
             + "    )\n"
         # source configuration
         if self.name in special_pkgs:
             ret += "src_configure() {\n"
-            if self.name == 'openvc3':
+            if self.name == 'opencv3':
                 ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
             elif self.name == 'stage':
                 ret += "    filter-flags '-std=*'\n"
             elif self.name == 'catkin':
                 ret += catkin_cmake_args
-            ret += "    cmake-utils_src_configure\n"
+            ret += "    python_foreach_impl ros-cmake_src_configure_internal\n"
             ret += "}\n\n"
 
         if self.name == 'catkin':
             ret += "src_compile() {\n"
-            ret += "    ${CC} ${FILESDIR}/ros-python.c"
+            ret += "    gcc ${FILESDIR}/ros-python.c"
             ret += " -o ${WORKDIR}/${P}/"
             ret += "ros-python-{0}".format(self.distro)
             ret += " || die 'could not build ros-python!'\n"
@@ -309,6 +300,7 @@ class Ebuild(object):
             ret += "    cp ros-python-{0} ".format(self.distro)
             ret += "${D%/}/usr/bin "
             ret += "|| die 'could not install ros-python!'\n"
+            ret += "    ros-cmake_src_install\n"
             ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
