@@ -160,12 +160,13 @@ class Ebuild(object):
 
         # EAPI=<eapi>
         ret += "EAPI=" + self.eapi + "\n\n"
+        ret += "PYTHON_COMPAT=( python2_7 )\n\n"
         """
         @todo: don't hard code this
         """
 
         # inherits
-        ret += "inherit cmake-utils eutils"
+        ret += "inherit cmake-utils eutils python-single-r1"
         if self.name == 'opencv3':
             ret += " flag-o-matic"
         ret += "\n\n"
@@ -225,10 +226,7 @@ class Ebuild(object):
             first = False
 
         ret += "\"\n"
-        """
-        @todo: uh... probably shouldn't force PYTHON 3.5
-        """
-        ret += "PYTHON_DEPEND=\"3::3.5\"\n\n"
+
         # RDEPEND
         ret += "RDEPEND=\"\n"
         for rdep in sorted(self.rdepends):
@@ -243,6 +241,7 @@ class Ebuild(object):
 
         # DEPEND
         ret += "DEPEND=\"${RDEPEND}\n"
+        ret += "${PYTHON_DEPS}\n"
         for bdep in sorted(self.depends):
             ret += "    " + 'ros-{0}/{1}\n'.format(self.distro, bdep)
         for bdep in sorted(self.depends_external):
@@ -251,6 +250,8 @@ class Ebuild(object):
             except UnresolvedDependency:
                 self.unresolved_deps.append(bdep)
         ret += "\"\n\n"
+
+        ret += "REQUIRED_USE=\"${PYTHON_REQUIRED_USE}\"\n\n"
 
         # SLOT
         ret += "SLOT=\"{}\"\n".format(self.distro)
@@ -285,7 +286,7 @@ class Ebuild(object):
         ret += "    local mycmakeargs=(\n"
         ret += "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"
         ret += "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"
-        ret += "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"
+        ret += "        -DPYTHON_INSTALL_DIR=lib/${EPYTHON}/site-packages\n"
         ret += "        -DCATKIN_ENABLE_TESTING=OFF\n"
         if self.name != 'catkin':
             py_exec = "-DPYTHON_EXECUTABLE=/usr/bin/ros-python-{0}"
