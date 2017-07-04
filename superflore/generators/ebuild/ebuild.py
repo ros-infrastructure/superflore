@@ -246,6 +246,8 @@ class Ebuild(object):
         # SLOT
         ret += "SLOT=\"0\"\n"
         # CMAKE_BUILD_TYPE
+        if self.name == "catkin":
+            ret += "BUILD_BINARY=\"0\"\n"
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n\n"
 
@@ -259,14 +261,7 @@ class Ebuild(object):
             ret += "    ros-cmake_src_prepare\n"
             ret += "}\n\n"
 
-        special_pkgs = ['catkin', 'opencv3', 'stage']
-        catkin_cmake_args = "local sitedir=\"$(python_get_sitedir)\"\n"\
-            + "    local mycmakeargs=(\n"\
-            + "        -DCMAKE_INSTALL_PREFIX=/${ROS_PREFIX}\n"\
-            + "        -DCMAKE_PREFIX_PATH=/${ROS_PREFIX}\n"\
-            + "        -DPYTHON_INSTALL_DIR=${sitedir#${EPREFIX}}/${ROS_PREFIX}\n"\
-            + "        -DCATKIN_BUILD_BINARY_PACKAGE=0\n"\
-            + "    )\n"
+        special_pkgs = ['opencv3', 'stage']
         # source configuration
         if self.name in special_pkgs:
             ret += "src_configure() {\n"
@@ -274,34 +269,13 @@ class Ebuild(object):
                 ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
             elif self.name == 'stage':
                 ret += "    filter-flags '-std=*'\n"
-            elif self.name == 'catkin':
-                ret += catkin_cmake_args
-            ret += "    python_foreach_impl ros-cmake_src_configure_internal\n"
-            ret += "}\n\n"
-
-        if self.name == 'catkin':
-            ret += "src_compile() {\n"
-            ret += "    gcc ${FILESDIR}/ros-python.c"
-            ret += " -o ${WORKDIR}/${P}/"
-            ret += "ros-python-{0}".format(self.distro)
-            ret += " || die 'could not build ros-python!'\n"
-            ret += "    ros-cmake_src_compile\n"
+            ret += "    ros-cmake_src_configure\n"
             ret += "}\n\n"
 
         if self.die_msg is not None:
             self.die_msg = ' {0}'.format(die_msg)
         else:
             self.die_msg = ''
-
-        if self.name == 'catkin':
-            ret += "src_install() {\n"
-            ret += "    cd ${WORKDIR}/${P}\n"
-            ret += "    mkdir -p ${D}/usr/bin\n"
-            ret += "    cp ros-python-{0} ".format(self.distro)
-            ret += "${D%/}/usr/bin "
-            ret += "|| die 'could not install ros-python!'\n"
-            ret += "    ros-cmake_src_install\n"
-            ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")
