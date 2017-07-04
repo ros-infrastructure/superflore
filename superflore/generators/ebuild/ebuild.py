@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from shlex import quote
+try:
+    from shlex import quote
+except ImportError:
+    from pipes import quote
 from termcolor import colored
 import yaml
 import sys
