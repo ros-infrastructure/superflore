@@ -157,13 +157,11 @@ class Ebuild(object):
         ret += " license\n\n"
 
         # EAPI=<eapi>
-        ret += "EAPI=" + self.eapi + "\n\n"
-        """
-        @todo: don't hard code this
-        """
+        ret += "EAPI=" + self.eapi + "\n"
+        ret += "PYTHON_COMPAT=( python{2_7,3_5} )\n\n"
 
         # inherits
-        ret += "inherit ros-cmake\n"
+        ret += "inherit ros-cmake\n\n"
 
         # description, homepage, src_uri
         py_ver = sys.version_info
@@ -175,7 +173,7 @@ class Ebuild(object):
             ret += "DESCRIPTION=\"NONE\"\n"
 
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
-        ret += "SRC_URI=\"" + self.src_uri + " -> ${PN}-${PV}.tar.gz\"\n\n"
+        ret += "SRC_URI=\"" + self.src_uri + " -> ${PN}-release-${PV}.tar.gz\"\n\n"
         try:
             # license -- only add if valid
             if isinstance(self.upstream_license, str):
@@ -222,10 +220,6 @@ class Ebuild(object):
             first = False
 
         ret += "\"\n"
-        """
-        @todo: uh... probably shouldn't force PYTHON 3.5
-        """
-        ret += "PYTHON_DEPEND=\"3::3.5\"\n\n"
         # RDEPEND
         ret += "RDEPEND=\"\n"
         for rdep in sorted(self.rdepends):
@@ -250,9 +244,10 @@ class Ebuild(object):
         ret += "\"\n\n"
 
         # SLOT
-        ret += "SLOT=\"{}\"\n".format(self.distro)
+        ret += "SLOT=\"0\"\n"
         # CMAKE_BUILD_TYPE
-        ret += "CMAKE_BUILD_TYPE=RelWithDebInfo\n"
+        if self.name == "catkin":
+            ret += "BUILD_BINARY=\"0\"\n"
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n\n"
 
@@ -263,53 +258,24 @@ class Ebuild(object):
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += " EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "    EPATCH_FORCE=\"yes\" epatch\n"
-            ret += "ros-cmake_src_prepare\n"
+            ret += "    ros-cmake_src_prepare\n"
             ret += "}\n\n"
 
-        # If we're writing the ebuild for catkin, don't build in binary mode.
-        binary_package = '0' if self.name == 'catkin' else '1'
-
-        special_pkgs = ['catkin', 'opencv3', 'stage']
-        catkin_cmake_args = "    local mycmakeargs=(\n"\
-            + "        -DCMAKE_INSTALL_PREFIX=${D%/}${ROS_PREFIX}\n"\
-            + "        -DCMAKE_PREFIX_PATH=${ROS_PREFIX}\n"\
-            + "        -DPYTHON_INSTALL_DIR=lib64/python3.5/site-packages\n"\
-            + "        -DCATKIN_BUILD_BINARY_PACKAGE=0\n"\
-            + "    )\n"
+        special_pkgs = ['opencv3', 'stage']
         # source configuration
         if self.name in special_pkgs:
             ret += "src_configure() {\n"
-            if self.name == 'openvc3':
+            if self.name == 'opencv3':
                 ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
             elif self.name == 'stage':
                 ret += "    filter-flags '-std=*'\n"
-            elif self.name == 'catkin':
-                ret += catkin_cmake_args
-            ret += "    cmake-utils_src_configure\n"
-            ret += "}\n\n"
-
-        if self.name == 'catkin':
-            ret += "src_compile() {\n"
-            ret += "    ${CC} ${FILESDIR}/ros-python.c"
-            ret += " -o ${WORKDIR}/${P}/"
-            ret += "ros-python-{0}".format(self.distro)
-            ret += " || die 'could not build ros-python!'\n"
-            ret += "    ros-cmake_src_compile\n"
+            ret += "    ros-cmake_src_configure\n"
             ret += "}\n\n"
 
         if self.die_msg is not None:
             self.die_msg = ' {0}'.format(die_msg)
         else:
             self.die_msg = ''
-
-        if self.name == 'catkin':
-            ret += "src_install() {\n"
-            ret += "    cd ${WORKDIR}/${P}\n"
-            ret += "    mkdir -p ${D}/usr/bin\n"
-            ret += "    cp ros-python-{0} ".format(self.distro)
-            ret += "${D%/}/usr/bin "
-            ret += "|| die 'could not install ros-python!'\n"
-            ret += "}\n"
 
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")
