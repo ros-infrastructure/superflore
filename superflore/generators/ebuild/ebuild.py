@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    from shlex import quote
-except ImportError:
-    from pipes import quote
+
 from termcolor import colored
 import yaml
 import sys
@@ -169,9 +166,9 @@ class Ebuild(object):
         # description, homepage, src_uri
         py_ver = sys.version_info
         if isinstance(self.description, str):
-            ret += "DESCRIPTION=\"" + quote(self.description) + "\"\n"
+            ret += "DESCRIPTION=\"" + self.description + "\"\n"
         elif py_ver <= (3, 0) and isinstance(self.description, unicode):
-            ret += "DESCRIPTION=\"" + quote(self.description) + "\"\n"
+            ret += "DESCRIPTION=\"" + self.description + "\"\n"
         else:
             ret += "DESCRIPTION=\"NONE\"\n"
 
