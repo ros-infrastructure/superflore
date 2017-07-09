@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from superflore.utils import sanitize_string
 from termcolor import colored
 import yaml
 import sys
@@ -125,6 +126,7 @@ class Ebuild(object):
         self.name = None
         self.has_patches = False
         self.die_msg = None
+        self.illegal_desc_chars = '()[]{}?*+-|^$\\.#\t\n\r\v\f\'\"'
 
     def add_build_depend(self, depend, internal=True):
         if depend in self.rdepends:
@@ -165,6 +167,8 @@ class Ebuild(object):
 
         # description, homepage, src_uri
         py_ver = sys.version_info
+        self.description =\
+            sanitize_string(self.description, self.illegal_desc_chars)
         if isinstance(self.description, str):
             ret += "DESCRIPTION=\"" + self.description + "\"\n"
         elif py_ver <= (3, 0) and isinstance(self.description, unicode):
