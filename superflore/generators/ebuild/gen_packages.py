@@ -163,7 +163,9 @@ def _gen_metadata_for_package(distro, pkg_name, pkg,
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
     pkg_fields = xmltodict.parse(pkg_xml)
-
+    if 'description' in pkg_fields['package']:
+        # fill longdescription, if available (defaults to "NONE").
+        pkg_metadata_xml.longdescription = pkg_fields['package']['description']
     if 'maintainer' in pkg_fields['package']:
         if isinstance(pkg_fields['package']['maintainer'], list):
             pkg_metadata_xml.upstream_email =\

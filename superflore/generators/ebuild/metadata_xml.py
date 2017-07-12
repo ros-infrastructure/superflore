@@ -21,12 +21,16 @@ class metadata_xml(object):
         self.upstream_email = None
         self.upstream_bug_url = None
         self.maintainer_type = "person"
+        self.longdescription = "NONE"
 
     def get_metadata_text(self):
         ret = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         ret += "<!DOCTYPE pkgmetadata SYSTEM "
         ret += "\"http://www.gentoo.org/dtd/metadata.dtd\">\n"
         ret += "<pkgmetadata>\n"
+        ret += "  <longdescription>\n"
+        ret += "    " + self.longdescription + "\n"
+        ret += "  </longdescription>\n"
         ret += "  <maintainer type=\"" + self.maintainer_type + "\">\n"
         ret += "    <email>" + self.email + "</email>\n"
         ret += "    <name>" + self.name + "</name>\n"
