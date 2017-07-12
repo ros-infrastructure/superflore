@@ -31,7 +31,6 @@ overlay = ros_overlay()
 def link_existing_files():
     global overlay
     global mode
-    global preserve_existing
     sym_link_msg = 'Symbolicly linking files from {0}/ros-{1}...'
     dir_fmt = '{0}/ros-{1}'
     if mode == 'all' or mode == 'update':
