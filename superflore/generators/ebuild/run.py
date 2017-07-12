@@ -67,6 +67,7 @@ def print_usage():
 
 def main():
     global overlay
+    global preserve_existing
     global mode
     if len(sys.argv) == 2:
         arg1 = sys.argv[1].replace('--', '')
