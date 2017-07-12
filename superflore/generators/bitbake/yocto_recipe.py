@@ -178,7 +178,7 @@ class yoctoRecipe(object):
                     first = False
                 ret += lic
             ret += '"\n'
-        ret += 'LIC_FILES_CHKSUM = file://package.xml;beginline='
+        ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         self.get_license_line()
         ret += str(self.license_line)
         ret += ';endline='
@@ -198,7 +198,7 @@ class yoctoRecipe(object):
         ret += '"\n'
 
         # SRC_URI
-        ret += 'SRC_URI = "' + self.src_uri + '";'
+        ret += 'SRC_URI = "' + self.src_uri + ';'
         ret += 'downloadfilename=${ROS_SP}.tar.gz"\n\n'
         ret += 'SRC_URI[md5sum] = "' + self.getSrcMD5() + '"\n'
         ret += 'SRC_URI[sha256sum] = "' + self.getSrcSha256() + '"\n'
