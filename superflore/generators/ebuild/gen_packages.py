@@ -140,8 +140,8 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
             bad_installers.append(current)
             failed = failed + 1
-        results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
-        results += ' for distro {0}'.format(distro_name)
+    results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
+    results += ' for distro {0}'.format(distro_name)
     print("------ {0} ------".format(results))
     print()
 
