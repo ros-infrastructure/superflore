@@ -16,6 +16,7 @@
 def sanitize_string(string, illegal_chars):
     ret = str()
     for c in string:
-        if c not in illegal_chars:
-            ret += c
+        if c in illegal_chars:
+            ret += '\\'
+        ret += c
     return ret
