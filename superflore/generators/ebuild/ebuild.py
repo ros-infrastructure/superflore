@@ -126,7 +126,7 @@ class Ebuild(object):
         self.name = None
         self.has_patches = False
         self.die_msg = None
-        self.illegal_desc_chars = '()[]{}?*+-|^$\\.#\t\n\r\v\f\'\"'
+        self.illegal_desc_chars = '()[]{}|^$\\#\t\n\r\v\f\'\"\`'
 
     def add_build_depend(self, depend, internal=True):
         if depend in self.rdepends:
