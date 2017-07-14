@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 # Copyright 2017 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from superflore.generators.ebuild.gen_packages import generate_installers
 from superflore.generators.ebuild.overlay_instance import ros_overlay
+import argparse
 import shutil
 import sys
 import os
@@ -69,25 +70,19 @@ def main():
     global overlay
     global preserve_existing
     global mode
-    if len(sys.argv) == 2:
-        arg1 = sys.argv[1].replace('--', '')
 
-        if arg1 == 'all' or arg1 == 'update':
-            mode = arg1
-            preserve_existing = arg1 == 'all'
-        else:
-            preserve_existing = False
-            if arg1 not in active_distros:
-                ros_overlay.error('Unknown ros distro "{0}"'.format(arg1))
-                ros_overlay.error('Exiting...')
-                sys.exit(1)
-            else:
-                msg = 'Regenerating all packages for distro "{0}"'.format(arg1)
-                ros_overlay.info(msg)
-                mode = arg1
-    elif len(sys.argv) >= 2:
-        ros_overlay.error('Invalid arguments!')
-        print_usage()
+    parser = argparse.ArgumentParser(
+        'Deploy ROS packages into Gentoo Linux.')
+    parser.add_argument(
+        '--distro', help='regenerate packages for the specified distro.', type=str)
+    parser.add_argument(
+        '--all', help='regenerate all packages in all distros.')
+    args = parser.parse(argv)
+
+    if 'distro' in args:
+        mode = args.distro
+    if 'all' in args:
+        mode = 'all'
 
     # clone current repo
     selected_targets = active_distros
