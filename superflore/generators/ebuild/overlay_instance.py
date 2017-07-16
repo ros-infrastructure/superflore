@@ -38,7 +38,7 @@ class ros_overlay(repo_instance):
 
     def commit_changes(self, distro):
         self.info('Adding changes...')
-        if distro == 'all' or distro == 'update':
+        if not distro:
             self.git.add('ros-*')
         else:
             self.git.add('ros-{0}'.format(distro))

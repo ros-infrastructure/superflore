@@ -25,17 +25,15 @@ import os
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
 # just update packages, by default.
-mode = 'update'
 preserve_existing = True
-overlay = ros_overlay()
+overlay = None
 
 
-def link_existing_files():
+def link_existing_files(mode):
     global overlay
-    global mode
     sym_link_msg = 'Symbolicly linking files from {0}/ros-{1}...'
     dir_fmt = '{0}/ros-{1}'
-    if mode == 'all' or mode == 'update':
+    if not mode:
         for x in active_distros:
             ros_overlay.info(sym_link_msg.format(overlay.repo_dir, x))
             os.symlink(dir_fmt.format(overlay.repo_dir, x), './ros-' + x)
@@ -45,59 +43,48 @@ def link_existing_files():
         os.symlink(dir_fmt.format(overlay.repo_dir, mode), './ros-' + mode)
 
 
-def clean_up():
+def clean_up(mode):
     global overlay
-    global mode
     clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
     ros_overlay.info(clean_msg)
     shutil.rmtree(overlay.repo_dir)
     ros_overlay.info('Cleaning up symbolic links...')
-    if mode != 'all' and mode != 'update':
+    if mode:
         os.remove('ros-{0}'.format(mode))
     else:
         for x in active_distros:
             os.remove('ros-{0}'.format(x))
 
 
-def print_usage():
-    usage = 'Usage: {0} [ --all'.format(sys.argv[0])
-    for distro in active_distros:
-        usage += '| --{0}'.format(distro)
-    usage += ' ]'
-    ros_overlay.info(usage)
-
-
 def main():
     global overlay
     global preserve_existing
-    global mode
 
-    parser = argparse.ArgumentParser(
-        'Deploy ROS packages into Gentoo Linux.')
+    parser = argparse.ArgumentParser('Deploy ROS packages into Gentoo Linux')
     parser.add_argument(
-        '--distro', help='regenerate packages for the specified distro.', type=str)
+        '--ros-distro',
+        help='regenerate packages for the specified distro',
+        type=str
+    )
     parser.add_argument(
-        '--all', help='regenerate all packages in all distros.')
+        '--all',
+        help='regenerate all packages in all distros',
+        action="store_true"
+    )
     args = parser.parse_args(sys.argv[1:])
     download_yamls()
-    print(vars(args))
-    if args.distro is not None:
-        mode = args.distro
-    elif args.all is not None:
-        mode = 'all'
-
     # clone current repo
+    overlay = ros_overlay()
     selected_targets = active_distros
 
-    if mode == 'all':
+    if args.all:
         ros_overlay.warn('"All" mode detected... This may take a while!')
         preserve_existing = False
-    elif mode != 'update':
-        selected_targets = [mode]
+    elif args.ros_distro:
+        selected_targets = [args.ros_distro]
         preserve_existing = False
-
     try:
-        link_existing_files()
+        link_existing_files(args.ros_distro)
     except os.FileExistsError:
         warn_msg = 'Detected existing rosdistro ebuild structure... '
         warn_msg += 'Removing and overwriting.'
@@ -107,7 +94,7 @@ def main():
                 os.remove('ros-{0}'.format(x))
             except:
                 pass
-        link_existing_files()
+        link_existing_files(args.ros_distro)
 
     # generate installers
     total_installers = dict()
@@ -131,7 +118,7 @@ def main():
     if num_changes == 0:
         ros_overlay.info('ROS distro is up to date.')
         ros_overlay.info('Exiting...')
-        clean_up()
+        clean_up(args.ros_distro)
         sys.exit(0)
 
     # remove duplicates
@@ -173,8 +160,8 @@ def main():
             missing_deps += " * [ ] {0}\n".format(pkg)
 
     # Commit changes and file pull request
-    overlay.regenerate_manifests(mode)
-    overlay.commit_changes(mode)
+    overlay.regenerate_manifests(args.ros_distro)
+    overlay.commit_changes(args.ros_distro)
     try:
         overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
     except Exception as e:
@@ -182,5 +169,5 @@ def main():
         overlay.error('Exception: {0}'.format(e))
         sys.exit(1)
 
-    clean_up()
+    clean_up(args.ros_distro)
     ros_overlay.happy('Successfully synchronized repositories!')
