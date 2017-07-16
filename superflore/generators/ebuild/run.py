@@ -16,6 +16,7 @@
 
 from superflore.generators.ebuild.gen_packages import generate_installers
 from superflore.generators.ebuild.overlay_instance import ros_overlay
+from superflore.generators.ebuild.ebuild import download_yamls
 import argparse
 import shutil
 import sys
@@ -77,11 +78,12 @@ def main():
         '--distro', help='regenerate packages for the specified distro.', type=str)
     parser.add_argument(
         '--all', help='regenerate all packages in all distros.')
-    args = parser.parse(argv)
-
-    if 'distro' in args:
+    args = parser.parse_args(sys.argv[1:])
+    download_yamls()
+    print(vars(args))
+    if args.distro is not None:
         mode = args.distro
-    if 'all' in args:
+    elif args.all is not None:
         mode = 'all'
 
     # clone current repo
@@ -89,8 +91,11 @@ def main():
 
     if mode == 'all':
         ros_overlay.warn('"All" mode detected... This may take a while!')
+        preserve_existing = False
     elif mode != 'update':
         selected_targets = [mode]
+        preserve_existing = False
+
     try:
         link_existing_files()
     except os.FileExistsError:

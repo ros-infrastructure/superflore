@@ -28,7 +28,8 @@ class metadata_xml(object):
         ret += "<!DOCTYPE pkgmetadata SYSTEM "
         ret += "\"http://www.gentoo.org/dtd/metadata.dtd\">\n"
         ret += "<pkgmetadata>\n"
-        if self.longdescription is not None:
+        if self.longdescription is not None and\
+           isinstance(self.longdescription, str):
             ret += "  <longdescription>\n"
             ret += "    " + self.longdescription + "\n"
             ret += "  </longdescription>\n"
