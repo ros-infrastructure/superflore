@@ -98,7 +98,7 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             overlay.remove_file(existing[0])
         try:
             current = oe_installer(distro, pkg)
-            current.recipe.name = pkg
+            current.recipe.name = pkg.replace('_', '-')
         except Exception as e:
             err('Failed to generate installer for package {}!'.format(pkg))
             err('  exception: {0}'.format(e))
@@ -128,13 +128,14 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             failed = failed + 1
             continue  # do not generate an incomplete ebuild
         """
-        make_dir("recipes-ros-{}/{}".format(distro_name, pkg))
+        make_dir("recipes-ros-{}/{}".format(distro_name, pkg.replace('_', '-')))
         success_msg = 'Successfully generated installer for package'
         ok('{0}%: {1}.'.format(percent, success_msg, pkg))
         succeeded = succeeded + 1
 
         # try:
-        recipe_name = '{0}/{1}/{1}_{2}'.format(distro_name, pkg, version)
+        recipe_name = '{0}/{1}/{1}_{2}'.format(distro_name,\
+            pkg.replace('_', '-'), version)
         recipe_file = open('recipes-ros-{0}.bb'.format(recipe_name), "w")
         # metadata_name = '{0}/{1}/metadata.xml'.format(distro_name, pkg)
         # metadata_file = open('ros-{0}'.format(metadata_name), "w")

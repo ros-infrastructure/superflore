@@ -123,21 +123,21 @@ class yoctoRecipe(object):
                ".tar.gz"
 
     def get_license_line(self):
-        f = self.pkg_xml
         self.license_line = ''
         self.license_md5 = ''
         i = 0
-        for line in self.pkg_xml.split('\n'):
+        for line in str(self.pkg_xml, 'utf-8').split('\n'):
             i += 1
+            print(line)
             if 'license' in line:
                 self.license_line = str(i)
                 md5 = hashlib.md5()
-                md5.update(line)
+                md5.update(line.encode())
                 self.license_md5 = md5.hexdigest()
                 break
 
     def downloadArchive(self):
-        urllib.urlretrieve(self.src_uri, self.getArchiveName())
+        urllib.request.urlretrieve(self.src_uri, self.getArchiveName())
 
     def extractArchive(self):
         tar = tarfile.open(self.getArchiveName(), "r:gz")
@@ -159,7 +159,8 @@ class yoctoRecipe(object):
 
         py_ver = sys.version_info
         # description
-        if self.description is not None:
+        if self.description:
+            self.description = self.description.replace('\n', ' ')
             ret += 'DESCRIPTION = "' + self.description + '"\n'
         else:
             ret += 'DESCRIPTION = "None"\n'
@@ -168,9 +169,13 @@ class yoctoRecipe(object):
         # section
         ret += 'SECTION = "devel"\n'
         if isinstance(self.license, str):
+            self.license = self.license.replace(' ', '-')
             ret += 'LICENSE = "' + self.license + '"\n'
         elif isinstance(self.license, list):
-            ret += 'LICENSE = "'
+            self.license = self.license[0].replace(' ', '-')
+            ret += 'LICENSE = "' + self.license + '"\n'
+            """
+            TODO(allenh1): add this functionality
             first = True
             for lic in self.license:
                 if not first:
@@ -178,6 +183,7 @@ class yoctoRecipe(object):
                     first = False
                 ret += lic
             ret += '"\n'
+            """
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         self.get_license_line()
         ret += str(self.license_line)
