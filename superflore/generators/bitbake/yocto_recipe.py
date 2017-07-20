@@ -35,6 +35,7 @@ import re
 from superflore.utils import get_license
 from superflore.utils import UnresolvedDependency
 from superflore.utils import NoPkgXml
+from superflore.utils import resolve_dep
 from termcolor import colored
 
 
@@ -132,7 +133,6 @@ class yoctoRecipe(object):
             raise NoPkgXml('No package xml file!')
         for line in str(self.pkg_xml, 'utf-8').split('\n'):
             i += 1
-            print(line)
             if 'license' in line:
                 self.license_line = str(i)
                 md5 = hashlib.md5()
@@ -171,8 +171,9 @@ class yoctoRecipe(object):
         # author
         ret += 'AUTHOR = "' + self.author + '"\n'
         # section
-        ret += 'SECTION = "devel"\n'
+        ret += 'SECTION = "devel"\n'        
         if isinstance(self.license, str):
+            self.license = self.license.split(',')[0]
             self.license = self.license.replace(' ', '-')
             ret += 'LICENSE = "' + self.license + '"\n'
         elif isinstance(self.license, list):
@@ -203,7 +204,7 @@ class yoctoRecipe(object):
         for dep in sorted(self.depends):
             if not first:
                 ret += ' '
-            ret += dep
+            ret += resolve_dep(dep, 'oe')
             first = False
         ret += '"\n'
 

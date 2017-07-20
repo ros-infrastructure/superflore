@@ -69,6 +69,34 @@ def get_license(l):
         raise UnknownLicense('bad license')
 
 
+def resolve_dep(pkg, os):
+    """
+    TODO(allenh1): integrate rosdep
+    """
+    if os == 'oe':
+        return _resolve_dep_open_embedded(pkg)
+    else:
+        msg = "Unknown target platform '{0}'".format(os)
+        raise UnresolvedDependency(msg)
+
+
+def _resolve_dep_open_embedded(pkg):
+    if pkg == 'python-yaml':
+        return 'python-pyyaml'
+    elif pkg == 'tinyxml2':
+        return 'libtinyxml2'
+    elif pkg == 'tinyxml':
+        return 'libtinyxml'
+    elif pkg == 'pkg-config':
+        return 'pkgconfig'
+    elif pkg == 'libconsole-bridge':
+        return 'console-bridge'
+    elif pkg == 'libconsole-bridge-dev':
+        return 'console-bridge'
+    else:
+        return pkg.replace('_', '-')
+        
+
 class UnknownLicense(Exception):
     def __init__(self, message):
         self.message = message
