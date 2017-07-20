@@ -24,7 +24,8 @@ from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
-from .yocto_recipe import yoctoRecipe, UnresolvedDependency
+from .yocto_recipe import yoctoRecipe
+from superflore.utils import UnresolvedDependency, NoPkgXml
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
@@ -108,7 +109,11 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             info(' downloading archive version for package \'%s\'' % pkg)
             current.recipe.downloadArchive()
             recipe_text = current.recipe_text()
-            # metadata_text = current.metadata_text()
+        except NoPkgXml:
+            err('  No package.xml file for pkg \'{0}\'!'.format(pkg))
+            err("Failed to generate installer for package {}!".format(pkg))
+            failed = failed + 1
+            continue  # cannot generate package
         except UnresolvedDependency:
             dep_err = 'Failed to resolve required dependencies for'
             err("{0} package {1}!".format(dep_err, pkg))
@@ -137,11 +142,8 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
         recipe_name = '{0}/{1}/{1}_{2}'.format(distro_name,\
             pkg.replace('_', '-'), version)
         recipe_file = open('recipes-ros-{0}.bb'.format(recipe_name), "w")
-        # metadata_name = '{0}/{1}/metadata.xml'.format(distro_name, pkg)
-        # metadata_file = open('ros-{0}'.format(metadata_name), "w")
 
         recipe_file.write(recipe_text)
-        # metadata_file.write(metadata_text)
         changes.append('*{0} --> {1}*'.format(pkg, version))
         """
         except Exception as e:

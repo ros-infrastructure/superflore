@@ -72,3 +72,8 @@ def get_license(l):
 class UnknownLicense(Exception):
     def __init__(self, message):
         self.message = message
+
+
+class NoPkgXml(Exception):
+    def __init__(self, message):
+        self.message = message

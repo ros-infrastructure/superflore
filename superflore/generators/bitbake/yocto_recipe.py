@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2017 Open Source Robotics Foundation, Inc.
 # Copyright (c) 2016 David Bensoussan, Synapticon GmbH
+# Copyright (c) 2017 Open Source Robotics Foundation, Inc.
 #
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,6 +33,8 @@ import sys
 import re
 
 from superflore.utils import get_license
+from superflore.utils import UnresolvedDependency
+from superflore.utils import NoPkgXml
 from termcolor import colored
 
 
@@ -126,6 +128,8 @@ class yoctoRecipe(object):
         self.license_line = ''
         self.license_md5 = ''
         i = 0
+        if not self.pkg_xml:
+            raise NoPkgXml('No package xml file!')
         for line in str(self.pkg_xml, 'utf-8').split('\n'):
             i += 1
             print(line)
@@ -211,8 +215,3 @@ class yoctoRecipe(object):
         ret += 'S = "${WORKDIR}/${ROS_SP}"\n\n'
         ret += 'inherit catkin\n'
         return ret
-
-
-class UnresolvedDependency(Exception):
-    def __init__(self, message):
-        self.message = message

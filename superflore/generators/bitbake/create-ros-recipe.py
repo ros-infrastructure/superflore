@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2017 Open Source Robotics Foundation, Inc.
 # Copyright (c) 2016 David Bensoussan, Synapticon GmbH
-# 
+# Copyright (c) 2017 Open Source Robotics Foundation, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to
