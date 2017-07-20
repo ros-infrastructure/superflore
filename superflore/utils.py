@@ -74,6 +74,11 @@ class UnknownLicense(Exception):
         self.message = message
 
 
+class UnresolvedDependency(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 class NoPkgXml(Exception):
     def __init__(self, message):
         self.message = message
