@@ -136,7 +136,7 @@ class yoctoRecipe(object):
             if 'license' in line:
                 self.license_line = str(i)
                 md5 = hashlib.md5()
-                md5.update(line.encode())
+                md5.update((line + '\n').encode())
                 self.license_md5 = md5.hexdigest()
                 break
 
@@ -151,6 +151,19 @@ class yoctoRecipe(object):
     def add_depend(self, depend):
         if depend not in self.depends:
             self.depends.append(depend)
+
+    def get_src_location(self):
+        """
+        Parse out the folder name.
+        TODO(allenh1): add a case for non-GitHub packages,
+        after they are supported.
+        """
+        github_start = 'https://github.com/'
+        structure = self.src_uri.replace(github_start, '')
+        dirs = structure.split('/')
+        return '{0}-{1}-{2}-{3}-{4}'.format(dirs[1], dirs[3],\
+                                            dirs[4], dirs[5],\
+                                            dirs[6]).replace('.tar.gz', '')
 
     def get_recipe_text(self, distributor, license_text, die_msg=None):
         """
@@ -171,7 +184,8 @@ class yoctoRecipe(object):
         # author
         ret += 'AUTHOR = "' + self.author + '"\n'
         # section
-        ret += 'SECTION = "devel"\n'        
+        ret += 'SECTION = "devel"\n'
+        self.get_license_line()
         if isinstance(self.license, str):
             self.license = self.license.split(',')[0]
             self.license = self.license.replace(' ', '-')
@@ -190,7 +204,6 @@ class yoctoRecipe(object):
             ret += '"\n'
             """
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
-        self.get_license_line()
         ret += str(self.license_line)
         ret += ';endline='
         ret += str(self.license_line)
@@ -213,6 +226,7 @@ class yoctoRecipe(object):
         ret += 'downloadfilename=${ROS_SP}.tar.gz"\n\n'
         ret += 'SRC_URI[md5sum] = "' + self.getSrcMD5() + '"\n'
         ret += 'SRC_URI[sha256sum] = "' + self.getSrcSha256() + '"\n'
-        ret += 'S = "${WORKDIR}/${ROS_SP}"\n\n'
+        ret += 'S = "${WORKDIR}/'
+        ret += self.get_src_location() + '"\n\n'
         ret += 'inherit catkin\n'
         return ret
