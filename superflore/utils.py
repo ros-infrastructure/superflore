@@ -93,6 +93,12 @@ def _resolve_dep_open_embedded(pkg):
         return 'console-bridge'
     elif pkg == 'libconsole-bridge-dev':
         return 'console-bridge'
+    elif pkg == 'python-empy':
+        return 'python-empy-native'
+    elif pkg == 'catkin':
+        return 'python-empy-native'
+    elif pkg == 'python-catkin-pkg':
+        return 'python-catkin-pkg-native'
     else:
         return pkg.replace('_', '-')
         
