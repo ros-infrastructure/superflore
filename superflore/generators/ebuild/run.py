@@ -43,14 +43,14 @@ def link_existing_files(mode):
         os.symlink(dir_fmt.format(overlay.repo_dir, mode), './ros-' + mode)
 
 
-def clean_up(mode):
+def clean_up(distro):
     global overlay
     clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
     ros_overlay.info(clean_msg)
     shutil.rmtree(overlay.repo_dir)
     ros_overlay.info('Cleaning up symbolic links...')
-    if mode:
-        os.remove('ros-{0}'.format(mode))
+    if distro in active_distros:
+        os.remove('ros-{0}'.format(distro))
     else:
         for x in active_distros:
             os.remove('ros-{0}'.format(x))
