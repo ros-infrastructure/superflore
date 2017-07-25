@@ -96,7 +96,7 @@ def _resolve_dep_open_embedded(pkg):
     elif pkg == 'python-empy':
         return 'python-empy-native'
     elif pkg == 'catkin':
-        return 'python-empy-native'
+        return 'catkin-native'
     elif pkg == 'python-catkin-pkg':
         return 'python-catkin-pkg-native'
     else:
