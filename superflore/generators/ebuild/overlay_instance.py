@@ -38,10 +38,12 @@ class ros_overlay(repo_instance):
 
     def commit_changes(self, distro):
         self.info('Adding changes...')
-        if distro == 'all' or distro == 'update':
+        if not distro:
             self.git.add('ros-*')
         else:
             self.git.add('ros-{0}'.format(distro))
+        if not distro:
+            distro = 'update'
         commit_msg = {
             'update': 'rosdistro sync, {0}',
             'all': 'regenerate all distros, {0}',
@@ -57,7 +59,7 @@ class ros_overlay(repo_instance):
         pid = os.fork()
 
         if pid == 0:
-            if mode == 'all' or mode == 'update':
+            if mode == 'all' or not mode:
                 os.chdir(self.repo_dir)
             else:
                 os.chdir('{0}/ros-{1}'.format(self.repo_dir, mode))

@@ -32,19 +32,22 @@ else:
         return response.read()
 
 
-base_url = \
-  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
-python_url = \
-  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
-ruby_url = \
-  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
+def download_yamls():
+    global base_yml
+    global python_yml
+    global ruby_yml
 
-print(colored("Downloading latest base yml...", 'cyan'))
-base_yml = yaml.load(get_http(base_url))
-print(colored("Downloading latest python yml...", 'cyan'))
-python_yml = yaml.load(get_http(python_url))
-print(colored("Downloading latest ruby yml...", 'cyan'))
-ruby_yml = yaml.load(get_http(ruby_url))
+    base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
+    base_yaml = "{0}/base.yaml".format(base_url)
+    python_yaml = "{0}/python.yaml".format(base_url)
+    ruby_yaml = "{0}/ruby.yaml".format(base_url)
+
+    print(colored("Downloading latest base yml...", 'cyan'))
+    base_yml = yaml.load(get_http(base_yaml))
+    print(colored("Downloading latest python yml...", 'cyan'))
+    python_yml = yaml.load(get_http(python_yaml))
+    print(colored("Downloading latest ruby yml...", 'cyan'))
+    ruby_yml = yaml.load(get_http(ruby_yaml))
 
 
 def get_license(l):
@@ -291,6 +294,9 @@ class Ebuild(object):
 
     @staticmethod
     def resolve(pkg):
+        global base_yml
+        global python_yml
+        global ruby_yml        
         if pkg not in base_yml:
             if pkg not in python_yml:
                 if pkg not in ruby_yml:
