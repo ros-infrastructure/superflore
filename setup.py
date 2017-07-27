@@ -33,14 +33,16 @@ setup(
     test_suite='tests',
     entry_points={
         'console_scripts' : [
-            'superflore-gen-ebuilds = superflore.generators.ebuild:main'
+            'superflore-gen-ebuilds = superflore.generators.ebuild:main',
+            'superflore-gen-meta-pkgs = superflore.generators.bitbake:main'
         ],
         'common' : [
             'repo_instance = superflore.repo_instance',
             'gen_packages = superflore.gen_packages'
         ],
         'generators' : [
-            'portage = superflore.generators.ebuild'
+            'portage = superflore.generators.ebuild',
+            'yocto = superflore.generators.bitbake'
         ]
     }
 )

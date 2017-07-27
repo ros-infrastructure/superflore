@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from superflore.utils import sanitize_string
+from superflore.utils import sanitize_string, get_license, UnknownLicense
 from termcolor import colored
 import yaml
 import sys
-import re
 
 if sys.version_info[0] == 2:
     import requests
@@ -48,50 +46,6 @@ def download_yamls():
     python_yml = yaml.load(get_http(python_yaml))
     print(colored("Downloading latest ruby yml...", 'cyan'))
     ruby_yml = yaml.load(get_http(ruby_yaml))
-
-
-def get_license(l):
-    bsd_re = '^(BSD)((.)*([1234]))?'
-    gpl_re = '^(GPL)((.)*([123]))?'
-    lgpl_re = '^(LGPL)((.)*([23]|2\\.1))?'
-    apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
-    cc_re = '^(Creative Commons)|'
-    moz_re = '^(Mozilla)((.)*(1\\.1))?'
-    mit_re = '^MIT'
-    f = re.IGNORECASE
-
-    if re.search(apache_re, l, f) is not None:
-        version = re.search(apache_re, l, f).group(4)
-        if version is not None:
-            return 'Apache-{0}'.format(version)
-        return 'Apache-1.0'
-    elif re.search(bsd_re, l, f) is not None:
-        version = re.search(bsd_re, l, f).group(4)
-        if version is not None:
-            return 'BSD-{0}'.format(version)
-        return 'BSD'
-    elif re.search(gpl_re, l, f) is not None:
-        version = re.search(gpl_re, l, f).group(4)
-        if version is not None:
-            return 'GPL-{0}'.format(version)
-        return 'GPL-1'
-    elif re.search(lgpl_re, l, f) is not None:
-        version = re.search(lgpl_re, l, f).group(4)
-        if version is not None:
-            return 'LGPL-{0}'.format(version)
-        return 'LGPL-2'
-    elif re.search(moz_re, l, f) is not None:
-        version = re.search(moz_re, l, f).group(4)
-        if version is not None:
-            return 'MPL-{0}'.format(version)
-        return 'MPL-2.0'
-    elif re.search(mit_re, l, f) is not None:
-        return 'MIT'
-    elif re.search(cc_re, l, f) is not None:
-        return 'CC-BY-SA-3.0'
-    else:
-        print(colored('Could not match license "{0}".'.format(l), 'red'))
-        raise BadLicense('bad license')
 
 
 class ebuild_keyword(object):
@@ -334,6 +288,3 @@ class UnresolvedDependency(Exception):
         self.message = message
 
 
-class UnknownLicense(Exception):
-    def __init__(self, message):
-        self.message = message

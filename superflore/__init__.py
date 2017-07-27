@@ -3,7 +3,7 @@ from __future__ import print_function
 try:
     import pkg_resources
     try:
-        __version__ = pkg_resources.require('ebuild_generator')[0].version
+        __version__ = pkg_resources.require('superflore')[0].version
     except pkg_resources.DistributionNotFound:
         __version__ = 'unset'
 except (ImportError, OSError):
