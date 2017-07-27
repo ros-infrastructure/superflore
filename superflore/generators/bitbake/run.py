@@ -14,6 +14,7 @@
 
 from superflore.generators.bitbake.gen_packages import generate_installers
 from superflore.generators.bitbake.ros_meta import ros_meta
+import argparse
 import shutil
 import sys
 import os
@@ -23,12 +24,11 @@ active_distros = ['indigo', 'kinetic', 'lunar']
 # just update packages, by default.
 mode = 'update'
 preserve_existing = True
-overlay = ros_meta()
+overlay = None
 
 
-def link_existing_files():
+def link_existing_files(mode):
     global overlay
-    global mode
     sym_link_msg = 'Symbolicly linking files from {0}/recipes-ros-{1}...'
     dir_fmt = '{0}/recipes-ros-{1}'
     if mode == 'all' or mode == 'update':
@@ -41,60 +41,48 @@ def link_existing_files():
         os.symlink(dir_fmt.format(overlay.repo_dir, mode), './recipes-ros-' + mode)
 
 
-def clean_up():
+def clean_up(distro):
     global overlay
-    global mode
     clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
     ros_meta.info(clean_msg)
     shutil.rmtree(overlay.repo_dir)
     ros_meta.info('Cleaning up symbolic links...')
     if mode != 'all' and mode != 'update':
-        os.remove('recipes-ros-{0}'.format(mode))
+        os.remove('recipes-ros-{0}'.format(distro))
     else:
         for x in active_distros:
             os.remove('recipes-ros-{0}'.format(x))
 
 
-def print_usage():
-    usage = 'Usage: {0} [ --all'.format(sys.argv[0])
-    for distro in active_distros:
-        usage += '| --{0}'.format(distro)
-    usage += ' ]'
-    ros_meta.info(usage)
-
-
 def main():
     global overlay
-    global mode
-    if len(sys.argv) == 2:
-        arg1 = sys.argv[1].replace('--', '')
 
-        if arg1 == 'all' or arg1 == 'update':
-            mode = arg1
-            preserve_existing = arg1 == 'all'
-        else:
-            preserve_existing = False
-            if arg1 not in active_distros:
-                ros_meta.error('Unknown ros distro "{0}"'.format(arg1))
-                ros_meta.error('Exiting...')
-                sys.exit(1)
-            else:
-                msg = 'Regenerating all packages for distro "{0}"'.format(arg1)
-                ros_meta.info(msg)
-                mode = arg1
-    elif len(sys.argv) >= 2:
-        ros_meta.error('Invalid arguments!')
-        print_usage()
+    parser = argparse.ArgumentParser('Deploy ROS packages into Yocto Linux')
+    parser.add_argument(
+        '--ros-distro',
+        help='regenerate packages for the specified distro',
+        type=str
+    )
+    parser.add_argument(
+        '--all',
+        help='regenerate all packages in all distros',
+        action="store_true"
+    )
+    args = parser.parse_args(sys.argv[1:])
+    # clone current repo
+    overlay = ros_meta()
+    selected_targets = active_distros
+
+    if args.all:
+        ros_meta.warn('"All" mode detected... this may take a while!')
+    elif args.ros_distro:
+        selected_targets = [args.ros_distro]
+        preserve_existing = False
 
     # clone current repo
     selected_targets = active_distros
-
-    if mode == 'all':
-        ros_meta.warn('"All" mode detected... This may take a while!')
-    elif mode != 'update':
-        selected_targets = [mode]
     # try:
-    link_existing_files()
+    link_existing_files(args.ros_distro)
     """
     except FileExistsError:
         warn_msg = 'Detected existing rosdistro ebuild structure... '
@@ -172,7 +160,7 @@ def main():
 
     # Commit changes and file pull request
     # overlay.regenerate_manifests(mode)
-    overlay.commit_changes(mode)
+    overlay.commit_changes(args.ros_distro)
     try:
         overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
     except Exception as e:
