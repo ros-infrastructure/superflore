@@ -54,21 +54,6 @@ else:
         return response.read()
 
 
-base_url = \
-  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/base.yaml"
-python_url = \
-  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/python.yaml"
-ruby_url = \
-  "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep/ruby.yaml"
-
-print(colored("Downloading latest base yml...", 'cyan'))
-base_yml = yaml.load(get_http(base_url))
-print(colored("Downloading latest python yml...", 'cyan'))
-python_yml = yaml.load(get_http(python_url))
-print(colored("Downloading latest ruby yml...", 'cyan'))
-ruby_yml = yaml.load(get_http(ruby_url))
-
-
 class yoctoRecipe(object):
     def __init__(self):
         self.name = None
@@ -84,24 +69,6 @@ class yoctoRecipe(object):
         self.src_md5 = None
         self.src_sha256 = None
 
-    def getLicenseMD5(self, license):
-        if license == "BSD":
-            return "d566ef916e9dedc494f5f793a6690ba5"
-        elif license == "Mozilla Public License Version 1.1":
-            return "e1b5a50d4dd59d8102e41a7a2254462d"
-        elif license == "CC-BY-NC-SA-2.0":
-            return "11e24f757f025b2cbebd5b14b4a7ca19"
-        elif license == "LGPL-2.1":
-            return "184dd1523b9a109aead3fbbe0b4262e0"
-        elif license == "GPL":
-            return "162b49cfbae9eadf37c9b89b2d2ac6be"
-        elif license == "LGPL-2.1+":
-            return "58d727014cda5ed405b7fb52666a1f97"
-        elif license == "LGPLv2":
-            return "46ee8693f40a89a31023e97ae17ecf19"
-        elif license == "MIT":
-            return "58e54c03ca7f821dd3967e2a2cd1596e"
-
     def getSrcMD5(self):
         return hashlib.md5(
             open("./" + self.getArchiveName(), 'rb').read()).hexdigest()
@@ -109,13 +76,6 @@ class yoctoRecipe(object):
     def getSrcSha256(self):
         return hashlib.sha256(
             open("./" + self.getArchiveName(), 'rb').read()).hexdigest()
-
-    def getURL(self):
-        return "https://github.com/" + \
-               self.repository + "/" + \
-               self.name.replace("-", "_") + \
-               "/archive/" + str(self.version) + \
-               ".tar.gz"
 
     def getFolderName(self):
         return self.name.replace("-", "_") + "-" + str(self.version)

@@ -16,7 +16,7 @@
 
 from superflore.generators.ebuild.gen_packages import generate_installers
 from superflore.generators.ebuild.overlay_instance import ros_overlay
-from superflore.generators.ebuild.ebuild import download_yamls
+from superflore.utils import download_yamls
 import argparse
 import shutil
 import sys
@@ -72,7 +72,6 @@ def main():
         action="store_true"
     )
     args = parser.parse_args(sys.argv[1:])
-    download_yamls()
     # clone current repo
     overlay = ros_overlay()
     selected_targets = active_distros

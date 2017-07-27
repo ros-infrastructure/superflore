@@ -66,30 +66,6 @@ class ros_meta(repo_instance):
         self.info('Committing to branch {0}...'.format(self.branch_name))
         self.git.commit(m='{0}'.format(commit_msg))
 
-    """
-    def regenerate_manifests(self, mode):
-        self.info('Generating manifests...')
-        pid = os.fork()
-
-        if pid == 0:
-            if mode == 'all' or mode == 'update':
-                os.chdir(self.repo_dir)
-            else:
-                os.chdir('{0}/ros-{1}'.format(self.repo_dir, mode))
-            child_msg = 'changed work directory to {0}'.format(os.getcwd())
-            self.info('child: {0}'.format(child_msg))
-            os.execlp('sudo', 'sudo', 'repoman', 'manifest')
-            self.error('Failed to run repoman!')
-            self.error('Do you have permissions?')
-            sys.exit(1)
-        else:
-            if os.waitpid(pid, 0)[1] != 0:
-                self.error('Manifest generation failed. Exiting...')
-                sys.exit(1)
-            else:
-                self.happy('Manifest generation succeeded.')
-    """
-
     def pull_request(self, message):
         self.info('Filing pull-request for allenh1/meta-ros...')
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())

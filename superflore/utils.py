@@ -15,6 +15,36 @@
 
 import re
 
+if sys.version_info[0] == 2:
+    import requests
+
+    def get_http(url):
+        return requests.get(url).text
+else:
+    from urllib.request import urlopen
+
+    def get_http(url):
+        response = urlopen(url)
+        return response.read()
+
+
+def download_yamls():
+    global base_yml
+    global python_yml
+    global ruby_yml
+
+    base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
+    base_yaml = "{0}/base.yaml".format(base_url)
+    python_yaml = "{0}/python.yaml".format(base_url)
+    ruby_yaml = "{0}/ruby.yaml".format(base_url)
+
+    print(colored("Downloading latest base yml...", 'cyan'))
+    base_yml = yaml.load(get_http(base_yaml))
+    print(colored("Downloading latest python yml...", 'cyan'))
+    python_yml = yaml.load(get_http(python_yaml))
+    print(colored("Downloading latest ruby yml...", 'cyan'))
+    ruby_yml = yaml.load(get_http(ruby_yaml))
+
 
 def sanitize_string(string, illegal_chars):
     ret = str()
