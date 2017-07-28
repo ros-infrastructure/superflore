@@ -6,8 +6,8 @@ from setuptools import find_packages, setup
 install_requires = [
     'xmltodict',
     'termcolor',
-    'setuptools',    
-    'rosinstall_generator',    
+    'setuptools',
+    'rosinstall_generator',
     'rosdistro',
     'gitpython',
     'git-pull-request',
