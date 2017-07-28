@@ -25,7 +25,7 @@ from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
 from .yocto_recipe import yoctoRecipe
-from superflore.utils import UnresolvedDependency, NoPkgXml
+from superflore.exceptions import UnresolvedDependency, NoPkgXml
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"

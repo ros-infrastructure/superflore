@@ -93,8 +93,9 @@ def main():
                 os.remove('ros-{0}'.format(x))
             except:
                 pass
-        link_existing_files(args.ros_distro)
 
+        link_existing_files(args.ros_distro)
+    download_yamls()
     # generate installers
     total_installers = dict()
     total_broken = set()

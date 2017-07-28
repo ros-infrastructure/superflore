@@ -33,9 +33,9 @@ import sys
 import re
 
 from superflore.utils import get_license
-from superflore.utils import UnresolvedDependency
-from superflore.utils import NoPkgXml
 from superflore.utils import resolve_dep
+from superflore.exceptions import NoPkgXml
+from superflore.exceptions import UnresolvedDependency
 from termcolor import colored
 
 

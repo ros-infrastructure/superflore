@@ -12,41 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.utils import sanitize_string, get_license, UnknownLicense
+from superflore.utils import sanitize_string
+from superflore.utils import download_yamls
+from superflore.utils import get_license
+from superflore.utils import resolve_dep
+from superflore.exceptions import UnknownLicense
+from superflore.exceptions import UnresolvedDependency
+
 from termcolor import colored
 import yaml
 import sys
-
-if sys.version_info[0] == 2:
-    import requests
-
-    def get_http(url):
-        return requests.get(url).text
-else:
-    from urllib.request import urlopen
-
-    def get_http(url):
-        response = urlopen(url)
-        return response.read()
-
-
-def download_yamls():
-    global base_yml
-    global python_yml
-    global ruby_yml
-
-    base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
-    base_yaml = "{0}/base.yaml".format(base_url)
-    python_yaml = "{0}/python.yaml".format(base_url)
-    ruby_yaml = "{0}/ruby.yaml".format(base_url)
-
-    print(colored("Downloading latest base yml...", 'cyan'))
-    base_yml = yaml.load(get_http(base_yaml))
-    print(colored("Downloading latest python yml...", 'cyan'))
-    python_yml = yaml.load(get_http(python_yaml))
-    print(colored("Downloading latest ruby yml...", 'cyan'))
-    ruby_yml = yaml.load(get_http(ruby_yaml))
-
 
 class ebuild_keyword(object):
     def __init__(self, arch, stable):
@@ -187,7 +162,7 @@ class Ebuild(object):
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
         for rdep in sorted(self.rdepends_external):
             try:
-                ret += "    " + self.resolve(rdep) + "\n"
+                ret += "    " + resolve_dep(rdep, 'gentoo') + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(rdep)
 
@@ -199,7 +174,7 @@ class Ebuild(object):
             ret += "    " + 'ros-{0}/{1}\n'.format(self.distro, bdep)
         for bdep in sorted(self.depends_external):
             try:
-                ret += "    " + self.resolve(bdep) + "\n"
+                ret += "    " + resolve_dep(bdep, 'gentoo') + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(bdep)
         ret += "\"\n\n"
@@ -245,46 +220,3 @@ class Ebuild(object):
 
     def get_unresolved(self):
         return self.unresolved_deps
-
-    @staticmethod
-    def resolve(pkg):
-        global base_yml
-        global python_yml
-        global ruby_yml        
-        if pkg not in base_yml:
-            if pkg not in python_yml:
-                if pkg not in ruby_yml:
-                    raise UnresolvedDependency(
-                        "could not resolve package {} for Gentoo.".format(pkg))
-                elif 'gentoo'not in ruby_yml[pkg]:
-                    raise UnresolvedDependency(
-                        "could not resolve package {} for Gentoo.".format(pkg))
-                elif 'portage' in ruby_yml[pkg]['gentoo']:
-                    return ruby_yml[pkg]['gentoo']['portage']['packages'][0]
-                else:
-                    resolution = ruby_yml[pkg]['gentoo'][0]
-                    return resolution
-            elif 'gentoo'not in python_yml[pkg]:
-                raise UnresolvedDependency(
-                    "could not resolve package {} for Gentoo.".format(pkg))
-            elif 'portage' in python_yml[pkg]['gentoo']:
-                return python_yml[pkg]['gentoo']['portage']['packages'][0]
-            else:
-                resolution = python_yml[pkg]['gentoo'][0]
-                return resolution
-        elif 'gentoo'not in base_yml[pkg]:
-            raise UnresolvedDependency(
-                "could not resolve package {} for Gentoo.".format(pkg))
-        elif 'portage' in base_yml[pkg]['gentoo']:
-            resolution = base_yml[pkg]['gentoo']['portage']['packages'][0]
-            return resolution
-        else:
-            resolution = base_yml[pkg]['gentoo'][0]
-            return resolution
-
-
-class UnresolvedDependency(Exception):
-    def __init__(self, message):
-        self.message = message
-
-
