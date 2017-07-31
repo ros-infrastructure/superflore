@@ -52,6 +52,7 @@ class docker(object):
         for host_dir in self.directory_map:
             cmd.append('-v')
             cmd.append('{}:{}'.format(host_dir, self.directory_map[host_dir]))
+        cmd.append(self.name)
         cmd.append('bash')
         cmd.append('-c')
         cmd_string = str()

@@ -68,7 +68,6 @@ class ros_overlay(repo_instance):
         else:
             ros_dir = '{0}/ros-{1}'.format(self.repo_dir, mode)
             dock.map_directory(ros_dir, '/tmp/ros-overlay')
-        dock.add_bash_command('ls /tmp')
         dock.add_bash_command('cd {0}'.format('/tmp/ros-overlay'))
         dock.add_bash_command('repoman manifest')
         dock.run(show_cmd=True)
