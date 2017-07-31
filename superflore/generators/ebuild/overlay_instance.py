@@ -56,8 +56,10 @@ class ros_overlay(repo_instance):
         self.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(self, mode):
-        self.info('Createing docker instance...')
+        self.info('Building docker image...')
         dock = docker('repoman_docker', 'repoman')
+        dock.build()
+        self.info('Running docker image...')
         self.info('Generating manifests...')
         dock.map_directory(
             '/home/%s/.gnupg' % os.getenv('USER'),
