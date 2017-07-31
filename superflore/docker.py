@@ -16,6 +16,7 @@ from termcolor import colored
 from os import system
 import subprocess
 
+
 class docker(object):
     def __init__(self, docker_file, name):
         self.docker_file = docker_file
@@ -53,12 +54,11 @@ class docker(object):
             cmd.append('{}:{}'.format(host_dir, self.directory_map[host_dir]))
         cmd.append('bash')
         cmd.append('-c')
-        cmd_string = '\''
+        cmd_string = str()
         for i, bash_cmd in enumerate(self.bash_cmds):
             cmd_string += bash_cmd
             if i != len(self.bash_cmds) - 1:
                 cmd_string += ' && '
-        cmd_string += '\''
         cmd.append(cmd_string)
         if show_cmd:
             print(cmd)

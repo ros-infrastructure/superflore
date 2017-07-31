@@ -1,5 +1,6 @@
 # Instance of the ROS Overlay
 from superflore import repo_instance
+from superflore.docker import docker
 import random
 import string
 import time
@@ -55,26 +56,22 @@ class ros_overlay(repo_instance):
         self.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(self, mode):
+        self.info('Createing docker instance...')
+        dock = docker('repoman_docker', 'repoman')
         self.info('Generating manifests...')
-        pid = os.fork()
-
-        if pid == 0:
-            if mode == 'all' or not mode:
-                os.chdir(self.repo_dir)
-            else:
-                os.chdir('{0}/ros-{1}'.format(self.repo_dir, mode))
-            child_msg = 'changed work directory to {0}'.format(os.getcwd())
-            self.info('child: {0}'.format(child_msg))
-            os.execlp('sudo', 'sudo', 'repoman', 'manifest')
-            self.error('Failed to run repoman!')
-            self.error('Do you have permissions?')
-            sys.exit(1)
+        dock.map_directory(
+            '/home/%s/.gnupg' % os.getenv('USER'),
+            '/root/.gnupg'
+        )
+        if mode == 'all' or not mode:
+            dock.map_directory(self.repo_dir, '/tmp/ros-overlay')
         else:
-            if os.waitpid(pid, 0)[1] != 0:
-                self.error('Manifest generation failed. Exiting...')
-                sys.exit(1)
-            else:
-                self.happy('Manifest generation succeeded.')
+            ros_dir = '{0}/ros-{1}'.format(self.repo_dir, mode)
+            dock.map_directory(ros_dir, '/tmp/ros-overlay')
+        dock.add_bash_command('ls /tmp')
+        dock.add_bash_command('cd {0}'.format('/tmp/ros-overlay'))
+        dock.add_bash_command('repoman manifest')
+        dock.run(show_cmd=True)
 
     def pull_request(self, message):
         self.info('Filing pull-request for ros/ros-overlay...')
