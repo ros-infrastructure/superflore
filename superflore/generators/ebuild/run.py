@@ -159,7 +159,7 @@ def main():
 
     try:
         link_existing_files(args.ros_distro)
-    except os.FileExistsError:
+    except FileExistsError:
         warn_msg = 'Detected existing rosdistro ebuild structure... '
         warn_msg += 'Removing and overwriting.'
         RepoInstance.warn(warn_msg)

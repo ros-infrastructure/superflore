@@ -85,9 +85,8 @@ def main():
 
     # clone current repo
     selected_targets = active_distros
-    # try:
-    link_existing_files(args.ros_distro)
-    """
+    try:
+        link_existing_files(args.ros_distro)
     except FileExistsError:
         warn_msg = 'Detected existing rosdistro ebuild structure... '
         warn_msg += 'Removing and overwriting.'
@@ -97,8 +96,8 @@ def main():
                 os.remove('recipes-ros-{0}'.format(x))
             except:
                 pass
-        link_existing_files()
-    """
+        link_existing_files(args.ros_distro)
+
     # generate installers
     total_installers = dict()
     total_broken = set()
