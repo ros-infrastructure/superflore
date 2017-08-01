@@ -71,6 +71,12 @@ def main():
         help='regenerate all packages in all distros',
         action="store_true"
     )
+    parser.add_argument(
+        '--dry-run',
+        help='run without filing a PR to remote',
+        action="store_true"
+    )
+
     args = parser.parse_args(sys.argv[1:])
     # clone current repo
     overlay = ros_overlay()
@@ -159,6 +165,9 @@ def main():
         for pkg in sorted(inst_list):
             missing_deps += " * [ ] {0}\n".format(pkg)
 
+    if args.dry_run:
+        ros_overlay.info('Running in dry mode, not filing PR')
+        sys.exit(0)
     # Commit changes and file pull request
     overlay.regenerate_manifests(args.ros_distro)
     overlay.commit_changes(args.ros_distro)
