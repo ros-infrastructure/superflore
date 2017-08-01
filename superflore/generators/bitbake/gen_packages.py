@@ -135,7 +135,7 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
         """
         make_dir("recipes-ros-{}/{}".format(distro_name, pkg.replace('_', '-')))
         success_msg = 'Successfully generated installer for package'
-        ok('{0}%: {1}.'.format(percent, success_msg, pkg))
+        ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
         succeeded = succeeded + 1
 
         # try:

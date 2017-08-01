@@ -120,7 +120,7 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             continue  # do not generate an incomplete ebuild
         make_dir("ros-{}/{}".format(distro_name, pkg))
         success_msg = 'Successfully generated installer for package'
-        ok('{0}%: {1}.'.format(percent, success_msg, pkg))
+        ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
         succeeded = succeeded + 1
 
         try:
