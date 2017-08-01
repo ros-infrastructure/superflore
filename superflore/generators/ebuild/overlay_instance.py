@@ -1,6 +1,6 @@
 # Instance of the ROS Overlay
 from superflore import repo_instance
-from superflore.docker import docker
+from superflore.docker import Docker
 import random
 import string
 import time
@@ -57,7 +57,7 @@ class ros_overlay(repo_instance):
 
     def regenerate_manifests(self, mode):
         self.info('Building docker image...')
-        dock = docker('repoman_docker', 'repoman')
+        dock = Docker('repoman_docker', 'gentoo_repoman')
         dock.build()
         self.info('Running docker image...')
         self.info('Generating manifests...')

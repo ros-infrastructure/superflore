@@ -17,9 +17,9 @@ from os import system
 import subprocess
 
 
-class docker(object):
-    def __init__(self, docker_file, name):
-        self.docker_file = docker_file
+class Docker(object):
+    def __init__(self, dockerfile_directory, name):
+        self.dockerfile_directory = dockerfile_directory
         self.name = name
         self.directory_map = dict()
         self.bash_cmds = list()
@@ -40,7 +40,7 @@ class docker(object):
                 'build',
                 '-t',
                 self.name,
-                self.docker_file
+                self.dockerfile_directory
             ])
         except subprocess.CalledProcessError:
             raise BuildException('failed to build docker image')
