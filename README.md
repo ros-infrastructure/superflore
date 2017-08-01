@@ -6,15 +6,20 @@ ROS.
 Supported Platforms:
 --------------------
  * Gentoo
+ * Open Embedded
 
 Installation:
 =============
 
-```
- $ sudo ./setup.py install
-```
+Dependencies:
+--------------
+ * Python 3
+ * Docker
+ * Git
 
-Note:
-=====
- * In order to run the Gentoo system, you must have a gentoo system,
-   `repoman`, and have set up the gentoo system for signing ebuilds.
+Instructions:
+-------------
+
+```
+ $ sudo python3 ./setup.py install
+```
