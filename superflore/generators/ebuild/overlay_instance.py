@@ -19,14 +19,14 @@ def get_random_branch_name():
 
 
 class ros_overlay(repo_instance):
-    def __init__(self):
+    def __init__(self, existing_repo=None):
         # clone repo into a random tmp directory.
         repo_instance.__init__(self, 'ros',
                                'ros-overlay', get_random_tmp_dir())
         self.branch_name = get_random_branch_name()
         self.clone()
         branch_msg = 'Creating new branch {0}...'.format(self.branch_name)
-        repo_instance.info(branch_msg)
+        self.info(branch_msg)
         self.create_branch(self.branch_name)
 
     def clean_ros_ebuild_dirs(self, distro=None):

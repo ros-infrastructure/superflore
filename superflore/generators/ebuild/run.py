@@ -17,6 +17,7 @@
 from superflore.generators.ebuild.gen_packages import generate_installers
 from superflore.generators.ebuild.overlay_instance import ros_overlay
 from superflore.utils import download_yamls
+from superflore.repo_instance import repo_instance
 import argparse
 import shutil
 import sys
@@ -43,6 +44,22 @@ def link_existing_files(mode):
         os.symlink(dir_fmt.format(overlay.repo_dir, mode), './ros-' + mode)
 
 
+def get_existing_repo():
+    existing_path = None
+    for x in active_distros:
+        curr = './ros-{0}'.format(x)
+        if os.path.exists(curr):
+            existing_path = curr
+            break
+    if not existing_path:
+        raise RuntimeException('No existing repo found')
+    # get the actual location of the repo
+    repo_dir = os.path.realpath('{0}/../'.format(existing_path))
+    # TODO(allenh1): make this configurable
+    git_repo = repo_instance('ros', 'ros-overlay', repo_dir, do_clone=False)
+    return git_repo
+
+
 def clean_up(distro):
     global overlay
     clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
@@ -54,6 +71,15 @@ def clean_up(distro):
     else:
         for x in active_distros:
             os.remove('ros-{0}'.format(x))
+
+
+def file_pr(overlay, delta, missing_deps):
+    try:
+        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
+    except Exception as e:
+        overlay.error('Failed to file PR with ros/ros-overlay repo!')
+        overlay.error('Exception: {0}'.format(e))
+        sys.exit(1)
 
 
 def main():
@@ -76,11 +102,13 @@ def main():
         help='run without filing a PR to remote',
         action="store_true"
     )
+    parser.add_argument(
+        '--pr-only',
+        help='ONLY file a PR to remote',
+        action='store_true'
+    )
 
     args = parser.parse_args(sys.argv[1:])
-    # clone current repo
-    overlay = ros_overlay()
-    selected_targets = active_distros
 
     if args.all:
         ros_overlay.warn('"All" mode detected... This may take a while!')
@@ -88,6 +116,18 @@ def main():
     elif args.ros_distro:
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    elif args.dry_run and args.pr_only:
+        ros_overlay.err('Invalid args! cannot dry-run and file PR')
+        sys.exit(1)
+    elif args.pr_only:
+        prev_overlay = get_existing_repo()
+        prev_overlay.repo.git.pull_request(m='PR-Message', title='PR-Title')
+        ros_overlay.happy('Successfully filed PR.')
+        sys.exit(0)
+    # clone current repo
+    overlay = ros_overlay()
+    selected_targets = active_distros
+
     try:
         link_existing_files(args.ros_distro)
     except os.FileExistsError:
@@ -164,18 +204,14 @@ def main():
         for pkg in sorted(inst_list):
             missing_deps += " * [ ] {0}\n".format(pkg)
 
-    if args.dry_run:
-        ros_overlay.info('Running in dry mode, not filing PR')
-        sys.exit(0)
     # Commit changes and file pull request
     overlay.regenerate_manifests(args.ros_distro)
     overlay.commit_changes(args.ros_distro)
-    try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
-    except Exception as e:
-        overlay.error('Failed to file PR with ros/ros-overlay repo!')
-        overlay.error('Exception: {0}'.format(e))
-        sys.exit(1)
+
+    if args.dry_run:
+        ros_overlay.info('Running in dry mode, not filing PR')
+        sys.exit(0)
+    file_pr(overlay, delta, missing_deps)
 
     clean_up(args.ros_distro)
     ros_overlay.happy('Successfully synchronized repositories!')

@@ -19,7 +19,7 @@ import shutil
 
 
 class repo_instance(object):
-    def __init__(self, repo_owner, repo_name, repo_dir=None):
+    def __init__(self, repo_owner, repo_name, repo_dir=None, do_clone=True):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
         repo_url = 'https://github.com/{0}/{1}'
@@ -28,7 +28,10 @@ class repo_instance(object):
             self.repo_dir = repo_dir
         else:
             self.repo_dir = self.repo_name
-        self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
+        if do_clone:
+            self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
+        else:
+            self.repo = Repo(repo_dir)
         self.git = self.repo.git
 
     def clone(self, branch=None):
