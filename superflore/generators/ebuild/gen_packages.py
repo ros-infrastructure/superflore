@@ -30,6 +30,13 @@ from .metadata_xml import metadata_xml
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
+"""
+This is a blacklist of things that
+do not yet support Python 3. This will
+be updated on an as-needed basis until
+a better solution is found (CI?).
+"""
+no_python3 = [ 'tf' ]
 
 def warn(string):
     print(colored('>>>> {0}'.format(string), 'yellow'))
@@ -276,6 +283,9 @@ class gentoo_installer(object):
             _gen_ebuild_for_package(distro, pkg_name,
                                     pkg, repo, ros_pkg, pkg_rosinstall)
         self.ebuild.has_patches = has_patches
+
+        if pkg_name in no_python3:
+            self.ebuild.python_3 = False
 
     def metadata_text(self):
         return self.metadata_xml.get_metadata_text()
