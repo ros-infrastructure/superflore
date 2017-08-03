@@ -120,10 +120,31 @@ def main():
         ros_overlay.err('Invalid args! cannot dry-run and file PR')
         sys.exit(1)
     elif args.pr_only:
-        prev_overlay = get_existing_repo()
-        prev_overlay.repo.git.pull_request(m='PR-Message', title='PR-Title')
-        ros_overlay.happy('Successfully filed PR.')
-        sys.exit(0)
+        try:
+            with open('.pr_message.tmp', 'r') as msg_file:
+                msg = msg_file.read()
+            with open('.pr_title.tmp', 'r') as title_file:
+                title = title_file.read()
+        except:
+            ros_overlay.err('Failed to open PR title/message file!')
+            ros_overlay.err(
+                'Please supply the %s and %s files' % (
+                    '.pr_message.tmp',
+                    '.pr_title.tmp'
+                )
+            )
+            sys.exit(1)
+        try:
+            prev_overlay = get_existing_repo()
+            prev_overlay.repo.git.pull_request(
+                m=('%s' % msg), title=('%s' % title)
+            )
+            ros_overlay.happy('Successfully filed PR.')
+            clean_up()
+            sys.exit(0)
+        except:
+            ros_overlay.err('Failed to file PR!')
+            sys.exit(1)
     # clone current repo
     overlay = ros_overlay()
     selected_targets = active_distros
@@ -210,6 +231,10 @@ def main():
 
     if args.dry_run:
         ros_overlay.info('Running in dry mode, not filing PR')
+        title_file = open('.pr-title.tmp', 'w')
+        title_file.write('rosdistro sync, {0}'.format(time.ctime()))
+        pr_message_file = open('.pr-message.tmp', 'w')
+        pr_missage_file.write('%s\n%s' % (delta, missing_deps))
         sys.exit(0)
     file_pr(overlay, delta, missing_deps)
 
