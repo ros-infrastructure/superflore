@@ -31,7 +31,7 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 """
-This is a blacklist of things that
+TODO(allenh1): This is a blacklist of things that
 do not yet support Python 3. This will
 be updated on an as-needed basis until
 a better solution is found (CI?).
