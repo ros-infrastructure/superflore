@@ -58,6 +58,7 @@ class Ebuild(object):
         self.name = None
         self.has_patches = False
         self.die_msg = None
+        self.python_3 = True
         self.illegal_desc_chars = '()[]{}|^$\\#\t\n\r\v\f\'\"\`'
 
     def add_build_depend(self, depend, internal=True):
@@ -92,8 +93,10 @@ class Ebuild(object):
 
         # EAPI=<eapi>
         ret += "EAPI=" + self.eapi + "\n"
-        ret += "PYTHON_COMPAT=( python{2_7,3_5} )\n\n"
-
+        if self.python_3:
+            ret += "PYTHON_COMPAT=( python{2_7,3_5} )\n\n"
+        else:
+            ret += "PYTHON_COMPAT=( python2_7 )\n\n"
         # inherits
         ret += "inherit ros-cmake\n\n"
 
