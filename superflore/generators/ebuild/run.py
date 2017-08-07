@@ -72,6 +72,10 @@ def clean_up(distro):
     else:
         for x in active_distros:
             os.remove('ros-{0}'.format(x))
+    if os.path.exists('.pr-message.tmp'):
+        os.remove('.pr-message.tmp')
+    if os.path.exists('.pr-title.tmp'):
+        os.remove('.pr-title.tmp')
 
 
 def file_pr(overlay, delta, missing_deps):
@@ -143,7 +147,7 @@ def main():
                 m='{0}'.format(msg), title='{0}'.format(title)
             )
             ros_overlay.happy('Successfully filed PR.')
-            clean_up()
+            clean_up('all')
             sys.exit(0)
         except Exception as e:
             ros_overlay.error('Failed to file PR!')
