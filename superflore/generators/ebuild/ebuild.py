@@ -112,7 +112,8 @@ class Ebuild(object):
             ret += "DESCRIPTION=\"NONE\"\n"
 
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
-        ret += "SRC_URI=\"" + self.src_uri + " -> ${PN}-release-${PV}.tar.gz\"\n\n"
+        ret += "SRC_URI=\"" + self.src_uri
+        ret += " -> ${PN}-" + self.distro + "-release-${PV}.tar.gz\"\n\n"
         try:
             # license -- only add if valid
             if isinstance(self.upstream_license, str):
