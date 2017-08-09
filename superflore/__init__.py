@@ -9,12 +9,12 @@ try:
 except (ImportError, OSError):
     __version__ = 'unset'
 
-from .repo_instance import repo_instance
+from .repo_instance import RepoInstance
 from .repo_instance import CloneException
 from .repo_instance import BranchException
 
 __all__ = [
-    'repo_instance',
+    'RepoInstance',
     'CloneException',
     'BranchException'
 ]

@@ -15,10 +15,12 @@
 
 
 from superflore.generators.ebuild.gen_packages import generate_installers
-from superflore.generators.ebuild.overlay_instance import ros_overlay
+from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.utils import download_yamls
+from superflore.repo_instance import RepoInstance
 import argparse
 import shutil
+import time
 import sys
 import os
 
@@ -35,25 +37,54 @@ def link_existing_files(mode):
     dir_fmt = '{0}/ros-{1}'
     if not mode:
         for x in active_distros:
-            ros_overlay.info(sym_link_msg.format(overlay.repo_dir, x))
+            RepoInstance.info(sym_link_msg.format(overlay.repo_dir, x))
             os.symlink(dir_fmt.format(overlay.repo_dir, x), './ros-' + x)
     else:
         # only link the relevant directory.
-        ros_overlay.info(sym_link_msg.format(overlay.repo_dir, mode))
+        RepoInstance.info(sym_link_msg.format(overlay.repo_dir, mode))
         os.symlink(dir_fmt.format(overlay.repo_dir, mode), './ros-' + mode)
+
+
+def get_existing_repo():
+    existing_path = None
+    for x in active_distros:
+        curr = './ros-{0}'.format(x)
+        if os.path.exists(curr):
+            existing_path = curr
+            break
+    if not existing_path:
+        raise RuntimeException('No existing repo found')
+    # get the actual location of the repo
+    repo_dir = os.path.realpath('{0}/../'.format(existing_path))
+    # TODO(allenh1): make this configurable
+    git_repo = RepoInstance('ros', 'ros-overlay', repo_dir, do_clone=False)
+    return git_repo
 
 
 def clean_up(distro):
     global overlay
     clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
-    ros_overlay.info(clean_msg)
+    RepoInstance.info(clean_msg)
     shutil.rmtree(overlay.repo_dir)
-    ros_overlay.info('Cleaning up symbolic links...')
+    RepoInstance.info('Cleaning up symbolic links...')
     if distro in active_distros:
         os.remove('ros-{0}'.format(distro))
     else:
         for x in active_distros:
             os.remove('ros-{0}'.format(x))
+    if os.path.exists('.pr-message.tmp'):
+        os.remove('.pr-message.tmp')
+    if os.path.exists('.pr-title.tmp'):
+        os.remove('.pr-title.tmp')
+
+
+def file_pr(overlay, delta, missing_deps):
+    try:
+        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
+    except Exception as e:
+        overlay.error('Failed to file PR with ros/ros-overlay repo!')
+        overlay.error('Exception: {0}'.format(e))
+        sys.exit(1)
 
 
 def main():
@@ -76,24 +107,59 @@ def main():
         help='run without filing a PR to remote',
         action="store_true"
     )
+    parser.add_argument(
+        '--pr-only',
+        help='ONLY file a PR to remote',
+        action='store_true'
+    )
 
     args = parser.parse_args(sys.argv[1:])
-    # clone current repo
-    overlay = ros_overlay()
-    selected_targets = active_distros
 
     if args.all:
-        ros_overlay.warn('"All" mode detected... This may take a while!')
+        RepoInstance.warn('"All" mode detected... This may take a while!')
         preserve_existing = False
     elif args.ros_distro:
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    elif args.dry_run and args.pr_only:
+        RepoInstance.error('Invalid args! cannot dry-run and file PR')
+        sys.exit(1)
+    elif args.pr_only:
+        try:
+            with open('.pr-message.tmp', 'r') as msg_file:
+                msg = msg_file.read().rstrip('\n')
+            with open('.pr-title.tmp', 'r') as title_file:
+                title = title_file.read().rstrip('\n')
+        except:
+            RepoInstance.error('Failed to open PR title/message file!')
+            RepoInstance.RepoInstance.error(
+                'Please supply the %s and %s files' % (
+                    '.pr_message.tmp',
+                    '.pr_title.tmp'
+                )
+            )
+            sys.exit(1)
+        try:
+            prev_overlay = get_existing_repo()
+            RepoInstance.info('PR message:\n"%s"\n' % msg)
+            RepoInstance.info('PR title:\n"%s"\n' % title)
+            prev_overlay.pull_request(msg, title)
+            clean_up('all')
+            sys.exit(0)
+        except Exception as e:
+            RepoInstance.error('Failed to file PR!')
+            RepoInstance.error('reason: {0}'.format(e))
+            sys.exit(1)
+    # clone current repo
+    overlay = RosOverlay()
+    selected_targets = active_distros
+
     try:
         link_existing_files(args.ros_distro)
     except os.FileExistsError:
         warn_msg = 'Detected existing rosdistro ebuild structure... '
         warn_msg += 'Removing and overwriting.'
-        ros_overlay.warn(warn_msg)
+        RepoInstance.warn(warn_msg)
         for x in active_distros:
             try:
                 os.remove('ros-{0}'.format(x))
@@ -121,8 +187,8 @@ def main():
         num_changes += len(total_changes[distro_name])
 
     if num_changes == 0:
-        ros_overlay.info('ROS distro is up to date.')
-        ros_overlay.info('Exiting...')
+        RepoInstance.info('ROS distro is up to date.')
+        RepoInstance.info('Exiting...')
         clean_up(args.ros_distro)
         sys.exit(0)
 
@@ -164,18 +230,18 @@ def main():
         for pkg in sorted(inst_list):
             missing_deps += " * [ ] {0}\n".format(pkg)
 
-    if args.dry_run:
-        ros_overlay.info('Running in dry mode, not filing PR')
-        sys.exit(0)
     # Commit changes and file pull request
     overlay.regenerate_manifests(args.ros_distro)
     overlay.commit_changes(args.ros_distro)
-    try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
-    except Exception as e:
-        overlay.error('Failed to file PR with ros/ros-overlay repo!')
-        overlay.error('Exception: {0}'.format(e))
-        sys.exit(1)
+
+    if args.dry_run:
+        RepoInstance.info('Running in dry mode, not filing PR')
+        title_file = open('.pr-title.tmp', 'w')
+        title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
+        pr_message_file = open('.pr-message.tmp', 'w')
+        pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
+        sys.exit(0)
+    file_pr(overlay, delta, missing_deps)
 
     clean_up(args.ros_distro)
-    ros_overlay.happy('Successfully synchronized repositories!')
+    RepoInstance.happy('Successfully synchronized repositories!')

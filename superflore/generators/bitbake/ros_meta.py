@@ -13,7 +13,8 @@
 # limitations under the License.
 
 
-from superflore import repo_instance
+# TODO(allenh1): remove inheritance like the RosOverlay class.
+from superflore import RepoInstance as repo_instance
 import random
 import string
 import time

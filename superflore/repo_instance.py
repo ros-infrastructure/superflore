@@ -18,8 +18,8 @@ from git.exc import GitCommandError as GitGotGot
 import shutil
 
 
-class repo_instance(object):
-    def __init__(self, repo_owner, repo_name, repo_dir=None):
+class RepoInstance(object):
+    def __init__(self, repo_owner, repo_name, repo_dir=None, do_clone=True):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
         repo_url = 'https://github.com/{0}/{1}'
@@ -28,7 +28,10 @@ class repo_instance(object):
             self.repo_dir = repo_dir
         else:
             self.repo_dir = self.repo_name
-        self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
+        if do_clone:
+            self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
+        else:
+            self.repo = Repo(repo_dir)
         self.git = self.repo.git
 
     def clone(self, branch=None):
@@ -76,6 +79,14 @@ class repo_instance(object):
         @todo: error checking
         """
         self.git.rebase(i=target)
+
+    def pull_request(self, message, title):
+        self.info('Filing pull-request...')
+        pr_title = 'rosdistro sync, {0}'.format(time.ctime())
+        self.git.pull_request(m='{0}'.format(message),
+                              title='{0}'.format(title))
+        good_msg = 'Successfully filed a pull request.'
+        self.happy(good_msg)
 
     @staticmethod
     def info(string):
