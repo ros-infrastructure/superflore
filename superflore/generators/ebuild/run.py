@@ -36,12 +36,15 @@ def link_existing_files(mode):
     dir_fmt = '{0}/ros-{1}'
     if not mode:
         for x in active_distros:
-            RepoInstance.info(sym_link_msg.format(overlay.repo_dir, x))
-            os.symlink(dir_fmt.format(overlay.repo_dir, x), './ros-' + x)
+            RepoInstance.info(sym_link_msg.format(overlay.repo.repo_dir, x))
+            os.symlink(dir_fmt.format(overlay.repo.repo_dir, x), './ros-' + x)
     else:
         # only link the relevant directory.
         RepoInstance.info(sym_link_msg.format(overlay.repo_dir, mode))
-        os.symlink(dir_fmt.format(overlay.repo_dir, mode), './ros-' + mode)
+        os.symlink(
+            dir_fmt.format(overlay.repo.repo_dir, mode),
+            './ros-' + mode
+        )
 
 
 def get_existing_repo():

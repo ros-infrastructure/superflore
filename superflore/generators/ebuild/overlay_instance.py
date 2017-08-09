@@ -64,9 +64,9 @@ class RosOverlay(object):
             '/root/.gnupg'
         )
         if mode == 'all' or not mode:
-            dock.map_directory(self.repo_dir, '/tmp/ros-overlay')
+            dock.map_directory(self.repo.repo_dir, '/tmp/ros-overlay')
         else:
-            ros_dir = '{0}/ros-{1}'.format(self.repo_dir, mode)
+            ros_dir = '{0}/ros-{1}'.format(self.repo.repo_dir, mode)
             dock.map_directory(ros_dir, '/tmp/ros-overlay')
         dock.add_bash_command('cd {0}'.format('/tmp/ros-overlay'))
         dock.add_bash_command('repoman manifest')

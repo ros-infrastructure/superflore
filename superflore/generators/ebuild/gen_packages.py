@@ -97,9 +97,9 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
         # otherwise, remove a (potentially) existing ebuild.
         existing = glob.glob('ros-{0}/{1}/*.ebuild'.format(distro_name, pkg))
         if existing:
-            overlay.remove_file(existing[0])
+            overlay.repo.remove_file(existing[0])
             manifest_file = 'ros-{0}/{1}/Manifest'.format(distro_name, pkg)
-            overlay.remove_file(manifest_file)
+            overlay.repo.remove_file(manifest_file)
         try:
             current = gentoo_installer(distro, pkg, has_patches)
             current.ebuild.name = pkg
