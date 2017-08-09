@@ -12,18 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from superflore.rosdep_support import resolve_rosdep_key
 from superflore.exceptions import UnresolvedDependency
 from superflore.exceptions import UnknownPlatform
 from superflore.exceptions import UnknownLicense
 
-from rosdep2 import create_default_installer_context
-from rosdep2.catkin_support import get_catkin_view
-from rosdep2.lookup import ResolutionError
-
 from termcolor import colored
 
-import rosdep2.catkin_support
 import yaml
 import sys
 import re
@@ -40,8 +35,6 @@ else:
         response = urlopen(url)
         return response.read()
 
-DEFAULT_ROS_DISTRO = 'indigo'
-view_cache = {}
 
 def download_yamls():
     global base_yml
@@ -148,58 +141,3 @@ def _resolve_dep_open_embedded(pkg):
         return 'python-catkin-pkg-native'
     else:
         return pkg.replace('_', '-')
-
-
-def get_view(os_name, os_version, ros_distro):
-    global view_cache
-    key = os_name + os_version + ros_distro
-    if key not in view_cache:
-        value = get_catkin_view(ros_distro, os_name, os_version, False)
-        view_cache[key] = value
-    return view_cache[key]
-
-
-def resolve_more_for_os(rosdep_key, view, installer, os_name, os_version):
-    """
-    Resolve rosdep key to dependencies and installer key.
-    (This was copied from rosdep2.catkin_support)
-
-    :param os_name: OS name, e.g. 'ubuntu'
-    :returns: resolved key, resolved installer key, and default installer key
-
-    :raises: :exc:`rosdep2.ResolutionError`
-    """
-    d = view.lookup(rosdep_key)
-    ctx = create_default_installer_context()
-    os_installers = ctx.get_os_installer_keys(os_name)
-    default_os_installer = ctx.get_default_os_installer_key(os_name)
-    inst_key, rule = d.get_rule_for_platform(os_name, os_version,
-                                             os_installers,
-                                             default_os_installer)
-    assert inst_key in os_installers
-    return installer.resolve(rule), inst_key, default_os_installer
-
-
-def resolve_rosdep_key(
-    key,
-    os_name,
-    os_version,
-    ros_distro=None,
-    ignored=None,
-    retry=True
-):
-    ignored = ignored or []
-    ctx = create_default_installer_context()
-    try:
-        installer_key = ctx.get_default_os_installer_key(os_name)
-    except KeyError:
-        BloomGenerator.exit("Could not determine the installer for '{0}'"
-                            .format(os_name))
-    installer = ctx.get_installer(installer_key)
-    ros_distro = ros_distro or DEFAULT_ROS_DISTRO
-    view = get_view(os_name, os_version, ros_distro)
-    try:
-        return resolve_more_for_os(key, view, installer, os_name, os_version)
-    except (KeyError, ResolutionError):
-        raise UnresolvedDependency(
-            "could not resolve package {} for {}.".format(key, os_name))
