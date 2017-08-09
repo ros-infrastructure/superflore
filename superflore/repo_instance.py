@@ -40,7 +40,7 @@ class RepoInstance(object):
         if self.repo_dir != self.repo_name:
             msg += (' into directory {0}'.format(self.repo_dir))
         msg += '...'
-        repo_instance.info(msg)
+        RepoInstance.info(msg)
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         if branch is not None:
             self.git.checkout(branch)
@@ -60,7 +60,7 @@ class RepoInstance(object):
         """
         @todo: error checking
         """
-        repo_instance.info(self.git.checkout('HEAD', b=branch_name))
+        RepoInstance.info(self.git.checkout('HEAD', b=branch_name))
 
     def remove_branch(self, branch_name):
         """
@@ -82,7 +82,6 @@ class RepoInstance(object):
 
     def pull_request(self, message, title):
         self.info('Filing pull-request...')
-        pr_title = 'rosdistro sync, {0}'.format(time.ctime())
         self.git.pull_request(m='{0}'.format(message),
                               title='{0}'.format(title))
         good_msg = 'Successfully filed a pull request.'

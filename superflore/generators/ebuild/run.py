@@ -16,7 +16,6 @@
 
 from superflore.generators.ebuild.gen_packages import generate_installers
 from superflore.generators.ebuild.overlay_instance import RosOverlay
-from superflore.utils import download_yamls
 from superflore.repo_instance import RepoInstance
 import argparse
 import shutil
@@ -53,7 +52,7 @@ def get_existing_repo():
             existing_path = curr
             break
     if not existing_path:
-        raise RuntimeException('No existing repo found')
+        raise RuntimeError('No existing repo found')
     # get the actual location of the repo
     repo_dir = os.path.realpath('{0}/../'.format(existing_path))
     # TODO(allenh1): make this configurable
