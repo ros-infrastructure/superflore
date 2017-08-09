@@ -65,9 +65,10 @@ def get_existing_repo():
 
 def clean_up(distro):
     global overlay
-    clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
+    clean_msg = \
+        'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
     RepoInstance.info(clean_msg)
-    shutil.rmtree(overlay.repo_dir)
+    shutil.rmtree(overlay.repo.repo_dir)
     RepoInstance.info('Cleaning up symbolic links...')
     if distro in active_distros:
         os.remove('ros-{0}'.format(distro))
