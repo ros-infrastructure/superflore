@@ -36,10 +36,9 @@ from rosdep2.lookup import ResolutionError
 
 from superflore.exceptions import UnresolvedDependency
 
-import rosdep2.catkin_support
-
 DEFAULT_ROS_DISTRO = 'indigo'
 view_cache = {}
+
 
 def get_view(os_name, os_version, ros_distro):
     global view_cache
@@ -84,8 +83,10 @@ def resolve_rosdep_key(
     try:
         installer_key = ctx.get_default_os_installer_key(os_name)
     except KeyError:
-        BloomGenerator.exit("Could not determine the installer for '{0}'"
-                            .format(os_name))
+        raise UnresolvedDependency(
+            "could not resolve package {} for os {}."
+            .format(key, os_name)
+        )
     installer = ctx.get_installer(installer_key)
     ros_distro = ros_distro or DEFAULT_ROS_DISTRO
     view = get_view(os_name, os_version, ros_distro)

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from superflore.rosdep_support import resolve_rosdep_key
-from superflore.exceptions import UnresolvedDependency
 from superflore.exceptions import UnknownPlatform
 from superflore.exceptions import UnknownLicense
 

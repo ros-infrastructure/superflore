@@ -36,7 +36,8 @@ org_license = "BSD"
 # on an as-needed basis until a better solution is
 # found (CI?).
 
-no_python3 = [ 'tf' ]
+no_python3 = ['tf']
+
 
 def warn(string):
     print(colored('>>>> {0}'.format(string), 'yellow'))

@@ -4,7 +4,6 @@ from superflore.docker import Docker
 import random
 import string
 import time
-import sys
 import os
 
 
