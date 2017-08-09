@@ -101,7 +101,6 @@ def main():
                 pass
 
         link_existing_files(args.ros_distro)
-    download_yamls()
     # generate installers
     total_installers = dict()
     total_broken = set()

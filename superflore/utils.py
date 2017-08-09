@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from superflore.rosdep_support import resolve_rosdep_key
 from superflore.exceptions import UnresolvedDependency
 from superflore.exceptions import UnknownPlatform
 from superflore.exceptions import UnknownLicense
+
 from termcolor import colored
+
 import yaml
 import sys
 import re
@@ -112,7 +114,7 @@ def resolve_dep(pkg, os):
     if os == 'oe':
         return _resolve_dep_open_embedded(pkg)
     elif os == 'gentoo':
-        return _resolve_dep_gentoo(pkg)
+        return resolve_rosdep_key(pkg, 'gentoo', '2.4.0')
     else:
         msg = "Unknown target platform '{0}'".format(os)
         raise UnknownPlatform(msg)
@@ -139,39 +141,3 @@ def _resolve_dep_open_embedded(pkg):
         return 'python-catkin-pkg-native'
     else:
         return pkg.replace('_', '-')
-
-
-def _resolve_dep_gentoo(pkg):
-    global base_yml
-    global python_yml
-    global ruby_yml
-    if pkg not in base_yml:
-        if pkg not in python_yml:
-            if pkg not in ruby_yml:
-                raise UnresolvedDependency(
-                    "could not resolve package {} for Gentoo.".format(pkg))
-            elif 'gentoo'not in ruby_yml[pkg]:
-                raise UnresolvedDependency(
-                    "could not resolve package {} for Gentoo.".format(pkg))
-            elif 'portage' in ruby_yml[pkg]['gentoo']:
-                return ruby_yml[pkg]['gentoo']['portage']['packages'][0]
-            else:
-                resolution = ruby_yml[pkg]['gentoo'][0]
-                return resolution
-        elif 'gentoo'not in python_yml[pkg]:
-            raise UnresolvedDependency(
-                "could not resolve package {} for Gentoo.".format(pkg))
-        elif 'portage' in python_yml[pkg]['gentoo']:
-            return python_yml[pkg]['gentoo']['portage']['packages'][0]
-        else:
-            resolution = python_yml[pkg]['gentoo'][0]
-            return resolution
-    elif 'gentoo'not in base_yml[pkg]:
-        raise UnresolvedDependency(
-            "could not resolve package {} for Gentoo.".format(pkg))
-    elif 'portage' in base_yml[pkg]['gentoo']:
-        resolution = base_yml[pkg]['gentoo']['portage']['packages'][0]
-        return resolution
-    else:
-        resolution = base_yml[pkg]['gentoo'][0]
-        return resolution

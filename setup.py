@@ -9,6 +9,7 @@ install_requires = [
     'setuptools',
     'rosinstall_generator',
     'rosdistro',
+    'rosdep',
     'gitpython',
     'git-pull-request',
     'requests'
