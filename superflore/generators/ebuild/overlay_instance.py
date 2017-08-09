@@ -1,5 +1,5 @@
 # Instance of the ROS Overlay
-from superflore import RepoInstance
+from superflore.repo_instance import RepoInstance
 from superflore.docker import Docker
 import random
 import string
@@ -20,13 +20,12 @@ def get_random_branch_name():
 class RosOverlay(object):
     def __init__(self):
         # clone repo into a random tmp directory.
-        self.repo = RepoInstance(self, 'ros',
-                                 'ros-overlay', get_random_tmp_dir())
+        self.repo = RepoInstance('ros', 'ros-overlay', get_random_tmp_dir())
         self.branch_name = get_random_branch_name()
-        self.clone()
+        self.repo.clone()
         branch_msg = 'Creating new branch {0}...'.format(self.branch_name)
         self.repo.info(branch_msg)
-        self.create_branch(self.branch_name)
+        self.repo.create_branch(self.branch_name)
 
     def clean_ros_ebuild_dirs(self, distro=None):
         if distro is not None:

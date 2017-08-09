@@ -223,8 +223,7 @@ def _gen_recipe_for_package(distro, pkg_name, pkg,
         if 'url' not in pkg_fields['package']:
             warn("no website field for package {}".format(pkg_name))
         elif sys.version_info <= (3, 0):
-            if isinstance(pkg_fields['package']['url'], unicode):
-                pkg_recipe.recipe = pkg_fields['package']['url']
+                pkg_recipe.recipe = pkg_fields['package']['url'].decode()
         elif isinstance(pkg_fields['package']['url'], str):
             pkg_recipe.homepage = pkg_fields['package']['url']
         elif '@type' in pkg_fields['package']['url']:

@@ -105,8 +105,8 @@ class Ebuild(object):
         self.description = trim_string(self.description)
         if isinstance(self.description, str):
             ret += "DESCRIPTION=\"" + self.description + "\"\n"
-        elif py_v <= (3, 0) and isinstance(self.description, unicode):
-            ret += "DESCRIPTION=\"" + self.description + "\"\n"
+        elif py_v <= (3, 0):
+            ret += "DESCRIPTION=\"" + self.description.decode() + "\"\n"
         else:
             ret += "DESCRIPTION=\"NONE\"\n"
 
@@ -127,7 +127,7 @@ class Ebuild(object):
                 else:
                     ret += "LICENSE=\""
                     ret += get_license(self.upstream_license) + "\"\n\n"
-            elif py_v < (3, 0) and isinstance(self.upstream_license, unicode):
+            elif py_v < (3, 0):
                 self.upstream_license = self.upstream_license.decode()
                 split = self.upstream_license.split(',')
                 if len(split) > 1:
