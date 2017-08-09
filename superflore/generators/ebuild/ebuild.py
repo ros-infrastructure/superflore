@@ -166,7 +166,8 @@ class Ebuild(object):
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
         for rdep in sorted(self.rdepends_external):
             try:
-                ret += "    " + resolve_dep(rdep, 'gentoo') + "\n"
+                for res in resolve_dep(rdep, 'gentoo')[0]: 
+                    ret += "    " + res + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(rdep)
 
@@ -178,7 +179,8 @@ class Ebuild(object):
             ret += "    " + 'ros-{0}/{1}\n'.format(self.distro, bdep)
         for bdep in sorted(self.depends_external):
             try:
-                ret += "    " + resolve_dep(bdep, 'gentoo') + "\n"
+                for res in resolve_dep(bdep, 'gentoo')[0]:
+                    ret += "    " + res + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(bdep)
         ret += "\"\n\n"
