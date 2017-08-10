@@ -24,10 +24,7 @@ class RepoInstance(object):
         self.repo_name = repo_name
         repo_url = 'https://github.com/{0}/{1}'
         self.repo_url = repo_url.format(self.repo_owner, self.repo_name)
-        if repo_dir is not None:
-            self.repo_dir = repo_dir
-        else:
-            self.repo_dir = self.repo_name
+        self.repo_dir = repo_dir or self.repo_name
         if do_clone:
             self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         else:

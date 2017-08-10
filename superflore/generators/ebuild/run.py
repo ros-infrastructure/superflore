@@ -23,6 +23,9 @@ import time
 import sys
 import os
 
+if sys.version_info < (3, 0):
+    from os.FileExistsError import FileExistsError
+
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
 # just update packages, by default.
@@ -63,12 +66,13 @@ def get_existing_repo():
     return git_repo
 
 
-def clean_up(distro):
+def clean_up(distro, preserve_repo=False):
     global overlay
-    clean_msg = \
-        'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
-    RepoInstance.info(clean_msg)
-    shutil.rmtree(overlay.repo.repo_dir)
+    if not preserve_repo:
+        clean_msg = \
+            'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
+        RepoInstance.info(clean_msg)
+        shutil.rmtree(overlay.repo.repo_dir)
     RepoInstance.info('Cleaning up symbolic links...')
     if distro in active_distros:
         os.remove('ros-{0}'.format(distro))
@@ -115,6 +119,11 @@ def main():
         help='ONLY file a PR to remote',
         action='store_true'
     )
+    parser.add_argument(
+        '--output-repository-path',
+        help='location of the Git repo',
+        type=str
+    )
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -154,7 +163,7 @@ def main():
             RepoInstance.error('reason: {0}'.format(e))
             sys.exit(1)
     # clone current repo
-    overlay = RosOverlay()
+    overlay = RosOverlay(args.output_repository_path)
     selected_targets = active_distros
 
     try:
@@ -246,5 +255,5 @@ def main():
         sys.exit(0)
     file_pr(overlay, delta, missing_deps)
 
-    clean_up(args.ros_distro)
+    clean_up(args.ros_distro, args.output_repository_path)
     RepoInstance.happy('Successfully synchronized repositories!')
