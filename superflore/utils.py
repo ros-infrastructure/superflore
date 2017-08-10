@@ -67,9 +67,7 @@ def trim_string(string, length=80):
     if len(string) < length:
         return string
     end_string = '[...]'
-
-    return string[:length - len(end_string)]\
-        + end_string
+    return string[:length - len(end_string)] + end_string
 
 
 def get_license(l):
