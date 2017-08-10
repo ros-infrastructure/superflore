@@ -68,10 +68,8 @@ def trim_string(string, length=80):
         return string
     end_string = '[...]'
 
-    return '{0}{1}'.format(
-        string[:length - len(end_string)],
-        end_string
-    )
+    return string[:length - len(end_string)]\
+        + end_string
 
 
 def get_license(l):
