@@ -3,6 +3,8 @@
 __pycache__
 */__pycache__
 */*.pyc
+*/*/*.pyc
+*/*/*/*.pyc
 build/
 dist/
 superflore.egg-info/

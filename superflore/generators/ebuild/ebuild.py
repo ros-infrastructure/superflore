@@ -13,16 +13,13 @@
 # limitations under the License.
 
 from superflore.utils import sanitize_string
-from superflore.utils import download_yamls
 from superflore.utils import get_license
 from superflore.utils import resolve_dep
 from superflore.utils import trim_string
-from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnresolvedDependency
 
-from termcolor import colored
-import yaml
 import sys
+
 
 class ebuild_keyword(object):
     def __init__(self, arch, stable):
@@ -102,14 +99,14 @@ class Ebuild(object):
         ret += "inherit ros-cmake\n\n"
 
         # description, homepage, src_uri
-        py_ver = sys.version_info
+        py_v = sys.version_info
         self.description =\
             sanitize_string(self.description, self.illegal_desc_chars)
         self.description = trim_string(self.description)
         if isinstance(self.description, str):
             ret += "DESCRIPTION=\"" + self.description + "\"\n"
-        elif py_ver <= (3, 0) and isinstance(self.description, unicode):
-            ret += "DESCRIPTION=\"" + self.description + "\"\n"
+        elif py_v <= (3, 0):
+            ret += "DESCRIPTION=\"" + self.description.decode() + "\"\n"
         else:
             ret += "DESCRIPTION=\"NONE\"\n"
 
@@ -130,7 +127,7 @@ class Ebuild(object):
                 else:
                     ret += "LICENSE=\""
                     ret += get_license(self.upstream_license) + "\"\n\n"
-            elif py_ver < (3, 0) and isinstance(self.upstream_license, unicode):
+            elif py_v < (3, 0):
                 self.upstream_license = self.upstream_license.decode()
                 split = self.upstream_license.split(',')
                 if len(split) > 1:
@@ -168,7 +165,7 @@ class Ebuild(object):
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
         for rdep in sorted(self.rdepends_external):
             try:
-                for res in resolve_dep(rdep, 'gentoo')[0]: 
+                for res in resolve_dep(rdep, 'gentoo')[0]:
                     ret += "    " + res + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(rdep)

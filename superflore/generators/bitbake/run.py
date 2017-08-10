@@ -34,11 +34,15 @@ def link_existing_files(mode):
     if mode == 'all' or mode == 'update':
         for x in active_distros:
             ros_meta.info(sym_link_msg.format(overlay.repo_dir, x))
-            os.symlink(dir_fmt.format(overlay.repo_dir, x), './recipes-ros-' + x)
+            os.symlink(
+                dir_fmt.format(overlay.repo_dir, x), './recipes-ros-' + x
+            )
     else:
         # only link the relevant directory.
         ros_meta.info(sym_link_msg.format(overlay.repo_dir, mode))
-        os.symlink(dir_fmt.format(overlay.repo_dir, mode), './recipes-ros-' + mode)
+        os.symlink(
+            dir_fmt.format(overlay.repo_dir, mode), './recipes-ros-' + mode
+        )
 
 
 def clean_up(distro):

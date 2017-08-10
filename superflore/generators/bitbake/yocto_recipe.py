@@ -23,20 +23,12 @@
 # IN THE SOFTWARE.
 #
 
-
-import xmltodict
 import hashlib
 import tarfile
-import glob
-import yaml
 import sys
-import re
 
-from superflore.utils import get_license
 from superflore.utils import resolve_dep
 from superflore.exceptions import NoPkgXml
-from superflore.exceptions import UnresolvedDependency
-from termcolor import colored
 
 
 if sys.version_info[0] == 2:
@@ -121,8 +113,8 @@ class yoctoRecipe(object):
         github_start = 'https://github.com/'
         structure = self.src_uri.replace(github_start, '')
         dirs = structure.split('/')
-        return '{0}-{1}-{2}-{3}-{4}'.format(dirs[1], dirs[3],\
-                                            dirs[4], dirs[5],\
+        return '{0}-{1}-{2}-{3}-{4}'.format(dirs[1], dirs[3],
+                                            dirs[4], dirs[5],
                                             dirs[6]).replace('.tar.gz', '')
 
     def get_recipe_text(self, distributor, license_text, die_msg=None):
@@ -134,7 +126,6 @@ class yoctoRecipe(object):
         ret += '# Distributed under the terms of the ' + license_text
         ret += ' license\n\n'
 
-        py_ver = sys.version_info
         # description
         if self.description:
             self.description = self.description.replace('\n', ' ')

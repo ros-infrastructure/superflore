@@ -16,7 +16,6 @@
 
 from superflore.generators.ebuild.gen_packages import generate_installers
 from superflore.generators.ebuild.overlay_instance import RosOverlay
-from superflore.utils import download_yamls
 from superflore.repo_instance import RepoInstance
 import argparse
 import shutil
@@ -37,12 +36,15 @@ def link_existing_files(mode):
     dir_fmt = '{0}/ros-{1}'
     if not mode:
         for x in active_distros:
-            RepoInstance.info(sym_link_msg.format(overlay.repo_dir, x))
-            os.symlink(dir_fmt.format(overlay.repo_dir, x), './ros-' + x)
+            RepoInstance.info(sym_link_msg.format(overlay.repo.repo_dir, x))
+            os.symlink(dir_fmt.format(overlay.repo.repo_dir, x), './ros-' + x)
     else:
         # only link the relevant directory.
         RepoInstance.info(sym_link_msg.format(overlay.repo_dir, mode))
-        os.symlink(dir_fmt.format(overlay.repo_dir, mode), './ros-' + mode)
+        os.symlink(
+            dir_fmt.format(overlay.repo.repo_dir, mode),
+            './ros-' + mode
+        )
 
 
 def get_existing_repo():
@@ -53,7 +55,7 @@ def get_existing_repo():
             existing_path = curr
             break
     if not existing_path:
-        raise RuntimeException('No existing repo found')
+        raise RuntimeError('No existing repo found')
     # get the actual location of the repo
     repo_dir = os.path.realpath('{0}/../'.format(existing_path))
     # TODO(allenh1): make this configurable
@@ -63,9 +65,10 @@ def get_existing_repo():
 
 def clean_up(distro):
     global overlay
-    clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
+    clean_msg = \
+        'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
     RepoInstance.info(clean_msg)
-    shutil.rmtree(overlay.repo_dir)
+    shutil.rmtree(overlay.repo.repo_dir)
     RepoInstance.info('Cleaning up symbolic links...')
     if distro in active_distros:
         os.remove('ros-{0}'.format(distro))

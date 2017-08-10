@@ -36,7 +36,8 @@ org_license = "BSD"
 # on an as-needed basis until a better solution is
 # found (CI?).
 
-no_python3 = [ 'tf' ]
+no_python3 = ['tf']
+
 
 def warn(string):
     print(colored('>>>> {0}'.format(string), 'yellow'))
@@ -96,9 +97,9 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
         # otherwise, remove a (potentially) existing ebuild.
         existing = glob.glob('ros-{0}/{1}/*.ebuild'.format(distro_name, pkg))
         if existing:
-            overlay.remove_file(existing[0])
+            overlay.repo.remove_file(existing[0])
             manifest_file = 'ros-{0}/{1}/Manifest'.format(distro_name, pkg)
-            overlay.remove_file(manifest_file)
+            overlay.repo.remove_file(manifest_file)
         try:
             current = gentoo_installer(distro, pkg, has_patches)
             current.ebuild.name = pkg
@@ -253,8 +254,7 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
         if 'url' not in pkg_fields['package']:
             warn("no website field for package {}".format(pkg_name))
         elif sys.version_info <= (3, 0):
-            if isinstance(pkg_fields['package']['url'], unicode):
-                pkg_ebuild.homepage = pkg_fields['package']['url']
+            pkg_ebuild.homepage = pkg_fields['package']['url'].decode()
         elif isinstance(pkg_fields['package']['url'], str):
             pkg_ebuild.homepage = pkg_fields['package']['url']
         elif '@type' in pkg_fields['package']['url']:

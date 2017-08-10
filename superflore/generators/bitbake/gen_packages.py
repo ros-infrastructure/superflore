@@ -46,6 +46,7 @@ def err(string):
 def info(string):
     print(colored('>>>> {0}'.format(string), 'cyan'))
 
+
 def make_dir(dirname):
     try:
         os.makedirs(dirname)
@@ -70,7 +71,6 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
     borkd_pkgs = dict()
     changes = []
     installers = []
-    bad_installers = []
     succeeded = 0
     failed = 0
 
@@ -93,8 +93,10 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             succeeded = succeeded + 1
             continue
         """
-        # otherwise, remove a (potentially) existing ebuild.
-        existing = glob.glob('recipes-ros-{0}/{1}/*.bb'.format(distro_name, pkg))
+        # otherwise, remove a (potentially) existing recipe.
+        existing = glob.glob(
+            'recipes-ros-{0}/{1}/*.bb'.format(distro_name, pkg)
+        )
         if len(existing) > 0:
             overlay.remove_file(existing[0])
         try:
@@ -133,14 +135,19 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             failed = failed + 1
             continue  # do not generate an incomplete ebuild
         """
-        make_dir("recipes-ros-{}/{}".format(distro_name, pkg.replace('_', '-')))
+        make_dir(
+            "recipes-ros-{}/{}".format(distro_name, pkg.replace('_', '-'))
+        )
         success_msg = 'Successfully generated installer for package'
         ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
         succeeded = succeeded + 1
 
         # try:
-        recipe_name = '{0}/{1}/{1}_{2}'.format(distro_name,\
-            pkg.replace('_', '-'), version)
+        recipe_name = '{0}/{1}/{1}_{2}'.format(
+            distro_name,
+            pkg.replace('_', '-'),
+            version
+        )
         recipe_file = open('recipes-ros-{0}.bb'.format(recipe_name), "w")
 
         recipe_file.write(recipe_text)
@@ -175,7 +182,6 @@ def _gen_recipe_for_package(distro, pkg_name, pkg,
     pkg_recipe.name = pkg_name
     pkg_recipe.distro = distro.name
     pkg_recipe.src_uri = pkg_rosinstall[0]['tar']['uri']
-    pkg_names = get_package_names(distro)
     pkg_dep_walker = DependencyWalker(distro)
 
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
@@ -217,8 +223,7 @@ def _gen_recipe_for_package(distro, pkg_name, pkg,
         if 'url' not in pkg_fields['package']:
             warn("no website field for package {}".format(pkg_name))
         elif sys.version_info <= (3, 0):
-            if isinstance(pkg_fields['package']['url'], unicode):
-                pkg_recipe.recipe = pkg_fields['package']['url']
+                pkg_recipe.recipe = pkg_fields['package']['url'].decode()
         elif isinstance(pkg_fields['package']['url'], str):
             pkg_recipe.homepage = pkg_fields['package']['url']
         elif '@type' in pkg_fields['package']['url']:

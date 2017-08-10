@@ -18,8 +18,6 @@ from superflore import RepoInstance as repo_instance
 import random
 import string
 import time
-import sys
-import os
 
 
 def get_random_tmp_dir():
@@ -45,7 +43,9 @@ class ros_meta(repo_instance):
 
     def clean_ros_ebuild_dirs(self, distro=None):
         if distro is not None:
-            self.info('Cleaning up recipes-ros-{0} directory...'.format(distro))
+            self.info(
+                'Cleaning up recipes-ros-{0} directory...'.format(distro)
+            )
             self.git.rm('-rf', 'recipes-ros-{0}'.format(distro))
         else:
             self.info('Cleaning up recipes-ros-* directories...')
