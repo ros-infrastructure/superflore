@@ -63,6 +63,17 @@ def sanitize_string(string, illegal_chars):
     return ret
 
 
+def trim_string(string, length=80):
+    if len(string) < length:
+        return string
+    end_string = '[...]'
+
+    return '{0}{1}'.format(
+        string[:length - len(end_string)],
+        end_string
+    )
+
+
 def get_license(l):
     bsd_re = '^(BSD)((.)*([1234]))?'
     gpl_re = '^(GPL)((.)*([123]))?'
