@@ -14,6 +14,7 @@
 
 from superflore.generators.bitbake.gen_packages import generate_installers
 from superflore.generators.bitbake.ros_meta import ros_meta
+from superflore import RepoInstance
 import argparse
 import shutil
 import sys
@@ -85,18 +86,15 @@ def main():
 
     # clone current repo
     selected_targets = active_distros
-    try:
-        link_existing_files(args.ros_distro)
-    except FileExistsError:
-        warn_msg = 'Detected existing rosdistro ebuild structure... '
-        warn_msg += 'Removing and overwriting.'
-        ros_meta.warn(warn_msg)
-        for x in active_distros:
-            try:
-                os.remove('recipes-ros-{0}'.format(x))
-            except:
-                pass
-        link_existing_files(args.ros_distro)
+    for x in active_distros:
+        try:
+            os.remove('recipes-ros-{0}'.format(x))
+            warn_msg =\
+                'removing existing symlink "./recipes-ros-{0}"'.format(x)
+            RepoInstance.warn(warn_msg)
+        except:
+            pass
+    link_existing_files(args.ros_distro)
 
     # generate installers
     total_installers = dict()

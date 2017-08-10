@@ -23,9 +23,6 @@ import time
 import sys
 import os
 
-if sys.version_info < (3, 0):
-    from os.FileExistsError import FileExistsError
-
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
 # just update packages, by default.
@@ -166,19 +163,14 @@ def main():
     overlay = RosOverlay(args.output_repository_path)
     selected_targets = active_distros
 
-    try:
-        link_existing_files(args.ros_distro)
-    except FileExistsError:
-        warn_msg = 'Detected existing rosdistro ebuild structure... '
-        warn_msg += 'Removing and overwriting.'
-        RepoInstance.warn(warn_msg)
-        for x in active_distros:
-            try:
-                os.remove('ros-{0}'.format(x))
-            except:
-                pass
-
-        link_existing_files(args.ros_distro)
+    for x in active_distros:
+        try:
+            os.remove('ros-{0}'.format(x))
+            warn_msg = 'removing existing symlink "./ros-{0}"'.format(x)
+            RepoInstance.warn(warn_msg)
+        except:
+            pass
+    link_existing_files(args.ros_distro)
     # generate installers
     total_installers = dict()
     total_broken = set()
