@@ -16,6 +16,7 @@ from superflore.utils import sanitize_string
 from superflore.utils import download_yamls
 from superflore.utils import get_license
 from superflore.utils import resolve_dep
+from superflore.utils import trim_string
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnresolvedDependency
 
@@ -104,6 +105,7 @@ class Ebuild(object):
         py_ver = sys.version_info
         self.description =\
             sanitize_string(self.description, self.illegal_desc_chars)
+        self.description = trim_string(self.description)
         if isinstance(self.description, str):
             ret += "DESCRIPTION=\"" + self.description + "\"\n"
         elif py_ver <= (3, 0) and isinstance(self.description, unicode):
