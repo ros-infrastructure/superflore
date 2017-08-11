@@ -30,51 +30,13 @@ preserve_existing = True
 overlay = None
 
 
-def link_existing_files(mode):
+def clean_up(distro, preserve_repo=False):
     global overlay
-    sym_link_msg = 'Symbolicly linking files from {0}/ros-{1}...'
-    dir_fmt = '{0}/ros-{1}'
-    if not mode:
-        for x in active_distros:
-            RepoInstance.info(sym_link_msg.format(overlay.repo.repo_dir, x))
-            os.symlink(dir_fmt.format(overlay.repo.repo_dir, x), './ros-' + x)
-    else:
-        # only link the relevant directory.
-        RepoInstance.info(sym_link_msg.format(overlay.repo_dir, mode))
-        os.symlink(
-            dir_fmt.format(overlay.repo.repo_dir, mode),
-            './ros-' + mode
-        )
-
-
-def get_existing_repo():
-    existing_path = None
-    for x in active_distros:
-        curr = './ros-{0}'.format(x)
-        if os.path.exists(curr):
-            existing_path = curr
-            break
-    if not existing_path:
-        raise RuntimeError('No existing repo found')
-    # get the actual location of the repo
-    repo_dir = os.path.realpath('{0}/../'.format(existing_path))
-    # TODO(allenh1): make this configurable
-    git_repo = RepoInstance('ros', 'ros-overlay', repo_dir, do_clone=False)
-    return git_repo
-
-
-def clean_up(distro):
-    global overlay
-    clean_msg = \
-        'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
-    RepoInstance.info(clean_msg)
-    shutil.rmtree(overlay.repo.repo_dir)
-    RepoInstance.info('Cleaning up symbolic links...')
-    if distro in active_distros:
-        os.remove('ros-{0}'.format(distro))
-    else:
-        for x in active_distros:
-            os.remove('ros-{0}'.format(x))
+    if not preserve_repo:
+        clean_msg = \
+            'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
+        RepoInstance.info(clean_msg)
+        shutil.rmtree(overlay.repo.repo_dir)
     if os.path.exists('.pr-message.tmp'):
         os.remove('.pr-message.tmp')
     if os.path.exists('.pr-title.tmp'):
@@ -115,6 +77,11 @@ def main():
         help='ONLY file a PR to remote',
         action='store_true'
     )
+    parser.add_argument(
+        '--output-repository-path',
+        help='location of the Git repo',
+        type=str
+    )
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -127,6 +94,8 @@ def main():
     elif args.dry_run and args.pr_only:
         RepoInstance.error('Invalid args! cannot dry-run and file PR')
         sys.exit(1)
+    elif args.pr_only and not args.output_repository_path:
+        RepoInstance.error('Invalid args! no repository specified')
     elif args.pr_only:
         try:
             with open('.pr-message.tmp', 'r') as msg_file:
@@ -143,7 +112,7 @@ def main():
             )
             sys.exit(1)
         try:
-            prev_overlay = get_existing_repo()
+            prev_overlay = RepoInstance(args.output_repository_path)
             RepoInstance.info('PR message:\n"%s"\n' % msg)
             RepoInstance.info('PR title:\n"%s"\n' % title)
             prev_overlay.pull_request(msg, title)
@@ -154,22 +123,8 @@ def main():
             RepoInstance.error('reason: {0}'.format(e))
             sys.exit(1)
     # clone current repo
-    overlay = RosOverlay()
+    overlay = RosOverlay(args.output_repository_path)
     selected_targets = active_distros
-
-    try:
-        link_existing_files(args.ros_distro)
-    except os.FileExistsError:
-        warn_msg = 'Detected existing rosdistro ebuild structure... '
-        warn_msg += 'Removing and overwriting.'
-        RepoInstance.warn(warn_msg)
-        for x in active_distros:
-            try:
-                os.remove('ros-{0}'.format(x))
-            except:
-                pass
-
-        link_existing_files(args.ros_distro)
     # generate installers
     total_installers = dict()
     total_broken = set()
@@ -246,5 +201,5 @@ def main():
         sys.exit(0)
     file_pr(overlay, delta, missing_deps)
 
-    clean_up(args.ros_distro)
+    clean_up(args.ros_distro, args.output_repository_path)
     RepoInstance.happy('Successfully synchronized repositories!')
