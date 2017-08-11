@@ -28,7 +28,7 @@ setup(
     keywords=['ROS'],
     install_requires=install_requires,
     classifiers=['Programming Language :: Python',
-                 'License :: Apache 2.0'],
+                 'License :: OSI Approved :: Apache Software License'],
     description='Super Bloom',
     license='Apache 2.0',
     test_suite='tests',
