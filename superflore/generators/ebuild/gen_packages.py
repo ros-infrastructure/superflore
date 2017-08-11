@@ -68,7 +68,6 @@ def get_pkg_version(distro, pkg_name):
 
 
 def generate_installers(distro_name, overlay, preserve_existing=True):
-    make_dir("ros-{}".format(distro_name))
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
     total = float(len(pkg_names[0]))

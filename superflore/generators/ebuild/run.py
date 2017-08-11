@@ -95,7 +95,7 @@ def main():
         RepoInstance.error('Invalid args! cannot dry-run and file PR')
         sys.exit(1)
     elif args.pr_only and not args.output_repository_path:
-        RepoInstance.error('Invalid args! no repository specified') 
+        RepoInstance.error('Invalid args! no repository specified')
     elif args.pr_only:
         try:
             with open('.pr-message.tmp', 'r') as msg_file:
