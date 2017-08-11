@@ -20,11 +20,11 @@ if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
 
 setup(
     name='superflore',
-    version='0.0.0',
+    version='0.1.0',
     packages=find_packages(exclude=['tests']),
     author='Hunter L. Allen',
     author_email='hunter@openrobotics.org',
-    url='https://github.com/allenh1/superflore',
+    url='https://github.com/ros-infrastructure/superflore',
     keywords=['ROS'],
     install_requires=install_requires,
     classifiers=['Programming Language :: Python',
