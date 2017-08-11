@@ -81,9 +81,12 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
 
     for i, pkg in enumerate(sorted(pkg_names[0])):
         version = get_pkg_version(distro, pkg)
-        ebuild_exists = os.path.exists(
-            'ros-{}/{}/{}-{}.ebuild'.format(distro_name, pkg, pkg, version))
-        patch_path = 'ros-{}/{}/files'.format(distro_name, pkg)
+        ebuild_name =\
+            '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version)
+        ebuild_name = overlay.repo.repo_dir + ebuild_name
+        ebuild_exists = os.path.exists(ebuild_name)
+        patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
+        patch_path = overlay.repo.repo_dir + patch_path
         has_patches = os.path.exists(patch_path)
         percent = '%.1f' % (100 * (float(i) / total))
 
@@ -95,10 +98,17 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             succeeded = succeeded + 1
             continue
         # otherwise, remove a (potentially) existing ebuild.
-        existing = glob.glob('ros-{0}/{1}/*.ebuild'.format(distro_name, pkg))
+        existing = glob.glob(
+            '{0}/ros-{1}/{2}/*.ebuild'.format(
+                overlay.repo.repo_dir,
+                distro_name, pkg
+            )
+        )
         if existing:
             overlay.repo.remove_file(existing[0])
-            manifest_file = 'ros-{0}/{1}/Manifest'.format(distro_name, pkg)
+            manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
+                overlay.repo.repo_dir, distro_name, pkg
+            )
             overlay.repo.remove_file(manifest_file)
         try:
             current = gentoo_installer(distro, pkg, has_patches)
@@ -128,21 +138,27 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             err("Failed to generate installer for package {}!".format(pkg))
             failed = failed + 1
             continue  # do not generate an incomplete ebuild
-        make_dir("ros-{}/{}".format(distro_name, pkg))
+        make_dir(
+            "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)
+        )
         success_msg = 'Successfully generated installer for package'
         ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
         succeeded = succeeded + 1
 
         try:
-            ebuild_name = '{0}/{1}/{1}-{2}'.format(distro_name, pkg, version)
-            ebuild_file = open('ros-{0}.ebuild'.format(ebuild_name), "w")
-            metadata_name = '{0}/{1}/metadata.xml'.format(distro_name, pkg)
-            metadata_file = open('ros-{0}'.format(metadata_name), "w")
-
+            ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
+                overlay.repo.repo_dir,
+                distro_name, pkg, version
+            )
+            ebuild_file = open(ebuild_file, "w")
+            metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
+                overlay.repo.repo_dir,
+                distro_name, pkg
+            )
+            metadata_file = open(metadata_file, "w")
             ebuild_file.write(ebuild_text)
             metadata_file.write(metadata_text)
             changes.append('*{0} --> {1}*'.format(pkg, version))
-
         except:
             err("Failed to write ebuild/metadata to disk!")
             installers.append(current)
