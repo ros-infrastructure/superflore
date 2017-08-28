@@ -190,28 +190,28 @@ class Ebuild(object):
         if self.name == "catkin":
             ret += "BUILD_BINARY=\"0\"\n"
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
-        ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n\n"
+        ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n"
 
         # Patch source if needed.
         if self.has_patches:
-            ret += "src_prepare() {\n"
+            ret += "\nsrc_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += " EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "    EPATCH_FORCE=\"yes\" epatch\n"
             ret += "    ros-cmake_src_prepare\n"
-            ret += "}\n\n"
+            ret += "}\n"
 
         special_pkgs = ['opencv3', 'stage']
         # source configuration
         if self.name in special_pkgs:
-            ret += "src_configure() {\n"
+            ret += "\nsrc_configure() {\n"
             if self.name == 'opencv3':
                 ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
             elif self.name == 'stage':
                 ret += "    filter-flags '-std=*'\n"
             ret += "    ros-cmake_src_configure\n"
-            ret += "}\n\n"
+            ret += "}\n"
 
         if self.die_msg is not None:
             self.die_msg = ' {0}'.format(die_msg)
