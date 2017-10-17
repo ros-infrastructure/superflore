@@ -9,6 +9,6 @@ python:
 install:
   - pip install nose flake8 termcolor git-pull-request
   - pip install xmltodict gitpython rosinstall_generator
-  - pip install rosdistro requests rosdep pep8
+  - pip install rosdistro requests rosdep pep8 docker
 # command to run tests
 script: nosetests
