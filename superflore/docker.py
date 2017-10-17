@@ -42,8 +42,7 @@ class Docker(object):
                 cmd_string += ' && '
         cmd_string += "'"
 
-        self.client.volumes(self.directory_map)
-        self.client.containers.run(self.name, cmd_string)
+        self.client.containers.run(self.name, self.bash_cmds)
 
 
 class BuildException(Exception):
