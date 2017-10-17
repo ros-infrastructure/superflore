@@ -20,6 +20,7 @@ class Docker(object):
         self.client = docker.from_env()
         self.dockerfile_directory = dockerfile_directory
         self.name = name
+        self.image = None
         self.directory_map = dict()
         self.bash_cmds = list()
 
@@ -32,7 +33,8 @@ class Docker(object):
         self.bash_cmds.append(cmd)
 
     def build(self):
-        self.client.images.build(path=self.dockerfile_directory)
+        self.image = \
+            self.client.images.build(path=self.dockerfile_directory)
 
     def run(self, rm=True, show_cmd=False):
         cmd_string = "bash -c '"
@@ -42,7 +44,16 @@ class Docker(object):
                 cmd_string += ' && '
         cmd_string += "'"
 
-        self.client.containers.run(self.name, self.bash_cmds)
+        msg = "Running container with command string '%s'..."
+        print(msg % cmd_string)
+
+        self.client.containers.run(
+            image=self.image,
+            remove=rm,
+            command=cmd_string,
+            volumes=self.directory_map,
+        )
+        print("Done!")
 
 
 class BuildException(Exception):
