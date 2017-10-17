@@ -33,8 +33,7 @@ class Docker(object):
         self.bash_cmds.append(cmd)
 
     def build(self):
-        self.image = \
-            self.client.images.build(path=self.dockerfile_directory)
+        self.image = self.client.images.build(path=self.dockerfile_directory)
 
     def run(self, rm=True, show_cmd=False):
         cmd_string = "bash -c '"
