@@ -94,16 +94,16 @@ def get_license(l):
         if version:
             return 'BSD-{0}'.format(version)
         return 'BSD'
-    elif re.search(gpl_re, l, f):
-        version = re.search(gpl_re, l, f).group(4)
-        if version:
-            return 'GPL-{0}'.format(version)
-        return 'GPL-1'
     elif re.search(lgpl_re, l, f):
         version = re.search(lgpl_re, l, f).group(4)
         if version:
             return 'LGPL-{0}'.format(version)
         return 'LGPL-2'
+    elif re.search(gpl_re, l, f):
+        version = re.search(gpl_re, l, f).group(4)
+        if version:
+            return 'GPL-{0}'.format(version)
+        return 'GPL-1'
     elif re.search(moz_re, l, f):
         version = re.search(moz_re, l, f).group(4)
         if version:
