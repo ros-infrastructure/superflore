@@ -12,24 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import os
-import xmltodict
 import glob
-from termcolor import colored
+import os
+import sys
 
-from rosinstall_generator.distro import get_distro, get_package_names
-from rosinstall_generator.distro import _generate_rosinstall
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
+from rosinstall_generator.distro import _generate_rosinstall
+from rosinstall_generator.distro import get_distro
+from rosinstall_generator.distro import get_package_names
+
+from termcolor import colored
+
+import xmltodict
+
 from .ebuild import Ebuild, UnresolvedDependency
 from .metadata_xml import metadata_xml
 
+
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
-
 
 # TODO(allenh1): This is a blacklist of things that
 # do not yet support Python 3. This will be updated

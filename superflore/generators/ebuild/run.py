@@ -13,15 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
+import os
+import shutil
+import sys
+import time
 
 from superflore.generators.ebuild.gen_packages import generate_installers
 from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.repo_instance import RepoInstance
-import argparse
-import shutil
-import time
-import sys
-import os
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']

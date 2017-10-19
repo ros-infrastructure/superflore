@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.rosdep_support import resolve_rosdep_key
-from superflore.exceptions import UnknownPlatform
+import re
+import sys
+
 from superflore.exceptions import UnknownLicense
+from superflore.exceptions import UnknownPlatform
+from superflore.rosdep_support import resolve_rosdep_key
 
 from termcolor import colored
 
 import yaml
-import sys
-import re
 
 if sys.version_info[0] == 2:
     import requests
