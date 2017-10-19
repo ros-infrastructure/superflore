@@ -1,0 +1,12 @@
+nose
+flake8
+termcolor
+git-pull-request
+xmltodict
+gitpython
+rosinstall_generator
+rosdistro
+requests
+rosdep
+pep8
+docker
