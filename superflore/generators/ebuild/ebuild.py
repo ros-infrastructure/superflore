@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.utils import sanitize_string
+import sys
+
+from superflore.exceptions import UnresolvedDependency
 from superflore.utils import get_license
 from superflore.utils import resolve_dep
+from superflore.utils import sanitize_string
 from superflore.utils import trim_string
-from superflore.exceptions import UnresolvedDependency
-
-import sys
 
 
 class ebuild_keyword(object):

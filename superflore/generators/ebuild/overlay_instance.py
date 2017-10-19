@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.docker import Docker
-from superflore.repo_instance import RepoInstance
-
+import os
 import random
 import string
 import time
-import os
+
+from superflore.docker import Docker
+from superflore.repo_instance import RepoInstance
 
 
 def get_random_tmp_dir():
