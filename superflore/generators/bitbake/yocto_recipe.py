@@ -24,11 +24,11 @@
 #
 
 import hashlib
-import tarfile
 import sys
+import tarfile
 
-from superflore.utils import resolve_dep
 from superflore.exceptions import NoPkgXml
+from superflore.utils import resolve_dep
 
 
 if sys.version_info[0] == 2:

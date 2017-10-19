@@ -14,10 +14,11 @@
 
 
 # TODO(allenh1): remove inheritance like the RosOverlay class.
-from superflore import RepoInstance as repo_instance
 import random
 import string
 import time
+
+from superflore import RepoInstance as repo_instance
 
 
 def get_random_tmp_dir():

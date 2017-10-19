@@ -12,20 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import os
-import xmltodict
 import glob
-from termcolor import colored
+import os
+import sys
 
-from rosinstall_generator.distro import get_distro, get_package_names
-from rosinstall_generator.distro import _generate_rosinstall
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
+from rosinstall_generator.distro import _generate_rosinstall
+from rosinstall_generator.distro import get_distro
+from rosinstall_generator.distro import get_package_names
+
+from superflore.exceptions import NoPkgXml
+from superflore.exceptions import UnresolvedDependency
+
+from termcolor import colored
+
+import xmltodict
+
 from .yocto_recipe import yoctoRecipe
-from superflore.exceptions import UnresolvedDependency, NoPkgXml
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"

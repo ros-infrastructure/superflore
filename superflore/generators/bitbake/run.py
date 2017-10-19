@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.generators.bitbake.gen_packages import generate_installers
-from superflore.generators.bitbake.ros_meta import ros_meta
-from superflore import RepoInstance
 import argparse
+import os
 import shutil
 import sys
-import os
+
+from superflore import RepoInstance
+from superflore.generators.bitbake.gen_packages import generate_installers
+from superflore.generators.bitbake.ros_meta import ros_meta
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
