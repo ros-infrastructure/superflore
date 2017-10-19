@@ -32,5 +32,18 @@ class TestUtils(unittest.TestCase):
         ret = sanitize_string('aaaaeeeeoooo', 'aeo')
         self.assertEqual(ret, '\\a\\a\\a\\a\\e\\e\\e\\e\\o\\o\\o\\o')
 
+    def test_trim_string(self):
+        """Test trim string function"""
+        # test overflow
+        ret = trim_string('abcde', length=5)
+        self.assertEqual(ret, '[...]')
+        # test usual case
+        ret = trim_string('abcde')
+        self.assertEqual(ret, 'abcde')
+        # test mixed case
+        ret = trim_string('abcdef', length=5)
+        self.assertEqual(ret, 'a[...]')
+
+
 if __name__ == '__main__':
     unittest.main()
