@@ -59,7 +59,7 @@ class TestUtils(unittest.TestCase):
         ret = get_license('CreativeCommons-Attribution-NonCommercial-NoDerivatives-4.0')
         self.assertEqual(ret, 'CC-BY-NC-ND-4.0')
         ret = get_license('CC BY-NC-SA 4.0')
-        self.assertEqual(ret, 'CC-BY-NS-SA-4.0')
+        self.assertEqual(ret, 'CC-BY-NC-SA-4.0')
         ret = get_license('BoostSoftwareLicense Version1.0')
         self.assertEqual(ret, 'Boost-1.0')
         ret = get_license('GNU GPLv3')
