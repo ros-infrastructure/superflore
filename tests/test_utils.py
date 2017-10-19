@@ -44,6 +44,27 @@ class TestUtils(unittest.TestCase):
         ret = trim_string('abcdef', length=6)
         self.assertEqual(ret, 'a[...]')
 
+    def test_get_license(self):
+        """Test license recognition function"""
+        ret = get_license('Apache License 2.0')
+        self.assertEqual(ret, 'Apache-2.0')
+        ret = get_license('Apache 2.0')
+        self.assertEqual(ret, 'Apache-2.0')
+        ret = get_license('Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
+        self.assertEqual(ret, 'Apache-2.0')
+        ret = get_license('BSD-3')
+        self.assertEqual(ret, 'BSD')
+        ret = get_license('Apache-2')
+        self.assertEqual(ret, 'Apache-2.0')
+        ret = get_license('CreativeCommons-Attribution-NonCommercial-NoDerivatives-4.0')
+        self.assertEqual(ret, 'CC-BY-NC-ND-4.0')
+        ret = get_license('CC BY-NC-SA 4.0')
+        self.assertEqual(ret, 'CC-BY-NS-SA-4.0')
+        ret = get_license('BoostSoftwareLicense Version1.0')
+        self.assertEqual(ret, 'Boost-1.0')
+        ret = get_license('GNU GPLv3')
+        self.assertEqual(ret, 'GPL-3')
+
 
 if __name__ == '__main__':
     unittest.main()
