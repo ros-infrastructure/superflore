@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from termcolor import colored
+import shutil
+
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
-import shutil
+
+from termcolor import colored
 
 
 class RepoInstance(object):
