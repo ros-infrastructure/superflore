@@ -11,4 +11,3 @@ install:
 # command to run tests
 script:
   - python -m 'nose'
-  - if [[ $(which python3) ]]; then python3 -m 'flake8' superflore --import-order-style=google; fi
