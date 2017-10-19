@@ -11,4 +11,5 @@ install:
   - pip install xmltodict gitpython rosinstall_generator
   - pip install rosdistro requests rosdep pep8 docker
 # command to run tests
-script: nosetests
+script:
+  - nosetests3 || nosetests
