@@ -11,3 +11,4 @@ install:
 # command to run tests
 script:
   - python -m 'nose'
+  - python -m 'flake8' superflore --import-order-style=google
