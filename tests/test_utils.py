@@ -12,3 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.utils import sanitize_string
+from superflore.utils import trim_string
+from superflore.utils import get_license
+
+import unittest
+
+
+class TestUtils(unittest.TestCase):
+    def test_sanitize(self):
+        """Test sanitize string function"""
+        # test with an empty string
+        ret = sanitize_string('', 'aeiouy')
+        self.assertEqual(ret, '')
+        # test empty second argument
+        ret = sanitize_string('first', '')
+        self.assertEqual(ret, 'first')
+        # test escaping every character
+        ret = sanitize_string('aaaaeeeeoooo', 'aeo')
+        self.assertEqual(ret, '\a\a\a\a\e\e\e\e\o\o\o\o')
+
+if __name__ == '__main__':
+    unittest.main()
