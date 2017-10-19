@@ -30,7 +30,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'first')
         # test escaping every character
         ret = sanitize_string('aaaaeeeeoooo', 'aeo')
-        self.assertEqual(ret, '\a\a\a\a\e\e\e\e\o\o\o\o')
+        self.assertEqual(ret, '\\a\\a\\a\\a\\e\\e\\e\\e\\o\\o\\o\\o')
 
 if __name__ == '__main__':
     unittest.main()
