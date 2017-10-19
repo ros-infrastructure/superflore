@@ -41,7 +41,7 @@ class TestUtils(unittest.TestCase):
         ret = trim_string('abcde')
         self.assertEqual(ret, 'abcde')
         # test mixed case
-        ret = trim_string('abcdef', length=5)
+        ret = trim_string('abcdef', length=6)
         self.assertEqual(ret, 'a[...]')
 
 
