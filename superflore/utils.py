@@ -71,44 +71,54 @@ def trim_string(string, length=80):
 
 
 def get_license(l):
-    bsd_re = '^(BSD)((.)*([1234]))?'
-    gpl_re = '^(GPL)((.)*([123]))?'
+    bsd_re = '^(BSD)((.)*([124]))?'
+    gpl_re = '(GPL)((.)*([123]))?'
     lgpl_re = '^(LGPL)((.)*([23]|2\\.1))?'
     apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
-    cc_re = '^(Creative Commons)|'
+    cc_re = '^(Creative(.)?Commons)((.)*)'
+    cc_nc_nd_re = '^((Creative(.)?Commons)|CC)((.)*)' +\
+                  '((Non(.)?Commercial)|NC)((.)*)((No(.)?Derivatives)|ND)'
+    cc_by_nc_sa_re = '^(CC(.)?BY(.)?NC(.)?SA(.)?)'
     moz_re = '^(Mozilla)((.)*(1\\.1))?'
+    boost_re = '^(Boost)((.)*([1]))?'
     mit_re = '^MIT'
     f = re.IGNORECASE
 
-    if re.search(apache_re, l, f) is not None:
+    if re.search(apache_re, l, f):
         version = re.search(apache_re, l, f).group(4)
-        if version is not None:
-            return 'Apache-{0}'.format(version)
+        if version:
+            return 'Apache-%.1f' % (float(version))
         return 'Apache-1.0'
-    elif re.search(bsd_re, l, f) is not None:
+    elif re.search(bsd_re, l, f):
         version = re.search(bsd_re, l, f).group(4)
-        if version is not None:
+        if version:
             return 'BSD-{0}'.format(version)
         return 'BSD'
-    elif re.search(gpl_re, l, f) is not None:
-        version = re.search(gpl_re, l, f).group(4)
-        if version is not None:
-            return 'GPL-{0}'.format(version)
-        return 'GPL-1'
-    elif re.search(lgpl_re, l, f) is not None:
+    elif re.search(lgpl_re, l, f):
         version = re.search(lgpl_re, l, f).group(4)
-        if version is not None:
+        if version:
             return 'LGPL-{0}'.format(version)
         return 'LGPL-2'
-    elif re.search(moz_re, l, f) is not None:
+    elif re.search(gpl_re, l, f):
+        version = re.search(gpl_re, l, f).group(4)
+        if version:
+            return 'GPL-{0}'.format(version)
+        return 'GPL-1'
+    elif re.search(moz_re, l, f):
         version = re.search(moz_re, l, f).group(4)
-        if version is not None:
+        if version:
             return 'MPL-{0}'.format(version)
         return 'MPL-2.0'
-    elif re.search(mit_re, l, f) is not None:
+    elif re.search(mit_re, l, f):
         return 'MIT'
-    elif re.search(cc_re, l, f) is not None:
+    elif re.search(cc_nc_nd_re, l, f):
+        return 'CC-BY-NC-ND-4.0'
+    elif re.search(cc_by_nc_sa_re, l, f):
+        return 'CC-BY-NC-SA-4.0'
+    elif re.search(cc_re, l, f):
         return 'CC-BY-SA-3.0'
+    elif re.search(boost_re, l, f):
+        return 'Boost-1.0'
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
         raise UnknownLicense('bad license')
