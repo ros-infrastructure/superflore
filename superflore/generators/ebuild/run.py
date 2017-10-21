@@ -82,6 +82,11 @@ def main():
         help='location of the Git repo',
         type=str
     )
+    parser.add_argument(
+        '--only',
+        help='generate only the specified package',
+        type=str
+    )
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -104,7 +109,7 @@ def main():
                 title = title_file.read().rstrip('\n')
         except OSError:
             RepoInstance.error('Failed to open PR title/message file!')
-            RepoInstance.RepoInstance.error(
+            RepoInstance.error(
                 'Please supply the %s and %s files' % (
                     '.pr_message.tmp',
                     '.pr_title.tmp'
@@ -129,6 +134,26 @@ def main():
     total_installers = dict()
     total_broken = set()
     total_changes = dict()
+
+    if args.only:
+        RepoInstance.info("Regenerating package '%s'..." % args.only)
+        installers = regenerate_pkg(overlay, args.ros_distro)
+        # Commit changes and file pull request
+        overlay.regenerate_manifests(args.ros_distro)
+        overlay.commit_changes(args.ros_distro)
+
+        if args.dry_run:
+            RepoInstance.info('Running in dry mode, not filing PR')
+            title_file = open('.pr-title.tmp', 'w')
+            title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
+            pr_message_file = open('.pr-message.tmp', 'w')
+            pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
+            sys.exit(0)
+        file_pr(overlay, delta, missing_deps)
+
+        clean_up(args.ros_distro, args.output_repository_path)
+        RepoInstance.happy('Successfully synchronized repositories!')
+        sys.exit(0)
 
     for distro in selected_targets:
         distro_installers, distro_broken, distro_changes =\

@@ -71,6 +71,87 @@ def get_pkg_version(distro, pkg_name):
     return maj_min_patch
 
 
+def regenerate_pkg(overlay, distro_name=None, distro=None):
+    if not distro and not distro_name:
+        raise RuntimeError('Must supply distro or distro name!')
+    elif not distro:
+        distro = get_distro(distro_name)
+    elif not distro_name:
+        distro_name = distro.name
+    version = get_pkg_version(distro, pkg)
+    ebuild_name =\
+        '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version)
+    ebuild_name = overlay.repo.repo_dir + ebuild_name
+    ebuild_exists = os.path.exists(ebuild_name)
+    patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
+    patch_path = overlay.repo.repo_dir + patch_path
+    has_patches = os.path.exists(patch_path)
+    installers = []
+
+    # otherwise, remove a (potentially) existing ebuild.
+    existing = glob.glob(
+        '{0}/ros-{1}/{2}/*.ebuild'.format(
+            overlay.repo.repo_dir,
+            distro_name, pkg
+        )
+    )
+    if existing:
+        overlay.repo.remove_file(existing[0])
+        manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
+            overlay.repo.repo_dir, distro_name, pkg
+        )
+        overlay.repo.remove_file(manifest_file)
+    try:
+        current = gentoo_installer(distro, pkg, has_patches)
+        current.ebuild.name = pkg
+    except Exception as e:
+        err('Failed to generate installer for package {}!'.format(pkg))
+        raise e
+    try:
+        ebuild_text = current.ebuild_text()
+        metadata_text = current.metadata_text()
+    except UnresolvedDependency as ud:
+        dep_err = 'Failed to resolve required dependencies for'
+        err("{0} package {1}!".format(dep_err, pkg))
+        unresolved = current.ebuild.get_unresolved()
+        borkd_pkgs[pkg] = list()
+        for dep in unresolved:
+            err(" unresolved: \"{}\"".format(dep))
+            borkd_pkgs[pkg].append(dep)
+        err("Failed to generate installer for package {}!".format(pkg))
+        raise ud
+    except KeyError as ke:
+        err("Failed to parse data for package {}!".format(pkg))
+        unresolved = current.ebuild.get_unresolved()
+        err("Failed to generate installer for package {}!".format(pkg))
+        raise ke
+    make_dir(
+        "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)
+    )
+    success_msg = 'Successfully generated installer for package'
+    ok('{1} \'{2}\'.'.format(success_msg, pkg))
+
+    try:
+        ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
+            overlay.repo.repo_dir,
+            distro_name, pkg, version
+        )
+        ebuild_file = open(ebuild_file, "w")
+        metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
+            overlay.repo.repo_dir,
+            distro_name, pkg
+        )
+        metadata_file = open(metadata_file, "w")
+        ebuild_file.write(ebuild_text)
+        metadata_file.write(metadata_text)
+    except Exception as e:
+        err("Failed to write ebuild/metadata to disk!")
+        installers.append(current)
+        failed_msg = 'Failed to generate installer'
+        raise e
+    return installers
+
+
 def generate_installers(distro_name, overlay, preserve_existing=True):
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
