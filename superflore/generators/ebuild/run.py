@@ -20,6 +20,7 @@ import sys
 import time
 
 from superflore.generators.ebuild.gen_packages import generate_installers
+from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.repo_instance import RepoInstance
 
@@ -137,11 +138,16 @@ def main():
 
     if args.only:
         RepoInstance.info("Regenerating package '%s'..." % args.only)
-        installers = regenerate_pkg(overlay, args.ros_distro)
+        installers = regenerate_pkg(
+            overlay,
+            pkg=args.only,
+            distro_name=args.ros_distro
+        )
         # Commit changes and file pull request
-        overlay.regenerate_manifests(args.ros_distro)
+        overlay.regenerate_manifests(args.ros_distro, only_pkg=args.only)
         overlay.commit_changes(args.ros_distro)
-
+        delta = "Regenerated: '%s'\n" % args.only
+        missing_deps=''
         if args.dry_run:
             RepoInstance.info('Running in dry mode, not filing PR')
             title_file = open('.pr-title.tmp', 'w')

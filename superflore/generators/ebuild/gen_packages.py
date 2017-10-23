@@ -71,7 +71,7 @@ def get_pkg_version(distro, pkg_name):
     return maj_min_patch
 
 
-def regenerate_pkg(overlay, distro_name=None, distro=None):
+def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
     if not distro and not distro_name:
         raise RuntimeError('Must supply distro or distro name!')
     elif not distro:
@@ -129,7 +129,7 @@ def regenerate_pkg(overlay, distro_name=None, distro=None):
         "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)
     )
     success_msg = 'Successfully generated installer for package'
-    ok('{1} \'{2}\'.'.format(success_msg, pkg))
+    ok('{0} \'{1}\'.'.format(success_msg, pkg))
 
     try:
         ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(

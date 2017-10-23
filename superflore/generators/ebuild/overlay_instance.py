@@ -75,7 +75,7 @@ class RosOverlay(object):
         self.repo.info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
-    def regenerate_manifests(self, mode):
+    def regenerate_manifests(self, mode, only_pkg=None):
         self.repo.info('Building docker image...')
         dock = Docker('repoman_docker', 'gentoo_repoman')
         dock.build()
@@ -85,13 +85,21 @@ class RosOverlay(object):
             '/home/%s/.gnupg' % os.getenv('USER'),
             '/root/.gnupg'
         )
-        if mode == 'all' or not mode:
-            dock.map_directory(self.repo.repo_dir, '/tmp/ros-overlay')
+        dock.map_directory(self.repo.repo_dir, '/tmp/ros-overlay')
+        if only_pkg and isinstance(only_pkg, list):
+            for p in only_pkg:
+                pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(mode, p)
+                dock.add_bash_command('cd {0}'.format(pkg_dir))
+                dock.add_bash_command('repoman manifest')
+                dock.add_bash_command('cd /tmp/ros-overlay')
+        elif only_pkg:
+            pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(mode, only_pkg)
+            dock.add_bash_command('cd {0}'.format(pkg_dir))
+            dock.add_bash_command('repoman manifest')
+            dock.add_bash_command('cd /tmp/ros-overlay')
         else:
-            ros_dir = '{0}/ros-{1}'.format(self.repo.repo_dir, mode)
-            dock.map_directory(ros_dir, '/tmp/ros-overlay')
-        dock.add_bash_command('cd {0}'.format('/tmp/ros-overlay'))
-        dock.add_bash_command('repoman manifest')
+            dock.add_bash_command('cd {0}'.format('/tmp/ros-overlay'))
+            dock.add_bash_command('repoman manifest')
         dock.run(show_cmd=True)
 
     def pull_request(self, message):
