@@ -120,9 +120,9 @@ class Ebuild(object):
                 if len(split) > 1:
                     # they did something like "BSD,GPL,blah"
                     ret += 'LICENSE="( '
-                    for l in split:
-                        l = get_license(l)
-                        ret += '{0} '.format(l)
+                    for _lic in split:
+                        lic = get_license(_lic)
+                        ret += '{0} '.format(lic)
                     ret += ')"\n'
                 else:
                     ret += "LICENSE=\""
@@ -142,9 +142,9 @@ class Ebuild(object):
                     ret += get_license(self.upstream_license) + "\"\n\n"
             elif isinstance(self.upstream_license, list):
                 ret += "LICENSE=\"( "
-                for l in self.upstream_license:
-                    l = get_license(l)
-                    ret += '{0} '.format(l)
+                for _ul in self.upstream_license:
+                    ul = get_license(_ul)
+                    ret += '{0} '.format(ul)
                 ret += ")\"\n"
         except:
             pass
