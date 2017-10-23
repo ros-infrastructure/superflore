@@ -86,8 +86,10 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
     patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
     has_patches = os.path.exists(patch_path)
-    installers = []
+    pkg_names = get_package_names(distro)[0]
 
+    if pkg not in pkg_names:
+        raise RuntimeError("Unknown package '%s'" % (pkg))
     # otherwise, remove a (potentially) existing ebuild.
     existing = glob.glob(
         '{0}/ros-{1}/{2}/*.ebuild'.format(
@@ -146,10 +148,9 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
         metadata_file.write(metadata_text)
     except Exception as e:
         err("Failed to write ebuild/metadata to disk!")
-        installers.append(current)
         failed_msg = 'Failed to generate installer'
         raise e
-    return installers
+    return current
 
 
 def generate_installers(distro_name, overlay, preserve_existing=True):
