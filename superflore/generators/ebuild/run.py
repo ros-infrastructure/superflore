@@ -24,6 +24,11 @@ from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.repo_instance import RepoInstance
 
+from superflore.utils import err
+from superflore.utils import info
+from superflore.utils import ok
+from superflore.utils import warn
+
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
 # just update packages, by default.
@@ -36,7 +41,7 @@ def clean_up(distro, preserve_repo=False):
     if not preserve_repo:
         clean_msg = \
             'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
-        RepoInstance.info(clean_msg)
+        info(clean_msg)
         shutil.rmtree(overlay.repo.repo_dir)
     if os.path.exists('.pr-message.tmp'):
         os.remove('.pr-message.tmp')
@@ -92,16 +97,16 @@ def main():
     args = parser.parse_args(sys.argv[1:])
 
     if args.all:
-        RepoInstance.warn('"All" mode detected... This may take a while!')
+        warn('"All" mode detected... This may take a while!')
         preserve_existing = False
     elif args.ros_distro:
         selected_targets = [args.ros_distro]
         preserve_existing = False
     elif args.dry_run and args.pr_only:
-        RepoInstance.error('Invalid args! cannot dry-run and file PR')
+        error('Invalid args! cannot dry-run and file PR')
         sys.exit(1)
     elif args.pr_only and not args.output_repository_path:
-        RepoInstance.error('Invalid args! no repository specified')
+        error('Invalid args! no repository specified')
     elif args.pr_only:
         try:
             with open('.pr-message.tmp', 'r') as msg_file:
@@ -109,8 +114,8 @@ def main():
             with open('.pr-title.tmp', 'r') as title_file:
                 title = title_file.read().rstrip('\n')
         except OSError:
-            RepoInstance.error('Failed to open PR title/message file!')
-            RepoInstance.error(
+            error('Failed to open PR title/message file!')
+            error(
                 'Please supply the %s and %s files' % (
                     '.pr_message.tmp',
                     '.pr_title.tmp'
@@ -119,14 +124,14 @@ def main():
             raise
         try:
             prev_overlay = RepoInstance(args.output_repository_path)
-            RepoInstance.info('PR message:\n"%s"\n' % msg)
-            RepoInstance.info('PR title:\n"%s"\n' % title)
+            info('PR message:\n"%s"\n' % msg)
+            info('PR title:\n"%s"\n' % title)
             prev_overlay.pull_request(msg, title)
             clean_up('all')
             sys.exit(0)
         except Exception as e:
-            RepoInstance.error('Failed to file PR!')
-            RepoInstance.error('reason: {0}'.format(e))
+            error('Failed to file PR!')
+            error('reason: {0}'.format(e))
             sys.exit(1)
     # clone current repo
     overlay = RosOverlay(args.output_repository_path)
@@ -137,7 +142,7 @@ def main():
     total_changes = dict()
 
     if args.only:
-        RepoInstance.info("Regenerating package '%s'..." % args.only)
+        info("Regenerating package '%s'..." % args.only)
         installers = regenerate_pkg(
             overlay,
             pkg=args.only,
@@ -149,7 +154,7 @@ def main():
         delta = "Regenerated: '%s'\n" % args.only
         missing_deps=''
         if args.dry_run:
-            RepoInstance.info('Running in dry mode, not filing PR')
+            info('Running in dry mode, not filing PR')
             title_file = open('.pr-title.tmp', 'w')
             title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
             pr_message_file = open('.pr-message.tmp', 'w')
@@ -158,7 +163,7 @@ def main():
         file_pr(overlay, delta, missing_deps)
 
         clean_up(args.ros_distro, args.output_repository_path)
-        RepoInstance.happy('Successfully synchronized repositories!')
+        ok('Successfully synchronized repositories!')
         sys.exit(0)
 
     for distro in selected_targets:
@@ -176,8 +181,8 @@ def main():
         num_changes += len(total_changes[distro_name])
 
     if num_changes == 0:
-        RepoInstance.info('ROS distro is up to date.')
-        RepoInstance.info('Exiting...')
+        info('ROS distro is up to date.')
+        info('Exiting...')
         clean_up(args.ros_distro)
         sys.exit(0)
 
@@ -224,7 +229,7 @@ def main():
     overlay.commit_changes(args.ros_distro)
 
     if args.dry_run:
-        RepoInstance.info('Running in dry mode, not filing PR')
+        info('Running in dry mode, not filing PR')
         title_file = open('.pr-title.tmp', 'w')
         title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
         pr_message_file = open('.pr-message.tmp', 'w')
@@ -233,4 +238,4 @@ def main():
     file_pr(overlay, delta, missing_deps)
 
     clean_up(args.ros_distro, args.output_repository_path)
-    RepoInstance.happy('Successfully synchronized repositories!')
+    ok('Successfully synchronized repositories!')
