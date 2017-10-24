@@ -56,7 +56,7 @@ def info(string):
 def make_dir(dirname):
     try:
         os.makedirs(dirname)
-    except:
+    except Exception:
         pass
 
 

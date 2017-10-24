@@ -93,7 +93,7 @@ def main():
             warn_msg =\
                 'removing existing symlink "./recipes-ros-{0}"'.format(x)
             RepoInstance.warn(warn_msg)
-        except:
+        except Exception:
             pass
     link_existing_files(args.ros_distro)
 
