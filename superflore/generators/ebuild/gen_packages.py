@@ -24,51 +24,20 @@ from rosinstall_generator.distro import _generate_rosinstall
 from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
 
-from termcolor import colored
+from superflore.exceptions import UnresolvedDependency
 
-import xmltodict
+from superflore.utils import err
+from superflore.utils import get_pkg_version
+from superflore.utils import make_dir
+from superflore.utils import ok
+from superflore.utils import warn
 
-from .ebuild import Ebuild, UnresolvedDependency
-from .metadata_xml import metadata_xml
+from superflore.generators.ebuild.ebuild import Ebuild
+from superflore.generators.ebuild.metadata_xml import metadata_xml
 
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
-
-# TODO(allenh1): This is a blacklist of things that
-# do not yet support Python 3. This will be updated
-# on an as-needed basis until a better solution is
-# found (CI?).
-
-no_python3 = ['tf']
-
-
-def warn(string):
-    print(colored('>>>> {0}'.format(string), 'yellow'))
-
-
-def ok(string):
-    print(colored('>>>> {0}'.format(string), 'green'))
-
-
-def err(string):
-    print(colored('!!!! {0}'.format(string), 'red'))
-
-
-def make_dir(dirname):
-    try:
-        os.makedirs(dirname)
-    except Exception:
-        pass
-
-
-def get_pkg_version(distro, pkg_name):
-    pkg = distro.release_packages[pkg_name]
-    repo = distro.repositories[pkg.repository_name].release_repository
-    maj_min_patch, deb_inc = repo.version.split('-')
-    if deb_inc != '0':
-        return '{0}-r{1}'.format(maj_min_patch, deb_inc)
-    return maj_min_patch
 
 
 def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):

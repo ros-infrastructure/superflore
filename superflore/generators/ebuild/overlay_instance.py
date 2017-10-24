@@ -20,6 +20,11 @@ import time
 from superflore.docker import Docker
 from superflore.repo_instance import RepoInstance
 
+from superflore.utils import err
+from superflore.utils import info
+from superflore.utils import ok
+from superflore.utils import warn
+
 
 def get_random_tmp_dir():
     rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
@@ -45,25 +50,23 @@ class RosOverlay(object):
         self.branch_name = get_random_branch_name()
         if do_clone:
             self.repo.clone()
-        branch_msg = 'Creating new branch {0}...'.format(self.branch_name)
-        self.repo.info(branch_msg)
+        info('Creating new branch {0}...'.format(self.branch_name))
         self.repo.create_branch(self.branch_name)
 
     def clean_ros_ebuild_dirs(self, distro=None):
-        if distro is not None:
-            self.repo.info('Cleaning up ros-{0} directory...'.format(distro))
+        if distro:
+            info('Cleaning up ros-{0} directory...'.format(distro))
             self.repo.git.rm('-rf', 'ros-{0}'.format(distro))
         else:
-            self.repo.info('Cleaning up ros-* directories...')
+            info('Cleaning up ros-* directories...')
             self.repo.git.rm('-rf', 'ros-*')
 
     def commit_changes(self, distro):
-        self.repo.info('Adding changes...')
-        if not distro:
-            self.repo.git.add('ros-*')
-        else:
+        info('Adding changes...')
+        if distro:
             self.repo.git.add('ros-{0}'.format(distro))
-        if not distro:
+        else:
+            self.repo.git.add('ros-*')
             distro = 'update'
         commit_msg = {
             'update': 'rosdistro sync, {0}',
@@ -72,15 +75,15 @@ class RosOverlay(object):
             'indigo': 'regenerate ros-indigo, {0}',
             'kinetic': 'regenerate ros-kinetic, {0}',
         }[distro].format(time.ctime())
-        self.repo.info('Committing to branch {0}...'.format(self.branch_name))
+        info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(self, mode, only_pkg=None):
-        self.repo.info('Building docker image...')
+        info('Building docker image...')
         dock = Docker('repoman_docker', 'gentoo_repoman')
         dock.build()
-        self.repo.info('Running docker image...')
-        self.repo.info('Generating manifests...')
+        info('Running docker image...')
+        info('Generating manifests...')
         dock.map_directory(
             '/home/%s/.gnupg' % os.getenv('USER'),
             '/root/.gnupg'
