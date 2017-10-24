@@ -35,6 +35,14 @@ from superflore.utils import warn
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
 
+import xmltodict
+
+# TODO(allenh1): This is a blacklist of things that
+# do not yet support Python 3. This will be updated
+# on an as-needed basis until a better solution is
+# found (CI?).
+
+no_python3 = ['tf']
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
