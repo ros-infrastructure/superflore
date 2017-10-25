@@ -55,8 +55,11 @@ def info(string):
 def make_dir(dirname):
     try:
         os.makedirs(dirname)
-    except:
-        pass
+    except OSError as e:
+        if e.errno == errno.EEXIST and os.path.isdir(dirname):
+            pass
+        else:
+            raise e
 
 
 def get_pkg_version(distro, pkg_name):
