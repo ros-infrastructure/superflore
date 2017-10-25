@@ -102,7 +102,7 @@ def main():
                 msg = msg_file.read().rstrip('\n')
             with open('.pr-title.tmp', 'r') as title_file:
                 title = title_file.read().rstrip('\n')
-        except Exception as e:
+        except OSError:
             RepoInstance.error('Failed to open PR title/message file!')
             RepoInstance.RepoInstance.error(
                 'Please supply the %s and %s files' % (
@@ -110,7 +110,7 @@ def main():
                     '.pr_title.tmp'
                 )
             )
-            raise e
+            raise
         try:
             prev_overlay = RepoInstance(args.output_repository_path)
             RepoInstance.info('PR message:\n"%s"\n' % msg)
