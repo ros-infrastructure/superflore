@@ -152,8 +152,8 @@ def main():
         )
         # Commit changes and file pull request
         regen_dict = dict()
-        regen_dict[args.ros_distro] = [].append(args.only)
-        overlay.regenerate_manifests()
+        regen_dict[args.ros_distro] = [args.only]
+        overlay.regenerate_manifests(regen_dict)
         overlay.commit_changes(args.ros_distro)
         delta = "Regenerated: '%s'\n" % args.only
         missing_deps = ''
