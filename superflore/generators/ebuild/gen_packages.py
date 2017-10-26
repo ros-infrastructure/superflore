@@ -26,14 +26,14 @@ from rosinstall_generator.distro import get_package_names
 
 from superflore.exceptions import UnresolvedDependency
 
+from superflore.generators.ebuild.ebuild import Ebuild
+from superflore.generators.ebuild.metadata_xml import metadata_xml
+
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
-
-from superflore.generators.ebuild.ebuild import Ebuild
-from superflore.generators.ebuild.metadata_xml import metadata_xml
 
 import xmltodict
 
@@ -59,7 +59,6 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
     ebuild_name =\
         '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version)
     ebuild_name = overlay.repo.repo_dir + ebuild_name
-    ebuild_exists = os.path.exists(ebuild_name)
     patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
     has_patches = os.path.exists(patch_path)
@@ -93,10 +92,8 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
         dep_err = 'Failed to resolve required dependencies for'
         err("{0} package {1}!".format(dep_err, pkg))
         unresolved = current.ebuild.get_unresolved()
-        borkd_pkgs[pkg] = list()
         for dep in unresolved:
             err(" unresolved: \"{}\"".format(dep))
-            borkd_pkgs[pkg].append(dep)
         err("Failed to generate installer for package {}!".format(pkg))
         raise ud
     except KeyError as ke:
@@ -125,7 +122,6 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
         metadata_file.write(metadata_text)
     except Exception as e:
         err("Failed to write ebuild/metadata to disk!")
-        failed_msg = 'Failed to generate installer'
         raise e
     return current
 

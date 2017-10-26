@@ -53,8 +53,8 @@ def file_pr(overlay, delta, missing_deps):
     try:
         overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
     except Exception as e:
-        overlay.error('Failed to file PR with ros/ros-overlay repo!')
-        overlay.error('Exception: {0}'.format(e))
+        err('Failed to file PR with ros/ros-overlay repo!')
+        err('Exception: {0}'.format(e))
         sys.exit(1)
 
 
@@ -103,10 +103,10 @@ def main():
         selected_targets = [args.ros_distro]
         preserve_existing = False
     elif args.dry_run and args.pr_only:
-        error('Invalid args! cannot dry-run and file PR')
+        err('Invalid args! cannot dry-run and file PR')
         sys.exit(1)
     elif args.pr_only and not args.output_repository_path:
-        error('Invalid args! no repository specified')
+        err('Invalid args! no repository specified')
     elif args.pr_only:
         try:
             with open('.pr-message.tmp', 'r') as msg_file:
@@ -114,8 +114,8 @@ def main():
             with open('.pr-title.tmp', 'r') as title_file:
                 title = title_file.read().rstrip('\n')
         except OSError:
-            error('Failed to open PR title/message file!')
-            error(
+            err('Failed to open PR title/message file!')
+            err(
                 'Please supply the %s and %s files' % (
                     '.pr_message.tmp',
                     '.pr_title.tmp'
@@ -130,8 +130,8 @@ def main():
             clean_up('all')
             sys.exit(0)
         except Exception as e:
-            error('Failed to file PR!')
-            error('reason: {0}'.format(e))
+            err('Failed to file PR!')
+            err('reason: {0}'.format(e))
             sys.exit(1)
     # clone current repo
     overlay = RosOverlay(args.output_repository_path)
@@ -143,7 +143,7 @@ def main():
 
     if args.only:
         info("Regenerating package '%s'..." % args.only)
-        installers = regenerate_pkg(
+        regenerate_pkg(
             overlay,
             pkg=args.only,
             distro_name=args.ros_distro
@@ -152,7 +152,7 @@ def main():
         overlay.regenerate_manifests(args.ros_distro, only_pkg=args.only)
         overlay.commit_changes(args.ros_distro)
         delta = "Regenerated: '%s'\n" % args.only
-        missing_deps=''
+        missing_deps = ''
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             title_file = open('.pr-title.tmp', 'w')
