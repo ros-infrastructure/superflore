@@ -126,60 +126,6 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
     return current
 
 
-def generate_installers(distro_name, overlay, preserve_existing=True):
-    distro = get_distro(distro_name)
-    pkg_names = get_package_names(distro)
-    total = float(len(pkg_names[0]))
-    borkd_pkgs = dict()
-    changes = []
-    installers = []
-    bad_installers = []
-    succeeded = 0
-    failed = 0
-
-    for i, pkg in enumerate(sorted(pkg_names[0])):
-        version = get_pkg_version(distro, pkg)
-        ebuild_name =\
-            '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version)
-        ebuild_name = overlay.repo.repo_dir + ebuild_name
-        ebuild_exists = os.path.exists(ebuild_name)
-        patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
-        patch_path = overlay.repo.repo_dir + patch_path
-        percent = '%.1f' % (100 * (float(i) / total))
-
-        if preserve_existing and ebuild_exists:
-            skip_msg = 'Ebuild for package '
-            skip_msg += '{0} up to date, skipping...'.format(pkg)
-            status = '{0}%: {1}'.format(percent, skip_msg)
-            ok(status)
-            succeeded = succeeded + 1
-            continue
-        try:
-            current = regenerate_pkg(overlay=overlay, pkg=pkg, distro=distro)
-            success_msg = 'Successfully generated installer for package'
-            ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
-            succeeded = succeeded + 1
-            changes.append('*{0} --> {1}*'.format(pkg, version))
-            installers.append(current)
-        except (KeyError, UnresolvedDependency):
-            failed_msg = 'Failed to generate installer'
-            err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
-            bad_installers.append(pkg)
-            failed = failed + 1
-    results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
-    results += ' for distro {0}'.format(distro_name)
-    print("------ {0} ------".format(results))
-    print()
-
-    if len(borkd_pkgs) > 0:
-        warn("Unresolved:")
-        for broken in borkd_pkgs.keys():
-            warn("{}:".format(broken))
-            warn("  {}".format(borkd_pkgs[broken]))
-
-    return installers, borkd_pkgs, changes
-
-
 def _gen_metadata_for_package(distro, pkg_name, pkg,
                               repo, ros_pkg, pkg_rosinstall):
     pkg_metadata_xml = metadata_xml()

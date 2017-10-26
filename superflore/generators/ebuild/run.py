@@ -19,9 +19,11 @@ import shutil
 import sys
 import time
 
-from superflore.generators.ebuild.gen_packages import generate_installers
+from superflore.generate_installers import generate_installers
+
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
+
 from superflore.repo_instance import RepoInstance
 
 from superflore.utils import err
@@ -168,7 +170,12 @@ def main():
 
     for distro in selected_targets:
         distro_installers, distro_broken, distro_changes =\
-            generate_installers(distro, overlay, preserve_existing)
+            generate_installers(
+                distro_name=distro,
+                overlay=overlay,
+                gen_pkg=regenerate_pkg,
+                preserve_existing=preserve_existing
+            )
         for key in distro_broken.keys():
             for pkg in distro_broken[key]:
                 total_broken.add(pkg)
