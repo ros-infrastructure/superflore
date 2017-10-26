@@ -145,7 +145,6 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
         ebuild_exists = os.path.exists(ebuild_name)
         patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
         patch_path = overlay.repo.repo_dir + patch_path
-        has_patches = os.path.exists(patch_path)
         percent = '%.1f' % (100 * (float(i) / total))
 
         if preserve_existing and ebuild_exists:
@@ -155,74 +154,17 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             ok(status)
             succeeded = succeeded + 1
             continue
-        # otherwise, remove a (potentially) existing ebuild.
-        existing = glob.glob(
-            '{0}/ros-{1}/{2}/*.ebuild'.format(
-                overlay.repo.repo_dir,
-                distro_name, pkg
-            )
-        )
-        if existing:
-            overlay.repo.remove_file(existing[0])
-            manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
-                overlay.repo.repo_dir, distro_name, pkg
-            )
-            overlay.repo.remove_file(manifest_file)
         try:
-            current = gentoo_installer(distro, pkg, has_patches)
-            current.ebuild.name = pkg
-        except Exception as e:
-            err('Failed to generate installer for package {}!'.format(pkg))
-            err('  exception: {0}'.format(e))
-            failed = failed + 1
-            continue
-        try:
-            ebuild_text = current.ebuild_text()
-            metadata_text = current.metadata_text()
-        except UnresolvedDependency:
-            dep_err = 'Failed to resolve required dependencies for'
-            err("{0} package {1}!".format(dep_err, pkg))
-            unresolved = current.ebuild.get_unresolved()
-            borkd_pkgs[pkg] = list()
-            for dep in unresolved:
-                err(" unresolved: \"{}\"".format(dep))
-                borkd_pkgs[pkg].append(dep)
-            err("Failed to generate installer for package {}!".format(pkg))
-            failed = failed + 1
-            continue  # do not generate an incomplete ebuild
-        except KeyError:
-            err("Failed to parse data for package {}!".format(pkg))
-            unresolved = current.ebuild.get_unresolved()
-            err("Failed to generate installer for package {}!".format(pkg))
-            failed = failed + 1
-            continue  # do not generate an incomplete ebuild
-        make_dir(
-            "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)
-        )
-        success_msg = 'Successfully generated installer for package'
-        ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
-        succeeded = succeeded + 1
-
-        try:
-            ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
-                overlay.repo.repo_dir,
-                distro_name, pkg, version
-            )
-            ebuild_file = open(ebuild_file, "w")
-            metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
-                overlay.repo.repo_dir,
-                distro_name, pkg
-            )
-            metadata_file = open(metadata_file, "w")
-            ebuild_file.write(ebuild_text)
-            metadata_file.write(metadata_text)
+            current = regenerate_pkg(overlay=overlay, pkg=pkg, distro=distro)
+            success_msg = 'Successfully generated installer for package'
+            ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
+            succeeded = succeeded + 1
             changes.append('*{0} --> {1}*'.format(pkg, version))
-        except Exception:
-            err("Failed to write ebuild/metadata to disk!")
             installers.append(current)
+        except (KeyError, UnresolvedDependency):
             failed_msg = 'Failed to generate installer'
             err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
-            bad_installers.append(current)
+            bad_installers.append(pkg)
             failed = failed + 1
     results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
     results += ' for distro {0}'.format(distro_name)
