@@ -151,7 +151,9 @@ def main():
             distro_name=args.ros_distro
         )
         # Commit changes and file pull request
-        overlay.regenerate_manifests(args.ros_distro, only_pkg=args.only)
+        regen_dict = dict()
+        regen_dict[args.ros_distro] = [].append(args.only)
+        overlay.regenerate_manifests()
         overlay.commit_changes(args.ros_distro)
         delta = "Regenerated: '%s'\n" % args.only
         missing_deps = ''
@@ -232,7 +234,7 @@ def main():
             missing_deps += " * [ ] {0}\n".format(pkg)
 
     # Commit changes and file pull request
-    overlay.regenerate_manifests(args.ros_distro)
+    overlay.regenerate_manifests(total_installers)
     overlay.commit_changes(args.ros_distro)
 
     if args.dry_run:

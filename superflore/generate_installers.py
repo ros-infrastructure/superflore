@@ -64,7 +64,7 @@ def generate_installers(
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
             succeeded = succeeded + 1
             changes.append('*{0} --> {1}*'.format(pkg, version))
-            installers.append(current)
+            installers.append(pkg)
         except KeyError:
             failed_msg = 'Failed to generate installer'
             err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
