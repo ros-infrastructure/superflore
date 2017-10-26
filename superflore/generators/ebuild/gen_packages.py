@@ -75,7 +75,7 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
     )
     if update and existing:
         ok("ebuild for package '%s' up to date, skipping..." % pkg)
-        return None
+        return None, []
     elif existing:
         overlay.repo.remove_file(existing[0])
         manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
@@ -97,11 +97,9 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
         unresolved = current.ebuild.get_unresolved()
         for dep in unresolved:
             err(" unresolved: \"{}\"".format(dep))
-        err("Failed to generate installer for package {}!".format(pkg))
-        return None, unresolved
+        return None, current.ebuild.get_unresolved()
     except KeyError as ke:
         err("Failed to parse data for package {}!".format(pkg))
-        unresolved = current.ebuild.get_unresolved()
         raise ke
     make_dir(
         "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)
@@ -125,7 +123,7 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
     except Exception as e:
         err("Failed to write ebuild/metadata to disk!")
         raise e
-    return current
+    return current, []
 
 
 def _gen_metadata_for_package(distro, pkg_name, pkg,

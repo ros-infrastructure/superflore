@@ -17,6 +17,7 @@ from rosinstall_generator.distro import get_package_names
 
 from superflore.utils import err
 from superflore.utils import get_pkg_version
+from superflore.utils import info
 from superflore.utils import ok
 from superflore.utils import warn
 
@@ -37,22 +38,27 @@ def generate_installers(
     succeeded = 0
     failed = 0
 
+    info("Generating installers for distro '%s'" % distro_name)
     for i, pkg in enumerate(sorted(pkg_names[0])):
         version = get_pkg_version(distro, pkg)
         percent = '%.1f' % (100 * (float(i) / total))
         try:
-            current, bad_deps = gen_pkg_func(overlay, pkg, distro, update)
-            if not current and update:
-                # not an issue if we are in update mode
-                succeeded = succeeded + 1
-                continue
-            elif not current and bad_deps:
+            current, bad_deps = gen_pkg_func(
+                overlay, pkg,
+                distro=distro,
+                update=update
+            )
+            if not current and bad_deps:
                 # we are missing dependencies
                 failed_msg = "{0}%: Failed to generate".format(percent)
-                failed_msg += " installer for package '%'!" % pkg
+                failed_msg += " installer for package '%s'!" % pkg
                 err(failed_msg)
                 borkd_pkgs[pkg] = bad_deps
                 failed = failed + 1
+                continue
+            elif not current and update:
+                # not an issue if we are in update mode
+                succeeded = succeeded + 1
                 continue
             success_msg = 'Successfully generated installer for package'
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
@@ -66,7 +72,7 @@ def generate_installers(
             failed = failed + 1
     results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
     results += ' for distro {0}'.format(distro_name)
-    print("------ {0} ------".format(results))
+    info("------ {0} ------".format(results))
     print()
 
     if len(borkd_pkgs) > 0:
