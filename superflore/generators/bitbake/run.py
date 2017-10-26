@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import argparse
+import errno
 import os
 import shutil
 import sys
@@ -93,8 +94,11 @@ def main():
             warn_msg =\
                 'removing existing symlink "./recipes-ros-{0}"'.format(x)
             RepoInstance.warn(warn_msg)
-        except:
-            pass
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                pass
+            else:
+                raise e
     link_existing_files(args.ros_distro)
 
     # generate installers

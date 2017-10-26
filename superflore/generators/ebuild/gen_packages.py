@@ -58,7 +58,7 @@ def err(string):
 def make_dir(dirname):
     try:
         os.makedirs(dirname)
-    except:
+    except Exception:
         pass
 
 
@@ -162,7 +162,7 @@ def generate_installers(distro_name, overlay, preserve_existing=True):
             ebuild_file.write(ebuild_text)
             metadata_file.write(metadata_text)
             changes.append('*{0} --> {1}*'.format(pkg, version))
-        except:
+        except Exception:
             err("Failed to write ebuild/metadata to disk!")
             installers.append(current)
             failed_msg = 'Failed to generate installer'

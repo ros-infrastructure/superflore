@@ -120,10 +120,8 @@ class Ebuild(object):
                 if len(split) > 1:
                     # they did something like "BSD,GPL,blah"
                     ret += 'LICENSE="( '
-                    for l in split:
-                        l = get_license(l)
-                        ret += '{0} '.format(l)
-                    ret += ')"\n'
+                    ret += ' '.join([get_license(l) for l in split])
+                    ret += ') "\n'
                 else:
                     ret += "LICENSE=\""
                     ret += get_license(self.upstream_license) + "\"\n\n"
@@ -133,20 +131,20 @@ class Ebuild(object):
                 if len(split) > 1:
                     # they did something like "BSD,GPL,blah"
                     ret += 'LICENSE="( '
-                    for l in split:
-                        l = get_license(l.replace(' ', ''))
-                        ret += '{0} '.format(l)
-                    ret += ')"\n'
+                    ret += ' '.join(
+                        [get_license(l.replace(' ', '')) for l in split]
+                    )
+                    ret += ' )"\n'
                 else:
                     ret += "LICENSE=\""
                     ret += get_license(self.upstream_license) + "\"\n\n"
             elif isinstance(self.upstream_license, list):
                 ret += "LICENSE=\"( "
-                for l in self.upstream_license:
-                    l = get_license(l)
-                    ret += '{0} '.format(l)
-                ret += ")\"\n"
-        except:
+                ret += ' '.join(
+                    [get_license(ul) for ul in self.upstream_license]
+                )
+                ret += " )\"\n"
+        except Exception:
             pass
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
