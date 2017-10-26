@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
-
-from superflore.exceptions import UnresolvedDependency
 
 from superflore.utils import err
 from superflore.utils import get_pkg_version
@@ -25,7 +21,12 @@ from superflore.utils import ok
 from superflore.utils import warn
 
 
-def generate_installers(distro_name, overlay, gen_pkg, preserve_existing=True):
+def generate_installers(
+    distro_name,      # ros distro name
+    overlay,          # repo instance
+    gen_pkg_func,     # function to call for generating
+    update=True       # are we in update mode?
+):
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
     total = float(len(pkg_names[0]))
@@ -38,29 +39,27 @@ def generate_installers(distro_name, overlay, gen_pkg, preserve_existing=True):
 
     for i, pkg in enumerate(sorted(pkg_names[0])):
         version = get_pkg_version(distro, pkg)
-        ebuild_name =\
-            '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version)
-        ebuild_name = overlay.repo.repo_dir + ebuild_name
-        ebuild_exists = os.path.exists(ebuild_name)
-        patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
-        patch_path = overlay.repo.repo_dir + patch_path
         percent = '%.1f' % (100 * (float(i) / total))
-
-        if preserve_existing and ebuild_exists:
-            skip_msg = 'Ebuild for package '
-            skip_msg += '{0} up to date, skipping...'.format(pkg)
-            status = '{0}%: {1}'.format(percent, skip_msg)
-            ok(status)
-            succeeded = succeeded + 1
-            continue
         try:
-            current = gen_pkg(overlay=overlay, pkg=pkg, distro=distro)
+            current, bad_deps = gen_pkg_func(overlay, pkg, distro, update)
+            if not current and update:
+                # not an issue if we are in update mode
+                succeeded = succeeded + 1
+                continue
+            elif not current and bad_deps:
+                # we are missing dependencies
+                failed_msg = "{0}%: Failed to generate".format(percent)
+                failed_msg += " installer for package '%'!" % pkg
+                err(failed_msg)
+                borkd_pkgs[pkg] = bad_deps
+                failed = failed + 1
+                continue
             success_msg = 'Successfully generated installer for package'
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
             succeeded = succeeded + 1
             changes.append('*{0} --> {1}*'.format(pkg, version))
             installers.append(current)
-        except (KeyError, UnresolvedDependency):
+        except KeyError:
             failed_msg = 'Failed to generate installer'
             err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
             bad_installers.append(pkg)

@@ -48,7 +48,7 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 
-def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
+def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
     if not distro and not distro_name:
         raise RuntimeError('Must supply distro or distro name!')
     elif not distro:
@@ -73,7 +73,10 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
             distro_name, pkg
         )
     )
-    if existing:
+    if update and existing:
+        ok("ebuild for package '%s' up to date, skipping..." % pkg)
+        return None
+    elif existing:
         overlay.repo.remove_file(existing[0])
         manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
             overlay.repo.repo_dir, distro_name, pkg
@@ -88,18 +91,17 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None):
     try:
         ebuild_text = current.ebuild_text()
         metadata_text = current.metadata_text()
-    except UnresolvedDependency as ud:
+    except UnresolvedDependency:
         dep_err = 'Failed to resolve required dependencies for'
         err("{0} package {1}!".format(dep_err, pkg))
         unresolved = current.ebuild.get_unresolved()
         for dep in unresolved:
             err(" unresolved: \"{}\"".format(dep))
         err("Failed to generate installer for package {}!".format(pkg))
-        raise ud
+        return None, unresolved
     except KeyError as ke:
         err("Failed to parse data for package {}!".format(pkg))
         unresolved = current.ebuild.get_unresolved()
-        err("Failed to generate installer for package {}!".format(pkg))
         raise ke
     make_dir(
         "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)

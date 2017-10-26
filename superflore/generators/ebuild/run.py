@@ -173,8 +173,8 @@ def main():
             generate_installers(
                 distro_name=distro,
                 overlay=overlay,
-                gen_pkg=regenerate_pkg,
-                preserve_existing=preserve_existing
+                gen_pkg_func=regenerate_pkg,
+                update=preserve_existing
             )
         for key in distro_broken.keys():
             for pkg in distro_broken[key]:
