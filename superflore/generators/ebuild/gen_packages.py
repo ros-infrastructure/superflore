@@ -21,7 +21,6 @@ from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
 from rosinstall_generator.distro import _generate_rosinstall
-from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
 
 from superflore.exceptions import UnresolvedDependency
@@ -48,18 +47,12 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 
-def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
-    if not distro and not distro_name:
-        raise RuntimeError('Must supply distro or distro name!')
-    elif not distro:
-        distro = get_distro(distro_name)
-    elif not distro_name:
-        distro_name = distro.name
+def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     version = get_pkg_version(distro, pkg)
     ebuild_name =\
-        '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version)
+        '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro.name, pkg, version)
     ebuild_name = overlay.repo.repo_dir + ebuild_name
-    patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
+    patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
     has_patches = os.path.exists(patch_path)
     pkg_names = get_package_names(distro)[0]
@@ -70,16 +63,16 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
     existing = glob.glob(
         '{0}/ros-{1}/{2}/*.ebuild'.format(
             overlay.repo.repo_dir,
-            distro_name, pkg
+            distro.name, pkg
         )
     )
-    if update and existing:
+    if preserve_existing and existing:
         ok("ebuild for package '%s' up to date, skipping..." % pkg)
         return None, []
     elif existing:
         overlay.repo.remove_file(existing[0])
         manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
-            overlay.repo.repo_dir, distro_name, pkg
+            overlay.repo.repo_dir, distro.name, pkg
         )
         overlay.repo.remove_file(manifest_file)
     try:
@@ -102,7 +95,7 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
         err("Failed to parse data for package {}!".format(pkg))
         raise ke
     make_dir(
-        "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)
+        "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro.name, pkg)
     )
     success_msg = 'Successfully generated installer for package'
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
@@ -110,12 +103,12 @@ def regenerate_pkg(overlay, pkg, distro_name=None, distro=None, update=False):
     try:
         ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
             overlay.repo.repo_dir,
-            distro_name, pkg, version
+            distro.name, pkg, version
         )
         ebuild_file = open(ebuild_file, "w")
         metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
             overlay.repo.repo_dir,
-            distro_name, pkg
+            distro.name, pkg
         )
         metadata_file = open(metadata_file, "w")
         ebuild_file.write(ebuild_text)

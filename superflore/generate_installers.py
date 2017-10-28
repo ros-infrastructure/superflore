@@ -23,10 +23,10 @@ from superflore.utils import warn
 
 
 def generate_installers(
-    distro_name,      # ros distro name
-    overlay,          # repo instance
-    gen_pkg_func,     # function to call for generating
-    update=True       # are we in update mode?
+    distro_name,            # ros distro name
+    overlay,                # repo instance
+    gen_pkg_func,           # function to call for generating
+    preserve_existing=True  # don't regenerate if installer exists
 ):
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
@@ -44,9 +44,7 @@ def generate_installers(
         percent = '%.1f' % (100 * (float(i) / total))
         try:
             current, bad_deps = gen_pkg_func(
-                overlay, pkg,
-                distro=distro,
-                update=update
+                overlay, pkg, distro, preserve_existing
             )
             if not current and bad_deps:
                 # we are missing dependencies
@@ -56,8 +54,8 @@ def generate_installers(
                 borkd_pkgs[pkg] = bad_deps
                 failed = failed + 1
                 continue
-            elif not current and update:
-                # not an issue if we are in update mode
+            elif not current and preserve_existing:
+                # don't replace the installer
                 succeeded = succeeded + 1
                 continue
             success_msg = 'Successfully generated installer for package'
@@ -72,8 +70,7 @@ def generate_installers(
             failed = failed + 1
     results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
     results += ' for distro {0}'.format(distro_name)
-    info("------ {0} ------".format(results))
-    print()
+    info("------ {0} ------\n".format(results))
 
     if len(borkd_pkgs) > 0:
         warn("Unresolved:")

@@ -19,6 +19,8 @@ import shutil
 import sys
 import time
 
+from rosinstall_generator.distro import get_distro
+
 from superflore.generate_installers import generate_installers
 
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
@@ -148,7 +150,7 @@ def main():
         regenerate_pkg(
             overlay,
             pkg=args.only,
-            distro_name=args.ros_distro
+            distro=get_distro(args.ros_distro)
         )
         # Commit changes and file pull request
         regen_dict = dict()
@@ -176,7 +178,7 @@ def main():
                 distro_name=distro,
                 overlay=overlay,
                 gen_pkg_func=regenerate_pkg,
-                update=preserve_existing
+                preserve_existing=preserve_existing
             )
         for key in distro_broken.keys():
             for pkg in distro_broken[key]:
