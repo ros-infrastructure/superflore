@@ -21,19 +21,20 @@ from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
 from rosinstall_generator.distro import _generate_rosinstall
-from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
 
-from termcolor import colored
+from superflore.exceptions import UnresolvedDependency
+
+from superflore.generators.ebuild.ebuild import Ebuild
+from superflore.generators.ebuild.metadata_xml import metadata_xml
+
+from superflore.utils import err
+from superflore.utils import get_pkg_version
+from superflore.utils import make_dir
+from superflore.utils import ok
+from superflore.utils import warn
 
 import xmltodict
-
-from .ebuild import Ebuild, UnresolvedDependency
-from .metadata_xml import metadata_xml
-
-
-org = "Open Source Robotics Foundation"
-org_license = "BSD"
 
 # TODO(allenh1): This is a blacklist of things that
 # do not yet support Python 3. This will be updated
@@ -42,145 +43,80 @@ org_license = "BSD"
 
 no_python3 = ['tf']
 
-
-def warn(string):
-    print(colored('>>>> {0}'.format(string), 'yellow'))
-
-
-def ok(string):
-    print(colored('>>>> {0}'.format(string), 'green'))
+org = "Open Source Robotics Foundation"
+org_license = "BSD"
 
 
-def err(string):
-    print(colored('!!!! {0}'.format(string), 'red'))
+def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
+    version = get_pkg_version(distro, pkg)
+    ebuild_name =\
+        '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro.name, pkg, version)
+    ebuild_name = overlay.repo.repo_dir + ebuild_name
+    patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
+    patch_path = overlay.repo.repo_dir + patch_path
+    has_patches = os.path.exists(patch_path)
+    pkg_names = get_package_names(distro)[0]
 
-
-def make_dir(dirname):
+    if pkg not in pkg_names:
+        raise RuntimeError("Unknown package '%s'" % (pkg))
+    # otherwise, remove a (potentially) existing ebuild.
+    existing = glob.glob(
+        '{0}/ros-{1}/{2}/*.ebuild'.format(
+            overlay.repo.repo_dir,
+            distro.name, pkg
+        )
+    )
+    if preserve_existing and existing:
+        ok("ebuild for package '%s' up to date, skipping..." % pkg)
+        return None, []
+    elif existing:
+        overlay.repo.remove_file(existing[0])
+        manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
+            overlay.repo.repo_dir, distro.name, pkg
+        )
+        overlay.repo.remove_file(manifest_file)
     try:
-        os.makedirs(dirname)
-    except Exception:
-        pass
+        current = gentoo_installer(distro, pkg, has_patches)
+        current.ebuild.name = pkg
+    except Exception as e:
+        err('Failed to generate installer for package {}!'.format(pkg))
+        raise e
+    try:
+        ebuild_text = current.ebuild_text()
+        metadata_text = current.metadata_text()
+    except UnresolvedDependency:
+        dep_err = 'Failed to resolve required dependencies for'
+        err("{0} package {1}!".format(dep_err, pkg))
+        unresolved = current.ebuild.get_unresolved()
+        for dep in unresolved:
+            err(" unresolved: \"{}\"".format(dep))
+        return None, current.ebuild.get_unresolved()
+    except KeyError as ke:
+        err("Failed to parse data for package {}!".format(pkg))
+        raise ke
+    make_dir(
+        "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro.name, pkg)
+    )
+    success_msg = 'Successfully generated installer for package'
+    ok('{0} \'{1}\'.'.format(success_msg, pkg))
 
-
-def get_pkg_version(distro, pkg_name):
-    pkg = distro.release_packages[pkg_name]
-    repo = distro.repositories[pkg.repository_name].release_repository
-    maj_min_patch, deb_inc = repo.version.split('-')
-    if deb_inc != '0':
-        return '{0}-r{1}'.format(maj_min_patch, deb_inc)
-    return maj_min_patch
-
-
-def generate_installers(distro_name, overlay, preserve_existing=True):
-    distro = get_distro(distro_name)
-    pkg_names = get_package_names(distro)
-    total = float(len(pkg_names[0]))
-    borkd_pkgs = dict()
-    changes = []
-    installers = []
-    bad_installers = []
-    succeeded = 0
-    failed = 0
-
-    for i, pkg in enumerate(sorted(pkg_names[0])):
-        version = get_pkg_version(distro, pkg)
-        ebuild_name =\
-            '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro_name, pkg, version)
-        ebuild_name = overlay.repo.repo_dir + ebuild_name
-        ebuild_exists = os.path.exists(ebuild_name)
-        patch_path = '/ros-{}/{}/files'.format(distro_name, pkg)
-        patch_path = overlay.repo.repo_dir + patch_path
-        has_patches = os.path.exists(patch_path)
-        percent = '%.1f' % (100 * (float(i) / total))
-
-        if preserve_existing and ebuild_exists:
-            skip_msg = 'Ebuild for package '
-            skip_msg += '{0} up to date, skipping...'.format(pkg)
-            status = '{0}%: {1}'.format(percent, skip_msg)
-            ok(status)
-            succeeded = succeeded + 1
-            continue
-        # otherwise, remove a (potentially) existing ebuild.
-        existing = glob.glob(
-            '{0}/ros-{1}/{2}/*.ebuild'.format(
-                overlay.repo.repo_dir,
-                distro_name, pkg
-            )
+    try:
+        ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
+            overlay.repo.repo_dir,
+            distro.name, pkg, version
         )
-        if existing:
-            overlay.repo.remove_file(existing[0])
-            manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
-                overlay.repo.repo_dir, distro_name, pkg
-            )
-            overlay.repo.remove_file(manifest_file)
-        try:
-            current = gentoo_installer(distro, pkg, has_patches)
-            current.ebuild.name = pkg
-        except Exception as e:
-            err('Failed to generate installer for package {}!'.format(pkg))
-            err('  exception: {0}'.format(e))
-            failed = failed + 1
-            continue
-        try:
-            ebuild_text = current.ebuild_text()
-            metadata_text = current.metadata_text()
-        except UnresolvedDependency:
-            dep_err = 'Failed to resolve required dependencies for'
-            err("{0} package {1}!".format(dep_err, pkg))
-            unresolved = current.ebuild.get_unresolved()
-            borkd_pkgs[pkg] = list()
-            for dep in unresolved:
-                err(" unresolved: \"{}\"".format(dep))
-                borkd_pkgs[pkg].append(dep)
-            err("Failed to generate installer for package {}!".format(pkg))
-            failed = failed + 1
-            continue  # do not generate an incomplete ebuild
-        except KeyError:
-            err("Failed to parse data for package {}!".format(pkg))
-            unresolved = current.ebuild.get_unresolved()
-            err("Failed to generate installer for package {}!".format(pkg))
-            failed = failed + 1
-            continue  # do not generate an incomplete ebuild
-        make_dir(
-            "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro_name, pkg)
+        ebuild_file = open(ebuild_file, "w")
+        metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
+            overlay.repo.repo_dir,
+            distro.name, pkg
         )
-        success_msg = 'Successfully generated installer for package'
-        ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
-        succeeded = succeeded + 1
-
-        try:
-            ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
-                overlay.repo.repo_dir,
-                distro_name, pkg, version
-            )
-            ebuild_file = open(ebuild_file, "w")
-            metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
-                overlay.repo.repo_dir,
-                distro_name, pkg
-            )
-            metadata_file = open(metadata_file, "w")
-            ebuild_file.write(ebuild_text)
-            metadata_file.write(metadata_text)
-            changes.append('*{0} --> {1}*'.format(pkg, version))
-        except Exception:
-            err("Failed to write ebuild/metadata to disk!")
-            installers.append(current)
-            failed_msg = 'Failed to generate installer'
-            err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
-            bad_installers.append(current)
-            failed = failed + 1
-    results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
-    results += ' for distro {0}'.format(distro_name)
-    print("------ {0} ------".format(results))
-    print()
-
-    if len(borkd_pkgs) > 0:
-        warn("Unresolved:")
-        for broken in borkd_pkgs.keys():
-            warn("{}:".format(broken))
-            warn("  {}".format(borkd_pkgs[broken]))
-
-    return installers, borkd_pkgs, changes
+        metadata_file = open(metadata_file, "w")
+        ebuild_file.write(ebuild_text)
+        metadata_file.write(metadata_text)
+    except Exception as e:
+        err("Failed to write ebuild/metadata to disk!")
+        raise e
+    return current, []
 
 
 def _gen_metadata_for_package(distro, pkg_name, pkg,

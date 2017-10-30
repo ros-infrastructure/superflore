@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import errno
+import os
 import re
 import sys
 
@@ -36,6 +38,41 @@ else:
         return response.read()
 
 
+def warn(string):
+    print(colored('>>>> {0}'.format(string), 'yellow'))
+
+
+def ok(string):
+    print(colored('>>>> {0}'.format(string), 'green'))
+
+
+def err(string):
+    print(colored('!!!! {0}'.format(string), 'red'))
+
+
+def info(string):
+    print(colored('>>> {0}'.format(string), 'cyan'))
+
+
+def make_dir(dirname):
+    try:
+        os.makedirs(dirname)
+    except OSError as e:
+        if e.errno == errno.EEXIST and os.path.isdir(dirname):
+            pass
+        else:
+            raise e
+
+
+def get_pkg_version(distro, pkg_name):
+    pkg = distro.release_packages[pkg_name]
+    repo = distro.repositories[pkg.repository_name].release_repository
+    maj_min_patch, deb_inc = repo.version.split('-')
+    if deb_inc != '0':
+        return '{0}-r{1}'.format(maj_min_patch, deb_inc)
+    return maj_min_patch
+
+
 def download_yamls():
     global base_yml
     global python_yml
@@ -46,11 +83,11 @@ def download_yamls():
     python_yaml = "{0}/python.yaml".format(base_url)
     ruby_yaml = "{0}/ruby.yaml".format(base_url)
 
-    print(colored("Downloading latest base yml...", 'cyan'))
+    info("Downloading latest base yml...")
     base_yml = yaml.load(get_http(base_yaml))
-    print(colored("Downloading latest python yml...", 'cyan'))
+    info("Downloading latest python yml...", 'cyan')
     python_yml = yaml.load(get_http(python_yaml))
-    print(colored("Downloading latest ruby yml...", 'cyan'))
+    info("Downloading latest ruby yml...", 'cyan')
     ruby_yml = yaml.load(get_http(ruby_yaml))
 
 

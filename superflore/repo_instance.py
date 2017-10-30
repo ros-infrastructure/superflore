@@ -17,7 +17,9 @@ import shutil
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
 
-from termcolor import colored
+from superflore.utils import err as error
+from superflore.utils import info
+from superflore.utils import ok
 
 
 class RepoInstance(object):
@@ -39,9 +41,9 @@ class RepoInstance(object):
         if self.repo_dir != self.repo_name:
             msg += (' into directory {0}'.format(self.repo_dir))
         msg += '...'
-        RepoInstance.info(msg)
+        info(msg)
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
-        if branch is not None:
+        if branch:
             self.git.checkout(branch)
 
     def remove_file(self, filename, ignore_fail=False):
@@ -52,14 +54,14 @@ class RepoInstance(object):
                 return
             fail_msg = 'Failed to remove file {0}'.format(filename)
             fail_msg += 'from source control.'
-            self.error(fail_msg)
-            self.error(' Exception: {0}'.format(g))
+            error(fail_msg)
+            error(' Exception: {0}'.format(g))
 
     def create_branch(self, branch_name):
         """
         @todo: error checking
         """
-        RepoInstance.info(self.git.checkout('HEAD', b=branch_name))
+        info(self.git.checkout('HEAD', b=branch_name))
 
     def remove_branch(self, branch_name):
         """
@@ -80,27 +82,10 @@ class RepoInstance(object):
         self.git.rebase(i=target)
 
     def pull_request(self, message, title):
-        self.info('Filing pull-request...')
+        info('Filing pull-request...')
         self.git.pull_request(m='{0}'.format(message),
                               title='{0}'.format(title))
-        good_msg = 'Successfully filed a pull request.'
-        self.happy(good_msg)
-
-    @staticmethod
-    def info(string):
-        print(colored(string, 'cyan'))
-
-    @staticmethod
-    def error(string):
-        print(colored(string, 'red'))
-
-    @staticmethod
-    def warn(string):
-        print(colored(string, 'yellow'))
-
-    @staticmethod
-    def happy(string):
-        print(colored(string, 'green'))
+        ok('Successfully filed a pull request.')
 
 
 class CloneException(Exception):
