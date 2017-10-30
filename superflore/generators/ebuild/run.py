@@ -94,8 +94,8 @@ def main():
     )
     parser.add_argument(
         '--only',
-        help='generate only the specified package',
-        type=str
+        nargs='+',
+        help='generate only the specified packages'
     )
 
     args = parser.parse_args(sys.argv[1:])
@@ -146,15 +146,16 @@ def main():
     total_changes = dict()
 
     if args.only:
-        info("Regenerating package '%s'..." % args.only)
-        regenerate_pkg(
-            overlay,
-            pkg=args.only,
-            distro=get_distro(args.ros_distro)
-        )
+        for pkg in args.only:
+            info("Regenerating package '%s'..." % pkg)
+            regenerate_pkg(
+                overlay,
+                pkg=pkg,
+                distro=get_distro(args.ros_distro)
+            )
         # Commit changes and file pull request
         regen_dict = dict()
-        regen_dict[args.ros_distro] = [args.only]
+        regen_dict[args.ros_distro] = args.only
         overlay.regenerate_manifests(regen_dict)
         overlay.commit_changes(args.ros_distro)
         delta = "Regenerated: '%s'\n" % args.only
