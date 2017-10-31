@@ -50,7 +50,7 @@ def file_pr(overlay, delta, missing_deps):
         overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
     except Exception as e:
         err('Failed to file PR with allenh1/meta-ros repo!')
-        err('Exception: {0}'.format(e))
+        err('  Exception: {0}'.format(e))
         sys.exit(1)
 
 
@@ -157,14 +157,7 @@ def main():
             missing_deps += " * [ ] {0}\n".format(pkg)
 
     # Commit changes and file pull request
-    # overlay.regenerate_manifests(mode)
     overlay.commit_changes(args.ros_distro)
-    try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
-    except Exception as e:
-        err('Failed to file PR with allenh1/meta-ros repo!')
-        err('Exception: {0}'.format(e))
-        sys.exit(1)
-
+    file_pr(overlay, delta, missing_deps)
     clean_up(args.ros_distro, args.output_repository_path)
     ok('Successfully synchronized repositories!')
