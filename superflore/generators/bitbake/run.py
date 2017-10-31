@@ -18,9 +18,17 @@ import os
 import shutil
 import sys
 
-from superflore import RepoInstance
+from rosinstall_generator.distro import get_distro
+
+from superflore.generate_installers import generate_installers
+
 from superflore.generators.bitbake.gen_packages import generate_installers
 from superflore.generators.bitbake.ros_meta import ros_meta
+
+from superflore.utils import err
+from superflore.utils import info
+from superflore.utils import ok
+from superflore.utils import warn
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
@@ -36,13 +44,13 @@ def link_existing_files(mode):
     dir_fmt = '{0}/recipes-ros-{1}'
     if mode == 'all' or mode == 'update':
         for x in active_distros:
-            ros_meta.info(sym_link_msg.format(overlay.repo_dir, x))
+            info(sym_link_msg.format(overlay.repo_dir, x))
             os.symlink(
                 dir_fmt.format(overlay.repo_dir, x), './recipes-ros-' + x
             )
     else:
         # only link the relevant directory.
-        ros_meta.info(sym_link_msg.format(overlay.repo_dir, mode))
+        info(sym_link_msg.format(overlay.repo_dir, mode))
         os.symlink(
             dir_fmt.format(overlay.repo_dir, mode), './recipes-ros-' + mode
         )
@@ -51,9 +59,9 @@ def link_existing_files(mode):
 def clean_up(distro):
     global overlay
     clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
-    ros_meta.info(clean_msg)
+    info(clean_msg)
     shutil.rmtree(overlay.repo_dir)
-    ros_meta.info('Cleaning up symbolic links...')
+    info('Cleaning up symbolic links...')
     if mode != 'all' and mode != 'update':
         os.remove('recipes-ros-{0}'.format(distro))
     else:
@@ -81,7 +89,7 @@ def main():
     selected_targets = active_distros
 
     if args.all:
-        ros_meta.warn('"All" mode detected... this may take a while!')
+        warn('"All" mode detected... this may take a while!')
     elif args.ros_distro:
         selected_targets = [args.ros_distro]
         preserve_existing = False
@@ -93,7 +101,7 @@ def main():
             os.remove('recipes-ros-{0}'.format(x))
             warn_msg =\
                 'removing existing symlink "./recipes-ros-{0}"'.format(x)
-            RepoInstance.warn(warn_msg)
+            warn(warn_msg)
         except OSError as e:
             if e.errno == errno.ENOENT:
                 pass
@@ -121,8 +129,8 @@ def main():
         num_changes += len(total_changes[distro_name])
 
     if num_changes == 0:
-        ros_meta.info('ROS distro is up to date.')
-        ros_meta.info('Exiting...')
+        info('ROS distro is up to date.')
+        info('Exiting...')
         clean_up()
         sys.exit(0)
 
@@ -170,9 +178,9 @@ def main():
     try:
         overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
     except Exception as e:
-        overlay.error('Failed to file PR with allenh1/meta-ros repo!')
-        overlay.error('Exception: {0}'.format(e))
+        err('Failed to file PR with allenh1/meta-ros repo!')
+        err('Exception: {0}'.format(e))
         sys.exit(1)
 
     clean_up()
-    ros_meta.happy('Successfully synchronized repositories!')
+    ok('Successfully synchronized repositories!')

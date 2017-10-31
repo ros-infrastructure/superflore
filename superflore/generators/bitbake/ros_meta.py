@@ -18,7 +18,12 @@ import random
 import string
 import time
 
-from superflore import RepoInstance as repo_instance
+from superflore.repo_instance import RepoInstance as repo_instance
+
+from superflore.utils import err
+from superflore.utils import info
+from superflore.utils import ok
+from superflore.utils import warn
 
 
 def get_random_tmp_dir():
@@ -28,7 +33,7 @@ def get_random_tmp_dir():
 
 def get_random_branch_name():
     rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
-    return 'gentoo-bot-{0}'.format(rand_str)
+    return 'yocto-bot-{0}'.format(rand_str)
 
 
 class ros_meta(repo_instance):
@@ -39,21 +44,21 @@ class ros_meta(repo_instance):
         self.branch_name = get_random_branch_name()
         self.clone()
         branch_msg = 'Creating new branch {0}...'.format(self.branch_name)
-        repo_instance.info(branch_msg)
+        info(branch_msg)
         self.create_branch(self.branch_name)
 
     def clean_ros_ebuild_dirs(self, distro=None):
         if distro is not None:
-            self.info(
+            info(
                 'Cleaning up recipes-ros-{0} directory...'.format(distro)
             )
             self.git.rm('-rf', 'recipes-ros-{0}'.format(distro))
         else:
-            self.info('Cleaning up recipes-ros-* directories...')
+            info('Cleaning up recipes-ros-* directories...')
             self.git.rm('-rf', 'recipes-ros-*')
 
     def commit_changes(self, distro):
-        self.info('Adding changes...')
+        info('Adding changes...')
         if distro == 'all' or distro == 'update':
             self.git.add('recipes-ros-*')
         else:
@@ -65,14 +70,14 @@ class ros_meta(repo_instance):
             'indigo': 'regenerate ros-indigo, {0}',
             'kinetic': 'regenerate ros-kinetic, {0}',
         }[distro].format(time.ctime())
-        self.info('Committing to branch {0}...'.format(self.branch_name))
+        info('Committing to branch {0}...'.format(self.branch_name))
         self.git.commit(m='{0}'.format(commit_msg))
 
     def pull_request(self, message):
-        self.info('Filing pull-request for allenh1/meta-ros...')
+        info('Filing pull-request for allenh1/meta-ros...')
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
         self.git.pull_request(m='{0}'.format(message),
                               title='{0}'.format(pr_title))
         good_msg = 'Successfully filed a pull request with the {0} repo.'
         good_msg = good_msg.format('allenh1/meta-ros')
-        self.happy(good_msg)
+        ok(good_msg)
