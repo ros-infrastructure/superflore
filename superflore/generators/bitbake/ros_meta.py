@@ -20,10 +20,8 @@ import time
 
 from superflore.repo_instance import RepoInstance as repo_instance
 
-from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
-from superflore.utils import warn
 
 
 def get_random_tmp_dir():

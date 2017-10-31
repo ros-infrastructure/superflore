@@ -22,7 +22,7 @@ from rosinstall_generator.distro import get_distro
 
 from superflore.generate_installers import generate_installers
 
-from superflore.generators.bitbake.gen_packages import generate_installers
+from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import ros_meta
 
 from superflore.utils import err
@@ -116,7 +116,12 @@ def main():
 
     for distro in selected_targets:
         distro_installers, distro_broken, distro_changes =\
-            generate_installers(distro, overlay, preserve_existing)
+            generate_installers(
+                distro_name=get_distro(distro),
+                overlay=overlay,
+                gen_pkg_func=regenerate_installer,
+                preserve_existing=preserve_existing
+            )
         for key in distro_broken.keys():
             for pkg in distro_broken[key]:
                 total_broken.add(pkg)

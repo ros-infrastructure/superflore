@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import glob
-import os
 import sys
 
 from rosdistro.dependency_walker import DependencyWalker
@@ -21,10 +20,8 @@ from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
 
 from rosinstall_generator.distro import _generate_rosinstall
-from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
 
-from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 
 from superflore.utils import err
@@ -42,117 +39,62 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 
-def generate_installers(distro_name, overlay, preserve_existing=True):
-    make_dir("recipes-ros-{}".format(distro_name))
-    distro = get_distro(distro_name)
-    pkg_names = get_package_names(distro)
-    total = float(len(pkg_names[0]))
-    borkd_pkgs = dict()
-    changes = []
-    installers = []
-    succeeded = 0
-    failed = 0
+def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
+    make_dir("recipes-ros-{}".format(distro.name))
+    version = get_pkg_version(distro, pkg)
+    pkg_names = get_package_names(distro)[0]
 
-    for i, pkg in enumerate(sorted(pkg_names[0])):
-        version = get_pkg_version(distro, pkg)
-        """
-        recipe_exists = os.path.exists(
-            'ros-{}/{}/{}-{}.ebuild'.format(distro_name, pkg, pkg, version))
-        patch_path = 'ros-{}/{}/files'.format(distro_name, pkg)
-        has_patches = os.path.exists(patch_path)
-        """
-        percent = '%.1f' % (100 * (float(i) / total))
+    if pkg not in pkg_names:
+        raise RuntimeError("Unknown package '%s'" % pkg)
 
-        """
-        if preserve_existing and ebuild_exists:
-            skip_msg = 'Ebuild for package '
-            skip_msg += '{0} up to date, skipping...'.format(pkg)
-            status = '{0}%: {1}'.format(percent, skip_msg)
-            ok(status)
-            succeeded = succeeded + 1
-            continue
-        """
-        # otherwise, remove a (potentially) existing recipe.
-        existing = glob.glob(
-            'recipes-ros-{0}/{1}/*.bb'.format(distro_name, pkg)
-        )
-        if len(existing) > 0:
-            overlay.remove_file(existing[0])
-        try:
-            current = oe_installer(distro, pkg)
-            current.recipe.name = pkg.replace('_', '-')
-        except Exception as e:
-            err('Failed to generate installer for package {}!'.format(pkg))
-            err('  exception: {0}'.format(e))
-            failed = failed + 1
-            continue
-        try:
-            info(' downloading archive version for package \'%s\'' % pkg)
-            current.recipe.downloadArchive()
-            recipe_text = current.recipe_text()
-        except NoPkgXml:
-            err('  No package.xml file for pkg \'{0}\'!'.format(pkg))
-            err("Failed to generate installer for package {}!".format(pkg))
-            failed = failed + 1
-            continue  # cannot generate package
-        except UnresolvedDependency:
-            dep_err = 'Failed to resolve required dependencies for'
-            err("{0} package {1}!".format(dep_err, pkg))
-            unresolved = current.recipe.get_unresolved()
-            borkd_pkgs[pkg] = list()
-            for dep in unresolved:
-                err(" unresolved: \"{}\"".format(dep))
-                borkd_pkgs[pkg].append(dep)
-            err("Failed to generate installer for package {}!".format(pkg))
-            failed = failed + 1
-            continue  # do not generate an incomplete ebuild
-        """
-        except KeyError:
-            err("Failed to parse data for package {}!".format(pkg))
-            unresolved = current.recipe.get_unresolved()
-            err("Failed to generate installer for package {}!".format(pkg))
-            failed = failed + 1
-            continue  # do not generate an incomplete ebuild
-        """
-        make_dir(
-            "recipes-ros-{}/{}".format(distro_name, pkg.replace('_', '-'))
-        )
-        success_msg = 'Successfully generated installer for package'
-        ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
-        succeeded = succeeded + 1
+    # check for an existing recipe
+    existing = glob.glob(
+        'recipes-ros-{0}/{1}/*.bb'.format(distro.name, pkg)
+    )
 
-        # try:
-        recipe_name = '{0}/{1}/{1}_{2}'.format(
-            distro_name,
-            pkg.replace('_', '-'),
-            version
-        )
+    if preserve_existing and existing:
+        ok("recipe for package '%s' up to date, skpping..." % pkg)
+        return None, []
+    elif existing:
+        overlay.remove_file(existing[0])
+    try:
+        current = oe_installer(distro, pkg)
+        current.recipe.name = pkg.replace('_', '-')
+    except Exception as e:
+        err('Failed to generate installer for package {}!'.format(pkg))
+        raise e
+    try:
+        info("downloading archive version for package '%s'..." % pkg)
+        current.recipe.downloadArchive()
+        recipe_text = current.recipe_text()
+    except UnresolvedDependency:
+        dep_err = 'Failed to resolve required dependencies for'
+        err("{0} package {1}!".format(dep_err, pkg))
+        unresolved = current.recipe.get_unresolved()
+        for dep in unresolved:
+            err(" unresolved: \"{}\"".format(dep))
+        return None, current.recipe.get_unresolved()
+    except KeyError as ke:
+        err("Failed to parse data for package {}!".format(pkg))
+        raise ke
+    make_dir(
+        "recipes-ros-{}/{}".format(distro.name, pkg.replace('_', '-'))
+    )
+    success_msg = 'Successfully generated installer for package'
+    ok('{0} \'{1}\'.'.format(success_msg, pkg))
+    recipe_name = '{0}/{1}/{1}_{2}'.format(
+        distro.name,
+        pkg.replace('_', '-'),
+        version
+    )
+    try:
         recipe_file = open('recipes-ros-{0}.bb'.format(recipe_name), "w")
 
         recipe_file.write(recipe_text)
-        changes.append('*{0} --> {1}*'.format(pkg, version))
-        """
-        except Exception as e:
-            err("Failed to write recipe to disk!")
-            err(" exception: %s" % (e))
-            installers.append(current)
-            failed_msg = 'Failed to generate installer'
-            err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
-            bad_installers.append(current)
-            failed = failed + 1
-        """
-        results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
-        results += ' for distro {0}'.format(distro_name)
-    print("------ {0} ------".format(results))
-    print()
-
-    if len(borkd_pkgs) > 0:
-        warn("Unresolved:")
-        for broken in borkd_pkgs.keys():
-            warn("{}:".format(broken))
-            warn("  {}".format(borkd_pkgs[broken]))
-
-    return installers, borkd_pkgs, changes
+    except Exception as e:
+        err("Failed to write recipe to disk!")
+        raise e
+    return current, []
 
 
 def _gen_recipe_for_package(distro, pkg_name, pkg,
