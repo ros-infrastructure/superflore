@@ -24,16 +24,16 @@ from rosinstall_generator.distro import get_package_names
 
 from superflore.exceptions import UnresolvedDependency
 
+from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
+
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import info
-from superflore.utils import ok
 from superflore.utils import make_dir
+from superflore.utils import ok
 from superflore.utils import warn
 
 import xmltodict
-
-from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
