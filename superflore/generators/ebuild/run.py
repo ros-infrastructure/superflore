@@ -32,7 +32,6 @@ from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
-from superflore.utils import rand_ascii_str
 from superflore.utils import warn
 
 # Modify if a new distro is added
@@ -123,7 +122,7 @@ def main():
             )
             raise
         try:
-            prev_overlay = RepoInstance(args.output_repository_path)
+            prev_overlay = RepoInstance(args.output_repository_path, False)
             info('PR message:\n"%s"\n' % msg)
             info('PR title:\n"%s"\n' % title)
             prev_overlay.pull_request(msg, title)

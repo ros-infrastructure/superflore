@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import argparse
-import shutil
 import sys
 
 from rosinstall_generator.distro import get_distro
@@ -22,6 +21,8 @@ from superflore.generate_installers import generate_installers
 
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
+
+from superflore.TempfileManager import TempfileManager
 
 from superflore.utils import err
 from superflore.utils import info
@@ -34,15 +35,6 @@ active_distros = ['indigo', 'kinetic', 'lunar']
 mode = 'update'
 preserve_existing = True
 overlay = None
-
-
-def clean_up(distro, preserve_repo=False):
-    global overlay
-    if not preserve_repo:
-        clean_msg = \
-            'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
-        info(clean_msg)
-        shutil.rmtree(overlay.repo_dir)
 
 
 def file_pr(overlay, delta, missing_deps):
@@ -76,88 +68,86 @@ def main():
     )
 
     args = parser.parse_args(sys.argv[1:])
-    # clone current repo
-    overlay = RosMeta(args.output_repository_path)
-    selected_targets = active_distros
+    with TempfileManager(args.output_repository_path) as _repo:
+        overlay = RosMeta(_repo, not args.output_repository_path)
+        selected_targets = active_distros
 
-    if args.all:
-        warn('"All" mode detected... this may take a while!')
-        preserve_existing = False
-    elif args.ros_distro:
-        selected_targets = [args.ros_distro]
-        preserve_existing = False
-    # clone current repo
-    selected_targets = active_distros
-    # generate installers
-    total_installers = dict()
-    total_broken = set()
-    total_changes = dict()
+        if args.all:
+            warn('"All" mode detected... this may take a while!')
+            preserve_existing = False
+        elif args.ros_distro:
+            selected_targets = [args.ros_distro]
+            preserve_existing = False
+        # clone current repo
+        selected_targets = active_distros
+        # generate installers
+        total_installers = dict()
+        total_broken = set()
+        total_changes = dict()
 
-    for distro in selected_targets:
-        distro_installers, distro_broken, distro_changes =\
-            generate_installers(
-                distro_name=get_distro(distro),
-                overlay=overlay,
-                gen_pkg_func=regenerate_installer,
-                preserve_existing=preserve_existing
-            )
-        for key in distro_broken.keys():
-            for pkg in distro_broken[key]:
-                total_broken.add(pkg)
+        for distro in selected_targets:
+            distro_installers, distro_broken, distro_changes =\
+                generate_installers(
+                    distro_name=get_distro(distro),
+                    overlay=overlay,
+                    gen_pkg_func=regenerate_installer,
+                    preserve_existing=preserve_existing
+                )
+            for key in distro_broken.keys():
+                for pkg in distro_broken[key]:
+                    total_broken.add(pkg)
 
-        total_changes[distro] = distro_changes
-        total_installers[distro] = distro_installers
+            total_changes[distro] = distro_changes
+            total_installers[distro] = distro_installers
 
-    num_changes = 0
-    for distro_name in total_changes:
-        num_changes += len(total_changes[distro_name])
+        num_changes = 0
+        for distro_name in total_changes:
+            num_changes += len(total_changes[distro_name])
 
-    if num_changes == 0:
-        info('ROS distro is up to date.')
-        info('Exiting...')
-        clean_up()
-        sys.exit(0)
+        if num_changes == 0:
+            info('ROS distro is up to date.')
+            info('Exiting...')
+            sys.exit(0)
 
-    # remove duplicates
-    inst_list = total_broken
+        # remove duplicates
+        inst_list = total_broken
 
-    delta = "Changes:\n"
-    delta += "========\n"
+        delta = "Changes:\n"
+        delta += "========\n"
 
-    if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
-        delta += "Indigo Changes:\n"
-        delta += "---------------\n"
+        if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
+            delta += "Indigo Changes:\n"
+            delta += "---------------\n"
 
-        for d in sorted(total_changes['indigo']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
+            for d in sorted(total_changes['indigo']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
 
-    if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
-        delta += "Kinetic Changes:\n"
-        delta += "----------------\n"
+        if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
+            delta += "Kinetic Changes:\n"
+            delta += "----------------\n"
 
-        for d in sorted(total_changes['kinetic']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
+            for d in sorted(total_changes['kinetic']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
 
-    if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
-        delta += "Lunar Changes:\n"
-        delta += "--------------\n"
+        if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
+            delta += "Lunar Changes:\n"
+            delta += "--------------\n"
 
-        for d in sorted(total_changes['lunar']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
+            for d in sorted(total_changes['lunar']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
 
-    missing_deps = ''
+        missing_deps = ''
 
-    if len(inst_list) > 0:
-        missing_deps = "Missing Dependencies:\n"
-        missing_deps += "=====================\n"
-        for pkg in sorted(inst_list):
-            missing_deps += " * [ ] {0}\n".format(pkg)
+        if len(inst_list) > 0:
+            missing_deps = "Missing Dependencies:\n"
+            missing_deps += "=====================\n"
+            for pkg in sorted(inst_list):
+                missing_deps += " * [ ] {0}\n".format(pkg)
 
-    # Commit changes and file pull request
-    overlay.commit_changes(args.ros_distro)
-    file_pr(overlay, delta, missing_deps)
-    clean_up(args.ros_distro, args.output_repository_path)
-    ok('Successfully synchronized repositories!')
+        # Commit changes and file pull request
+        overlay.commit_changes(args.ros_distro)
+        file_pr(overlay, delta, missing_deps)
+        ok('Successfully synchronized repositories!')
