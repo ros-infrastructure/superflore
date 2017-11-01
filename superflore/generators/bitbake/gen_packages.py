@@ -22,6 +22,7 @@ from rosdistro.rosdistro import RosPackage
 from rosinstall_generator.distro import _generate_rosinstall
 from rosinstall_generator.distro import get_package_names
 
+from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 
 from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
@@ -74,6 +75,9 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
         for dep in unresolved:
             err(" unresolved: \"{}\"".format(dep))
         return None, current.recipe.get_unresolved()
+    except NoPkgXml:
+        err("Could not fetch pkg!")
+        return None, []
     except KeyError as ke:
         err("Failed to parse data for package {}!".format(pkg))
         raise ke

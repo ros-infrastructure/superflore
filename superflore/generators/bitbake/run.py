@@ -71,7 +71,6 @@ def main():
     with TempfileManager(args.output_repository_path) as _repo:
         overlay = RosMeta(_repo, not args.output_repository_path)
         selected_targets = active_distros
-
         if args.all:
             warn('"All" mode detected... this may take a while!')
             preserve_existing = False
@@ -88,7 +87,7 @@ def main():
         for distro in selected_targets:
             distro_installers, distro_broken, distro_changes =\
                 generate_installers(
-                    distro_name=get_distro(distro),
+                    distro_name=distro,
                     overlay=overlay,
                     gen_pkg_func=regenerate_installer,
                     preserve_existing=preserve_existing
