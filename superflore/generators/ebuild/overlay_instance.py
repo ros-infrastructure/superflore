@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import string
 import time
 
 from superflore.docker import Docker

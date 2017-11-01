@@ -17,8 +17,6 @@ import random
 import string
 import time
 
-from superflore.generators.ebuild.overlay_instance import get_random_tmp_dir
-
 from superflore.repo_instance import RepoInstance
 
 from superflore.utils import info
@@ -27,6 +25,11 @@ from superflore.utils import info
 def get_random_branch_name():
     rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
     return 'yocto-bot-{0}'.format(rand_str)
+
+
+def get_random_tmp_dir():
+    rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
+    return '/tmp/{0}'.format(rand_str)
 
 
 class RosMeta(object):

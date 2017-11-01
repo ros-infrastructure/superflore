@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import errno
+import os
+import shutil
+import subprocess
+import tempfile
+
 from superflore.utils import info
 from superflore.utils import err
 
@@ -39,8 +45,13 @@ class TempfileManager:
             info("Cleaning up temporary directory %s" % self.temp_path)
             try:
                 shutil.rmtree(self.temp_path)
-            except PermissionError as ex:
-                err("Failed to rmtree %s" % self.temp_path)
-                err("Escalating to sudo rm -rf %s" % self.temp_path)
-                subprocess.check_call(('sudo rm -rf %s' % self.temp_path).split())
+            except OSError as ex:
+                if ex.errno == errno.EPERM:
+                    err("Failed to rmtree %s" % self.temp_path)
+                    err("Escalating to sudo rm -rf %s" % self.temp_path)
+                    subprocess.check_call(
+                        ('sudo rm -rf %s' % self.temp_path).split()
+                    )
+                else:
+                    raise
             self.temp_path = None
