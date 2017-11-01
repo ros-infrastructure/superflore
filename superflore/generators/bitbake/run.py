@@ -15,8 +15,6 @@
 import argparse
 import sys
 
-from rosinstall_generator.distro import get_distro
-
 from superflore.generate_installers import generate_installers
 
 from superflore.generators.bitbake.gen_packages import regenerate_installer

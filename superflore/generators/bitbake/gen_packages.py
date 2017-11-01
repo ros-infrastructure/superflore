@@ -41,7 +41,7 @@ org_license = "BSD"
 
 
 def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
-    make_dir("recipes-ros-{}".format(distro.name))
+    make_dir("{0}/recipes-ros-{1}".format(overlay.repo.repo_dir, distro.name))
     version = get_pkg_version(distro, pkg)
     pkg_names = get_package_names(distro)[0]
 
@@ -50,7 +50,11 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
 
     # check for an existing recipe
     existing = glob.glob(
-        'recipes-ros-{0}/{1}/*.bb'.format(distro.name, pkg)
+        '{0}/recipes-ros-{1}/{2}/*.bb'.format(
+            overlay.repo.repo_dir,
+            distro.name,
+            pkg
+        )
     )
 
     if preserve_existing and existing:
@@ -82,19 +86,23 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
         err("Failed to parse data for package {}!".format(pkg))
         raise ke
     make_dir(
-        "recipes-ros-{}/{}".format(distro.name, pkg.replace('_', '-'))
+        "{0}/recipes-ros-{1}/{2}".format(
+            overlay.repo.repo_dir,
+            distro.name,
+            pkg.replace('_', '-')
+        )
     )
     success_msg = 'Successfully generated installer for package'
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
-    recipe_name = '{0}/{1}/{1}_{2}'.format(
+    recipe_name = '{0}/recipes-ros-{1}/{2}/{2}_{3}.bb'.format(
+        overlay.repo.repo_dir,
         distro.name,
         pkg.replace('_', '-'),
         version
     )
     try:
-        recipe_file = open('recipes-ros-{0}.bb'.format(recipe_name), "w")
-
-        recipe_file.write(recipe_text)
+        with open('{0}'.format(recipe_name), "w") as recipe_file:
+            recipe_file.write(recipe_text)
     except Exception as e:
         err("Failed to write recipe to disk!")
         raise e
