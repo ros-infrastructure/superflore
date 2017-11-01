@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.utils import info
+from superflore.utils import err
+
 
 class TempfileManager:
     def __init__(self, path):
@@ -28,16 +31,16 @@ class TempfileManager:
             return self.arg_path
         else:
             self.temp_path = tempfile.mkdtemp()
-            print("Working in temporary directory %s" % self.temp_path)
+            info("Working in temporary directory %s" % self.temp_path)
         return self.temp_path
 
     def __exit__(self, *args):
         if self.temp_path:
-            print("Cleaning up temporary directory %s" % self.temp_path)
+            info("Cleaning up temporary directory %s" % self.temp_path)
             try:
                 shutil.rmtree(self.temp_path)
             except PermissionError as ex:
-                print("Failed to rmtree %s" % self.temp_path)
-                print("Escalating to sudo rm -rf %s" % self.temp_path)
+                err("Failed to rmtree %s" % self.temp_path)
+                err("Escalating to sudo rm -rf %s" % self.temp_path)
                 subprocess.check_call(('sudo rm -rf %s' % self.temp_path).split())
             self.temp_path = None
