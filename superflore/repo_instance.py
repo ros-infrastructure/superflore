@@ -17,6 +17,8 @@ import shutil
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
 
+from superflore.TempfileManager import TempfileManager
+
 from superflore.utils import err as error
 from superflore.utils import info
 from superflore.utils import ok
@@ -30,6 +32,7 @@ class RepoInstance(object):
         self.repo_url = repo_url.format(self.repo_owner, self.repo_name)
         self.repo_dir = repo_dir or self.repo_name
         if do_clone:
+            self.tmpfile = TempfileManager(self.repo_dir)
             self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         else:
             self.repo = Repo(repo_dir)

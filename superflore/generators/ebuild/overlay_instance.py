@@ -13,24 +13,15 @@
 # limitations under the License.
 
 import os
-import random
 import string
 import time
 
 from superflore.docker import Docker
+
 from superflore.repo_instance import RepoInstance
 
 from superflore.utils import info
-
-
-def get_random_tmp_dir():
-    rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
-    return '/tmp/{0}'.format(rand_str)
-
-
-def get_random_branch_name():
-    rand_str = ''.join(random.choice(string.ascii_letters) for x in range(10))
-    return 'gentoo-bot-{0}'.format(rand_str)
+from superflore.utils import rand_ascii_str
 
 
 class RosOverlay(object):
@@ -41,10 +32,10 @@ class RosOverlay(object):
             do_clone = not os.path.exists(os.path.realpath(repo_dir))
         self.repo = RepoInstance(
             'ros', 'ros-overlay',
-            repo_dir or get_random_tmp_dir(),
+            repo_dir or ('/tmp/%s' % rand_ascii_str()),
             do_clone
         )
-        self.branch_name = get_random_branch_name()
+        self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
         if do_clone:
             self.repo.clone()
         info('Creating new branch {0}...'.format(self.branch_name))

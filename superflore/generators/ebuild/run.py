@@ -40,13 +40,7 @@ preserve_existing = True
 overlay = None
 
 
-def clean_up(distro, preserve_repo=False):
-    global overlay
-    if not preserve_repo:
-        clean_msg = \
-            'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
-        info(clean_msg)
-        shutil.rmtree(overlay.repo.repo_dir)
+def clean_up():
     if os.path.exists('.pr-message.tmp'):
         os.remove('.pr-message.tmp')
     if os.path.exists('.pr-title.tmp'):
@@ -131,7 +125,7 @@ def main():
             info('PR message:\n"%s"\n' % msg)
             info('PR title:\n"%s"\n' % title)
             prev_overlay.pull_request(msg, title)
-            clean_up('all')
+            clean_up()
             sys.exit(0)
         except Exception as e:
             err('Failed to file PR!')
@@ -169,7 +163,7 @@ def main():
             sys.exit(0)
         file_pr(overlay, delta, missing_deps)
 
-        clean_up(args.ros_distro, args.output_repository_path)
+        clean_up()
         ok('Successfully synchronized repositories!')
         sys.exit(0)
 
@@ -195,7 +189,7 @@ def main():
     if num_changes == 0:
         info('ROS distro is up to date.')
         info('Exiting...')
-        clean_up(args.ros_distro)
+        clean_up()
         sys.exit(0)
 
     # remove duplicates
@@ -249,5 +243,5 @@ def main():
         sys.exit(0)
     file_pr(overlay, delta, missing_deps)
 
-    clean_up(args.ros_distro, args.output_repository_path)
+    clean_up()
     ok('Successfully synchronized repositories!')
