@@ -24,6 +24,7 @@
 #
 
 import hashlib
+import os
 import sys
 import tarfile
 
@@ -180,4 +181,5 @@ class yoctoRecipe(object):
         ret += 'S = "${WORKDIR}/'
         ret += self.get_src_location() + '"\n\n'
         ret += 'inherit catkin\n'
+        os.remove(self.getArchiveName())
         return ret
