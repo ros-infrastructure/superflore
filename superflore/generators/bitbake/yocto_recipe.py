@@ -23,12 +23,16 @@
 # IN THE SOFTWARE.
 #
 
+import errno
 import hashlib
 import os
 import sys
 import tarfile
 
 from superflore.exceptions import NoPkgXml
+
+from superflore.utils import info
+from superflore.utils import warn
 from superflore.utils import resolve_dep
 
 
@@ -48,11 +52,12 @@ else:
 
 
 class yoctoRecipe(object):
-    def __init__(self):
-        self.name = None
+    def __init__(self, name, distro, src_uri):
+        self.name = name
+        self.distro = distro
         self.version = None
         self.description = ''
-        self.src_uri = None
+        self.src_uri = src_uri
         self.pkg_xml = None
         self.author = "OSRF"
         self.license = None
@@ -62,13 +67,24 @@ class yoctoRecipe(object):
         self.src_md5 = None
         self.src_sha256 = None
 
-    def getSrcMD5(self):
-        return hashlib.md5(
+    def __enter__(self):
+        self.downloadArchive()
+        self.src_sha256 = hashlib.sha256(
             open("./" + self.getArchiveName(), 'rb').read()).hexdigest()
+        self.src_md5 = hashlib.md5(
+            open("./" + self.getArchiveName(), 'rb').read()).hexdigest()
+        return self
 
-    def getSrcSha256(self):
-        return hashlib.sha256(
-            open("./" + self.getArchiveName(), 'rb').read()).hexdigest()
+    def __exit__(self, *args):
+        info("removing downloaded package archive '%s'..." % self.getArchiveName())
+        try:
+            os.remove(self.getArchiveName())
+        except OSError as oe:
+            if oe.errno == errno.ENOENT:
+                warn("file '%s' not found!" % self.getArchiveName())
+                pass
+            else:
+                raise
 
     def getFolderName(self):
         return self.name.replace("-", "_") + "-" + str(self.version)
@@ -94,6 +110,7 @@ class yoctoRecipe(object):
                 break
 
     def downloadArchive(self):
+        info("downloading archive version for package '%s'..." % self.name)
         urllib.request.urlretrieve(self.src_uri, self.getArchiveName())
 
     def extractArchive(self):
@@ -176,10 +193,9 @@ class yoctoRecipe(object):
         # SRC_URI
         ret += 'SRC_URI = "' + self.src_uri + ';'
         ret += 'downloadfilename=${ROS_SP}.tar.gz"\n\n'
-        ret += 'SRC_URI[md5sum] = "' + self.getSrcMD5() + '"\n'
-        ret += 'SRC_URI[sha256sum] = "' + self.getSrcSha256() + '"\n'
+        ret += 'SRC_URI[md5sum] = "' + self.src_md5 + '"\n'
+        ret += 'SRC_URI[sha256sum] = "' + self.src_sha256 + '"\n'
         ret += 'S = "${WORKDIR}/'
         ret += self.get_src_location() + '"\n\n'
         ret += 'inherit catkin\n'
-        os.remove(self.getArchiveName())
         return ret

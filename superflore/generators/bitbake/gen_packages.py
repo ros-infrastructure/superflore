@@ -69,8 +69,6 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
         err('Failed to generate installer for package {}!'.format(pkg))
         raise e
     try:
-        info("downloading archive version for package '%s'..." % pkg)
-        current.recipe.downloadArchive()
         recipe_text = current.recipe_text()
     except UnresolvedDependency:
         dep_err = 'Failed to resolve required dependencies for'
@@ -111,63 +109,62 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
 
 def _gen_recipe_for_package(distro, pkg_name, pkg,
                             repo, ros_pkg, pkg_rosinstall):
-    pkg_recipe = yoctoRecipe()
-    pkg_recipe.name = pkg_name
-    pkg_recipe.distro = distro.name
-    pkg_recipe.src_uri = pkg_rosinstall[0]['tar']['uri']
     pkg_dep_walker = DependencyWalker(distro)
 
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
 
-    # add run dependencies
-    for rdep in pkg_run_deps:
-        pkg_recipe.add_depend(rdep)
+    with yoctoRecipe(pkg_name, distro.name, pkg_rosinstall[0]['tar']['uri'])\
+    as pkg_recipe:
+        # add run dependencies
+        for rdep in pkg_run_deps:
+            pkg_recipe.add_depend(rdep)
 
-    # add build dependencies
-    for bdep in pkg_build_deps:
-        pkg_recipe.add_depend(bdep)
+        # add build dependencies
+        for bdep in pkg_build_deps:
+            pkg_recipe.add_depend(bdep)
 
-    # add build tool dependencies
-    for tdep in pkg_buildtool_deps:
-        pkg_recipe.add_depend(tdep)
+        # add build tool dependencies
+        for tdep in pkg_buildtool_deps:
+            pkg_recipe.add_depend(tdep)
 
-    # parse throught package xml
-    try:
-        pkg_xml = ros_pkg.get_package_xml(distro.name)
-    except Exception as e:
-        warn("fetch metadata for package {}".format(pkg_name))
+        # parse throught package xml
+        try:
+            pkg_xml = ros_pkg.get_package_xml(distro.name)
+        except Exception as e:
+            warn("fetch metadata for package {}".format(pkg_name))
+            return pkg_recipe
+        pkg_fields = xmltodict.parse(pkg_xml)
+
+        pkg_recipe.pkg_xml = pkg_xml
+        pkg_recipe.license = pkg_fields['package']['license']
+        pkg_recipe.description = pkg_fields['package']['description']
+        if not isinstance(pkg_recipe.description, str):
+            if '#text' in pkg_recipe.description:
+                pkg_recipe.description = pkg_recipe.description['#text']
+            else:
+                pkg_recipe.description = "None"
+        pkg_recipe.description = pkg_recipe.description.replace('`', "")
+        if len(pkg_recipe.description) > 80:
+            pkg_recipe.description = pkg_recipe.description[:80]
+        try:
+            if 'url' not in pkg_fields['package']:
+                warn("no website field for package {}".format(pkg_name))
+            elif sys.version_info <= (3, 0):
+                    pkg_recipe.recipe = pkg_fields['package']['url'].decode()
+            elif isinstance(pkg_fields['package']['url'], str):
+                pkg_recipe.homepage = pkg_fields['package']['url']
+            elif '@type' in pkg_fields['package']['url']:
+                if pkg_fields['package']['url']['@type'] == 'website':
+                    if '#text' in pkg_fields['package']['url']:
+                        pkg_recipe.homepage =\
+                            pkg_fields['package']['url']['#text']
+            else:
+                warn("failed to parse website for package {}".format(pkg_name))
+        except TypeError as e:
+            warn("failed to parse website package {}: {}".format(pkg_name, e))
         return pkg_recipe
-    pkg_fields = xmltodict.parse(pkg_xml)
-
-    pkg_recipe.pkg_xml = pkg_xml
-    pkg_recipe.license = pkg_fields['package']['license']
-    pkg_recipe.description = pkg_fields['package']['description']
-    if not isinstance(pkg_recipe.description, str):
-        if '#text' in pkg_recipe.description:
-            pkg_recipe.description = pkg_recipe.description['#text']
-        else:
-            pkg_recipe.description = "None"
-    pkg_recipe.description = pkg_recipe.description.replace('`', "")
-    if len(pkg_recipe.description) > 80:
-        pkg_recipe.description = pkg_recipe.description[:80]
-    try:
-        if 'url' not in pkg_fields['package']:
-            warn("no website field for package {}".format(pkg_name))
-        elif sys.version_info <= (3, 0):
-                pkg_recipe.recipe = pkg_fields['package']['url'].decode()
-        elif isinstance(pkg_fields['package']['url'], str):
-            pkg_recipe.homepage = pkg_fields['package']['url']
-        elif '@type' in pkg_fields['package']['url']:
-            if pkg_fields['package']['url']['@type'] == 'website':
-                if '#text' in pkg_fields['package']['url']:
-                    pkg_recipe.homepage = pkg_fields['package']['url']['#text']
-        else:
-            warn("failed to parse website for package {}".format(pkg_name))
-    except TypeError as e:
-        warn("failed to parse website package {}: {}".format(pkg_name, e))
-    return pkg_recipe
 
 
 class oe_installer(object):
