@@ -32,9 +32,8 @@ import tarfile
 from superflore.exceptions import NoPkgXml
 
 from superflore.utils import info
-from superflore.utils import warn
 from superflore.utils import resolve_dep
-
+from superflore.utils import warn
 
 if sys.version_info[0] == 2:
     import requests
@@ -76,7 +75,11 @@ class yoctoRecipe(object):
         return self
 
     def __exit__(self, *args):
-        info("removing downloaded package archive '%s'..." % self.getArchiveName())
+        info(
+            "removing downloaded package archive '{0}'...".format(
+                self.getArchiveName()
+            )
+        )
         try:
             os.remove(self.getArchiveName())
         except OSError as oe:

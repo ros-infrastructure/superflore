@@ -29,7 +29,6 @@ from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
 
 from superflore.utils import err
 from superflore.utils import get_pkg_version
-from superflore.utils import info
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
@@ -110,13 +109,12 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
 def _gen_recipe_for_package(distro, pkg_name, pkg,
                             repo, ros_pkg, pkg_rosinstall):
     pkg_dep_walker = DependencyWalker(distro)
-
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
+    src_uri = pkg_rosinstall[0]['tar']['uri']
 
-    with yoctoRecipe(pkg_name, distro.name, pkg_rosinstall[0]['tar']['uri'])\
-    as pkg_recipe:
+    with yoctoRecipe(pkg_name, distro.name, src_uri) as pkg_recipe:
         # add run dependencies
         for rdep in pkg_run_deps:
             pkg_recipe.add_depend(rdep)
