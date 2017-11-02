@@ -13,14 +13,19 @@
 # limitations under the License.
 
 import argparse
-import errno
-import os
-import shutil
 import sys
 
-from superflore import RepoInstance
-from superflore.generators.bitbake.gen_packages import generate_installers
-from superflore.generators.bitbake.ros_meta import ros_meta
+from superflore.generate_installers import generate_installers
+
+from superflore.generators.bitbake.gen_packages import regenerate_installer
+from superflore.generators.bitbake.ros_meta import RosMeta
+
+from superflore.TempfileManager import TempfileManager
+
+from superflore.utils import err
+from superflore.utils import info
+from superflore.utils import ok
+from superflore.utils import warn
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
@@ -30,39 +35,18 @@ preserve_existing = True
 overlay = None
 
 
-def link_existing_files(mode):
-    global overlay
-    sym_link_msg = 'Symbolicly linking files from {0}/recipes-ros-{1}...'
-    dir_fmt = '{0}/recipes-ros-{1}'
-    if mode == 'all' or mode == 'update':
-        for x in active_distros:
-            ros_meta.info(sym_link_msg.format(overlay.repo_dir, x))
-            os.symlink(
-                dir_fmt.format(overlay.repo_dir, x), './recipes-ros-' + x
-            )
-    else:
-        # only link the relevant directory.
-        ros_meta.info(sym_link_msg.format(overlay.repo_dir, mode))
-        os.symlink(
-            dir_fmt.format(overlay.repo_dir, mode), './recipes-ros-' + mode
-        )
-
-
-def clean_up(distro):
-    global overlay
-    clean_msg = 'Cleaning up tmp directory {0}...'.format(overlay.repo_dir)
-    ros_meta.info(clean_msg)
-    shutil.rmtree(overlay.repo_dir)
-    ros_meta.info('Cleaning up symbolic links...')
-    if mode != 'all' and mode != 'update':
-        os.remove('recipes-ros-{0}'.format(distro))
-    else:
-        for x in active_distros:
-            os.remove('recipes-ros-{0}'.format(x))
+def file_pr(overlay, delta, missing_deps):
+    try:
+        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
+    except Exception as e:
+        err('Failed to file PR with allenh1/meta-ros repo!')
+        err('  Exception: {0}'.format(e))
+        sys.exit(1)
 
 
 def main():
     global overlay
+    global preserve_existing
 
     parser = argparse.ArgumentParser('Deploy ROS packages into Yocto Linux')
     parser.add_argument(
@@ -75,104 +59,92 @@ def main():
         help='regenerate all packages in all distros',
         action="store_true"
     )
+    parser.add_argument(
+        '--output-repository-path',
+        help='location of the Git repo',
+        type=str
+    )
+
     args = parser.parse_args(sys.argv[1:])
-    # clone current repo
-    overlay = ros_meta()
-    selected_targets = active_distros
+    with TempfileManager(args.output_repository_path) as _repo:
+        overlay = RosMeta(_repo, not args.output_repository_path)
+        selected_targets = active_distros
+        if args.all:
+            warn('"All" mode detected... this may take a while!')
+            preserve_existing = False
+        elif args.ros_distro:
+            selected_targets = [args.ros_distro]
+            preserve_existing = False
+        # clone current repo
+        selected_targets = active_distros
+        # generate installers
+        total_installers = dict()
+        total_broken = set()
+        total_changes = dict()
 
-    if args.all:
-        ros_meta.warn('"All" mode detected... this may take a while!')
-    elif args.ros_distro:
-        selected_targets = [args.ros_distro]
-        preserve_existing = False
+        for distro in selected_targets:
+            distro_installers, distro_broken, distro_changes =\
+                generate_installers(
+                    distro_name=distro,
+                    overlay=overlay,
+                    gen_pkg_func=regenerate_installer,
+                    preserve_existing=preserve_existing
+                )
+            for key in distro_broken.keys():
+                for pkg in distro_broken[key]:
+                    total_broken.add(pkg)
 
-    # clone current repo
-    selected_targets = active_distros
-    for x in active_distros:
-        try:
-            os.remove('recipes-ros-{0}'.format(x))
-            warn_msg =\
-                'removing existing symlink "./recipes-ros-{0}"'.format(x)
-            RepoInstance.warn(warn_msg)
-        except OSError as e:
-            if e.errno == errno.ENOENT:
-                pass
-            else:
-                raise e
-    link_existing_files(args.ros_distro)
+            total_changes[distro] = distro_changes
+            total_installers[distro] = distro_installers
 
-    # generate installers
-    total_installers = dict()
-    total_broken = set()
-    total_changes = dict()
+        num_changes = 0
+        for distro_name in total_changes:
+            num_changes += len(total_changes[distro_name])
 
-    for distro in selected_targets:
-        distro_installers, distro_broken, distro_changes =\
-            generate_installers(distro, overlay, preserve_existing)
-        for key in distro_broken.keys():
-            for pkg in distro_broken[key]:
-                total_broken.add(pkg)
+        if num_changes == 0:
+            info('ROS distro is up to date.')
+            info('Exiting...')
+            sys.exit(0)
 
-        total_changes[distro] = distro_changes
-        total_installers[distro] = distro_installers
+        # remove duplicates
+        inst_list = total_broken
 
-    num_changes = 0
-    for distro_name in total_changes:
-        num_changes += len(total_changes[distro_name])
+        delta = "Changes:\n"
+        delta += "========\n"
 
-    if num_changes == 0:
-        ros_meta.info('ROS distro is up to date.')
-        ros_meta.info('Exiting...')
-        clean_up()
-        sys.exit(0)
+        if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
+            delta += "Indigo Changes:\n"
+            delta += "---------------\n"
 
-    # remove duplicates
-    inst_list = total_broken
+            for d in sorted(total_changes['indigo']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
 
-    delta = "Changes:\n"
-    delta += "========\n"
+        if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
+            delta += "Kinetic Changes:\n"
+            delta += "----------------\n"
 
-    if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
-        delta += "Indigo Changes:\n"
-        delta += "---------------\n"
+            for d in sorted(total_changes['kinetic']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
 
-        for d in sorted(total_changes['indigo']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
+        if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
+            delta += "Lunar Changes:\n"
+            delta += "--------------\n"
 
-    if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
-        delta += "Kinetic Changes:\n"
-        delta += "----------------\n"
+            for d in sorted(total_changes['lunar']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
 
-        for d in sorted(total_changes['kinetic']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
+        missing_deps = ''
 
-    if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
-        delta += "Lunar Changes:\n"
-        delta += "--------------\n"
+        if len(inst_list) > 0:
+            missing_deps = "Missing Dependencies:\n"
+            missing_deps += "=====================\n"
+            for pkg in sorted(inst_list):
+                missing_deps += " * [ ] {0}\n".format(pkg)
 
-        for d in sorted(total_changes['lunar']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
-
-    missing_deps = ''
-
-    if len(inst_list) > 0:
-        missing_deps = "Missing Dependencies:\n"
-        missing_deps += "=====================\n"
-        for pkg in sorted(inst_list):
-            missing_deps += " * [ ] {0}\n".format(pkg)
-
-    # Commit changes and file pull request
-    # overlay.regenerate_manifests(mode)
-    overlay.commit_changes(args.ros_distro)
-    try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
-    except Exception as e:
-        overlay.error('Failed to file PR with allenh1/meta-ros repo!')
-        overlay.error('Exception: {0}'.format(e))
-        sys.exit(1)
-
-    clean_up()
-    ros_meta.happy('Successfully synchronized repositories!')
+        # Commit changes and file pull request
+        overlay.commit_changes(args.ros_distro)
+        file_pr(overlay, delta, missing_deps)
+        ok('Successfully synchronized repositories!')

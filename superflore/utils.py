@@ -14,11 +14,14 @@
 
 import errno
 import os
+import random
 import re
+import string
 import sys
 
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
+
 from superflore.rosdep_support import resolve_rosdep_key
 
 from termcolor import colored
@@ -71,6 +74,13 @@ def get_pkg_version(distro, pkg_name):
     if deb_inc != '0':
         return '{0}-r{1}'.format(maj_min_patch, deb_inc)
     return maj_min_patch
+
+
+def rand_ascii_str(length=10):
+    """
+    Generates a random string of ascii characters of length 'length'
+    """
+    return ''.join(random.choice(string.ascii_letters) for x in range(length))
 
 
 def download_yamls():

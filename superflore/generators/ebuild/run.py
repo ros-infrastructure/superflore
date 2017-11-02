@@ -15,7 +15,6 @@
 
 import argparse
 import os
-import shutil
 import sys
 import time
 
@@ -27,6 +26,8 @@ from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
 
 from superflore.repo_instance import RepoInstance
+
+from superflore.TempfileManager import TempfileManager
 
 from superflore.utils import err
 from superflore.utils import info
@@ -40,13 +41,7 @@ preserve_existing = True
 overlay = None
 
 
-def clean_up(distro, preserve_repo=False):
-    global overlay
-    if not preserve_repo:
-        clean_msg = \
-            'Cleaning up tmp directory {0}...'.format(overlay.repo.repo_dir)
-        info(clean_msg)
-        shutil.rmtree(overlay.repo.repo_dir)
+def clean_up():
     if os.path.exists('.pr-message.tmp'):
         os.remove('.pr-message.tmp')
     if os.path.exists('.pr-title.tmp'):
@@ -127,39 +122,120 @@ def main():
             )
             raise
         try:
-            prev_overlay = RepoInstance(args.output_repository_path)
+            prev_overlay = RepoInstance(args.output_repository_path, False)
             info('PR message:\n"%s"\n' % msg)
             info('PR title:\n"%s"\n' % title)
             prev_overlay.pull_request(msg, title)
-            clean_up('all')
+            clean_up()
             sys.exit(0)
         except Exception as e:
             err('Failed to file PR!')
             err('reason: {0}'.format(e))
             sys.exit(1)
-    # clone current repo
-    overlay = RosOverlay(args.output_repository_path)
-    selected_targets = active_distros
-    # generate installers
-    total_installers = dict()
-    total_broken = set()
-    total_changes = dict()
+    with TempfileManager(args.output_repository_path) as _repo:
+        # clone if args.output_repository_path is None
+        overlay = RosOverlay(_repo, not args.output_repository_path)
+        selected_targets = active_distros
+        # generate installers
+        total_installers = dict()
+        total_broken = set()
+        total_changes = dict()
 
-    if args.only:
-        for pkg in args.only:
-            info("Regenerating package '%s'..." % pkg)
-            regenerate_pkg(
-                overlay,
-                pkg=pkg,
-                distro=get_distro(args.ros_distro)
-            )
-        # Commit changes and file pull request
-        regen_dict = dict()
-        regen_dict[args.ros_distro] = args.only
-        overlay.regenerate_manifests(regen_dict)
-        overlay.commit_changes(args.ros_distro)
-        delta = "Regenerated: '%s'\n" % args.only
+        if args.only:
+            for pkg in args.only:
+                info("Regenerating package '%s'..." % pkg)
+                regenerate_pkg(
+                    overlay,
+                    pkg=pkg,
+                    distro=get_distro(args.ros_distro)
+                )
+            # Commit changes and file pull request
+            regen_dict = dict()
+            regen_dict[args.ros_distro] = args.only
+            overlay.regenerate_manifests(regen_dict)
+            overlay.commit_changes(args.ros_distro)
+            delta = "Regenerated: '%s'\n" % args.only
+            missing_deps = ''
+            if args.dry_run:
+                info('Running in dry mode, not filing PR')
+                title_file = open('.pr-title.tmp', 'w')
+                title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
+                pr_message_file = open('.pr-message.tmp', 'w')
+                pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
+                sys.exit(0)
+            file_pr(overlay, delta, missing_deps)
+
+            clean_up()
+            ok('Successfully synchronized repositories!')
+            sys.exit(0)
+
+        for distro in selected_targets:
+            distro_installers, distro_broken, distro_changes =\
+                generate_installers(
+                    distro_name=distro,
+                    overlay=overlay,
+                    gen_pkg_func=regenerate_pkg,
+                    preserve_existing=preserve_existing
+                )
+            for key in distro_broken.keys():
+                for pkg in distro_broken[key]:
+                    total_broken.add(pkg)
+
+            total_changes[distro] = distro_changes
+            total_installers[distro] = distro_installers
+
+        num_changes = 0
+        for distro_name in total_changes:
+            num_changes += len(total_changes[distro_name])
+
+        if num_changes == 0:
+            info('ROS distro is up to date.')
+            info('Exiting...')
+            clean_up()
+            sys.exit(0)
+
+        # remove duplicates
+        inst_list = total_broken
+
+        delta = "Changes:\n"
+        delta += "========\n"
+
+        if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
+            delta += "Indigo Changes:\n"
+            delta += "---------------\n"
+
+            for d in sorted(total_changes['indigo']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
+
+        if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
+            delta += "Kinetic Changes:\n"
+            delta += "----------------\n"
+
+            for d in sorted(total_changes['kinetic']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
+
+        if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
+            delta += "Lunar Changes:\n"
+            delta += "--------------\n"
+
+            for d in sorted(total_changes['lunar']):
+                delta += '* {0}\n'.format(d)
+            delta += "\n"
+
         missing_deps = ''
+
+        if len(inst_list) > 0:
+            missing_deps = "Missing Dependencies:\n"
+            missing_deps += "=====================\n"
+            for pkg in sorted(inst_list):
+                missing_deps += " * [ ] {0}\n".format(pkg)
+
+        # Commit changes and file pull request
+        overlay.regenerate_manifests(total_installers)
+        overlay.commit_changes(args.ros_distro)
+
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             title_file = open('.pr-title.tmp', 'w')
@@ -169,85 +245,5 @@ def main():
             sys.exit(0)
         file_pr(overlay, delta, missing_deps)
 
-        clean_up(args.ros_distro, args.output_repository_path)
+        clean_up()
         ok('Successfully synchronized repositories!')
-        sys.exit(0)
-
-    for distro in selected_targets:
-        distro_installers, distro_broken, distro_changes =\
-            generate_installers(
-                distro_name=distro,
-                overlay=overlay,
-                gen_pkg_func=regenerate_pkg,
-                preserve_existing=preserve_existing
-            )
-        for key in distro_broken.keys():
-            for pkg in distro_broken[key]:
-                total_broken.add(pkg)
-
-        total_changes[distro] = distro_changes
-        total_installers[distro] = distro_installers
-
-    num_changes = 0
-    for distro_name in total_changes:
-        num_changes += len(total_changes[distro_name])
-
-    if num_changes == 0:
-        info('ROS distro is up to date.')
-        info('Exiting...')
-        clean_up(args.ros_distro)
-        sys.exit(0)
-
-    # remove duplicates
-    inst_list = total_broken
-
-    delta = "Changes:\n"
-    delta += "========\n"
-
-    if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
-        delta += "Indigo Changes:\n"
-        delta += "---------------\n"
-
-        for d in sorted(total_changes['indigo']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
-
-    if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
-        delta += "Kinetic Changes:\n"
-        delta += "----------------\n"
-
-        for d in sorted(total_changes['kinetic']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
-
-    if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
-        delta += "Lunar Changes:\n"
-        delta += "--------------\n"
-
-        for d in sorted(total_changes['lunar']):
-            delta += '* {0}\n'.format(d)
-        delta += "\n"
-
-    missing_deps = ''
-
-    if len(inst_list) > 0:
-        missing_deps = "Missing Dependencies:\n"
-        missing_deps += "=====================\n"
-        for pkg in sorted(inst_list):
-            missing_deps += " * [ ] {0}\n".format(pkg)
-
-    # Commit changes and file pull request
-    overlay.regenerate_manifests(total_installers)
-    overlay.commit_changes(args.ros_distro)
-
-    if args.dry_run:
-        info('Running in dry mode, not filing PR')
-        title_file = open('.pr-title.tmp', 'w')
-        title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
-        pr_message_file = open('.pr-message.tmp', 'w')
-        pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
-        sys.exit(0)
-    file_pr(overlay, delta, missing_deps)
-
-    clean_up(args.ros_distro, args.output_repository_path)
-    ok('Successfully synchronized repositories!')
