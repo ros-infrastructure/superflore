@@ -28,8 +28,6 @@ import os.path
 import sys
 import tarfile
 
-from rosinstall_generator.distro import get_distro
-
 from superflore.exceptions import NoPkgXml
 
 from superflore.utils import get_pkg_version
