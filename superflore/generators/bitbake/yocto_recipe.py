@@ -24,12 +24,15 @@
 #
 
 import hashlib
+import os.path
 import sys
 import tarfile
 
 from superflore.exceptions import NoPkgXml
-from superflore.utils import resolve_dep
 
+from superflore.utils import get_pkg_version
+from superflore.utils import info
+from superflore.utils import resolve_dep
 
 if sys.version_info[0] == 2:
     import requests
@@ -47,35 +50,35 @@ else:
 
 
 class yoctoRecipe(object):
-    def __init__(self):
-        self.name = None
-        self.version = None
+    def __init__(self, name, distro, src_uri, tar_dir):
+        self.name = name
+        self.distro = distro.name
+        self.version = get_pkg_version(distro, name)
         self.description = ''
-        self.src_uri = None
+        self.src_uri = src_uri
         self.pkg_xml = None
         self.author = "OSRF"
         self.license = None
         self.depends = list()
         self.license_line = None
+        self.archive_name = None
         self.license_md5 = None
-        self.src_md5 = None
-        self.src_sha256 = None
-
-    def getSrcMD5(self):
-        return hashlib.md5(
-            open("./" + self.getArchiveName(), 'rb').read()).hexdigest()
-
-    def getSrcSha256(self):
-        return hashlib.sha256(
-            open("./" + self.getArchiveName(), 'rb').read()).hexdigest()
+        self.tar_dir = tar_dir
+        self.downloadArchive()
+        self.src_sha256 = hashlib.sha256(
+            open(self.getArchiveName(), 'rb').read()).hexdigest()
+        self.src_md5 = hashlib.md5(
+            open(self.getArchiveName(), 'rb').read()).hexdigest()
 
     def getFolderName(self):
         return self.name.replace("-", "_") + "-" + str(self.version)
 
     def getArchiveName(self):
-        return self.name.replace("-", "_") + \
-               "-" + str(self.version) + \
-               ".tar.gz"
+        if not self.archive_name:
+            self.archive_name = self.tar_dir + "/" \
+                + self.name.replace('-', '_') + '-' + str(self.version) \
+                + '-' + self.distro + '.tar.gz'
+        return self.archive_name
 
     def get_license_line(self):
         self.license_line = ''
@@ -93,7 +96,11 @@ class yoctoRecipe(object):
                 break
 
     def downloadArchive(self):
-        urllib.request.urlretrieve(self.src_uri, self.getArchiveName())
+        if os.path.exists(self.getArchiveName()):
+            info("using cached archive for package '%s'..." % self.name)
+        else:
+            info("downloading archive version for package '%s'..." % self.name)
+            urllib.request.urlretrieve(self.src_uri, self.getArchiveName())
 
     def extractArchive(self):
         tar = tarfile.open(self.getArchiveName(), "r:gz")
@@ -175,8 +182,8 @@ class yoctoRecipe(object):
         # SRC_URI
         ret += 'SRC_URI = "' + self.src_uri + ';'
         ret += 'downloadfilename=${ROS_SP}.tar.gz"\n\n'
-        ret += 'SRC_URI[md5sum] = "' + self.getSrcMD5() + '"\n'
-        ret += 'SRC_URI[sha256sum] = "' + self.getSrcSha256() + '"\n'
+        ret += 'SRC_URI[md5sum] = "' + self.src_md5 + '"\n'
+        ret += 'SRC_URI[sha256sum] = "' + self.src_sha256 + '"\n'
         ret += 'S = "${WORKDIR}/'
         ret += self.get_src_location() + '"\n\n'
         ret += 'inherit catkin\n'

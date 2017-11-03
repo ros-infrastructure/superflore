@@ -29,7 +29,6 @@ from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
 
 from superflore.utils import err
 from superflore.utils import get_pkg_version
-from superflore.utils import info
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
@@ -40,7 +39,9 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 
-def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
+def regenerate_installer(
+    overlay, pkg, distro, preserve_existing, tar_dir
+):
     make_dir("{0}/recipes-ros-{1}".format(overlay.repo.repo_dir, distro.name))
     version = get_pkg_version(distro, pkg)
     pkg_names = get_package_names(distro)[0]
@@ -63,14 +64,12 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
     elif existing:
         overlay.remove_file(existing[0])
     try:
-        current = oe_installer(distro, pkg)
+        current = oe_installer(distro, pkg, tar_dir)
         current.recipe.name = pkg.replace('_', '-')
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
         raise e
     try:
-        info("downloading archive version for package '%s'..." % pkg)
-        current.recipe.downloadArchive()
         recipe_text = current.recipe_text()
     except UnresolvedDependency:
         dep_err = 'Failed to resolve required dependencies for'
@@ -109,18 +108,16 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
     return current, []
 
 
-def _gen_recipe_for_package(distro, pkg_name, pkg,
-                            repo, ros_pkg, pkg_rosinstall):
-    pkg_recipe = yoctoRecipe()
-    pkg_recipe.name = pkg_name
-    pkg_recipe.distro = distro.name
-    pkg_recipe.src_uri = pkg_rosinstall[0]['tar']['uri']
+def _gen_recipe_for_package(
+    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall, tar_dir
+):
     pkg_dep_walker = DependencyWalker(distro)
-
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
+    src_uri = pkg_rosinstall[0]['tar']['uri']
 
+    pkg_recipe = yoctoRecipe(pkg_name, distro, src_uri, tar_dir)
     # add run dependencies
     for rdep in pkg_run_deps:
         pkg_recipe.add_depend(rdep)
@@ -162,7 +159,8 @@ def _gen_recipe_for_package(distro, pkg_name, pkg,
         elif '@type' in pkg_fields['package']['url']:
             if pkg_fields['package']['url']['@type'] == 'website':
                 if '#text' in pkg_fields['package']['url']:
-                    pkg_recipe.homepage = pkg_fields['package']['url']['#text']
+                    pkg_recipe.homepage =\
+                        pkg_fields['package']['url']['#text']
         else:
             warn("failed to parse website for package {}".format(pkg_name))
     except TypeError as e:
@@ -171,18 +169,18 @@ def _gen_recipe_for_package(distro, pkg_name, pkg,
 
 
 class oe_installer(object):
-    def __init__(self, distro, pkg_name, has_patches=False):
+    def __init__(self, distro, pkg_name, tar_dir, has_patches=False):
         pkg = distro.release_packages[pkg_name]
         repo = distro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
 
-        pkg_rosinstall =\
-            _generate_rosinstall(pkg_name, repo.url,
-                                 get_release_tag(repo, pkg_name), True)
+        pkg_rosinstall = _generate_rosinstall(
+            pkg_name, repo.url, get_release_tag(repo, pkg_name), True
+        )
 
-        self.recipe =\
-            _gen_recipe_for_package(distro, pkg_name,
-                                    pkg, repo, ros_pkg, pkg_rosinstall)
+        self.recipe = _gen_recipe_for_package(
+            distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall, tar_dir
+        )
 
     def recipe_text(self):
         return self.recipe.get_recipe_text(org, org_license)
