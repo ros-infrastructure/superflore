@@ -64,6 +64,11 @@ def main():
         help='location of the Git repo',
         type=str
     )
+    parser.add_argument(
+        '--tar-archive-dir',
+        help='location to store archived packages',
+        type=str
+    )
 
     args = parser.parse_args(sys.argv[1:])
     with TempfileManager(args.output_repository_path) as _repo:
@@ -82,20 +87,22 @@ def main():
         total_broken = set()
         total_changes = dict()
 
-        for distro in selected_targets:
-            distro_installers, distro_broken, distro_changes =\
-                generate_installers(
-                    distro_name=distro,
-                    overlay=overlay,
-                    gen_pkg_func=regenerate_installer,
-                    preserve_existing=preserve_existing
-                )
-            for key in distro_broken.keys():
-                for pkg in distro_broken[key]:
-                    total_broken.add(pkg)
+        with TempfileManager(args.tar_archive_dir) as tar_dir:
+            for distro in selected_targets:
+                distro_installers, distro_broken, distro_changes =\
+                    generate_installers(
+                        distro,
+                        overlay,
+                        regenerate_installer,
+                        preserve_existing,
+                        tar_dir
+                    )
+                for key in distro_broken.keys():
+                    for pkg in distro_broken[key]:
+                        total_broken.add(pkg)
 
-            total_changes[distro] = distro_changes
-            total_installers[distro] = distro_installers
+                total_changes[distro] = distro_changes
+                total_installers[distro] = distro_installers
 
         num_changes = 0
         for distro_name in total_changes:

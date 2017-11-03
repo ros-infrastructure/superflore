@@ -39,7 +39,9 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 
-def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
+def regenerate_installer(
+    overlay, pkg, distro, preserve_existing, tar_dir
+):
     make_dir("{0}/recipes-ros-{1}".format(overlay.repo.repo_dir, distro.name))
     version = get_pkg_version(distro, pkg)
     pkg_names = get_package_names(distro)[0]
@@ -62,7 +64,7 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
     elif existing:
         overlay.remove_file(existing[0])
     try:
-        current = oe_installer(distro, pkg)
+        current = oe_installer(distro, pkg, tar_dir)
         current.recipe.name = pkg.replace('_', '-')
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
@@ -106,78 +108,79 @@ def regenerate_installer(overlay, pkg, distro, preserve_existing=False):
     return current, []
 
 
-def _gen_recipe_for_package(distro, pkg_name, pkg,
-                            repo, ros_pkg, pkg_rosinstall):
+def _gen_recipe_for_package(
+    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall, tar_dir
+):
     pkg_dep_walker = DependencyWalker(distro)
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
     src_uri = pkg_rosinstall[0]['tar']['uri']
 
-    with yoctoRecipe(pkg_name, distro.name, src_uri) as pkg_recipe:
-        # add run dependencies
-        for rdep in pkg_run_deps:
-            pkg_recipe.add_depend(rdep)
+    pkg_recipe = yoctoRecipe(pkg_name, distro, src_uri, tar_dir)
+    # add run dependencies
+    for rdep in pkg_run_deps:
+        pkg_recipe.add_depend(rdep)
 
-        # add build dependencies
-        for bdep in pkg_build_deps:
-            pkg_recipe.add_depend(bdep)
+    # add build dependencies
+    for bdep in pkg_build_deps:
+        pkg_recipe.add_depend(bdep)
 
-        # add build tool dependencies
-        for tdep in pkg_buildtool_deps:
-            pkg_recipe.add_depend(tdep)
+    # add build tool dependencies
+    for tdep in pkg_buildtool_deps:
+        pkg_recipe.add_depend(tdep)
 
-        # parse throught package xml
-        try:
-            pkg_xml = ros_pkg.get_package_xml(distro.name)
-        except Exception as e:
-            warn("fetch metadata for package {}".format(pkg_name))
-            return pkg_recipe
-        pkg_fields = xmltodict.parse(pkg_xml)
-
-        pkg_recipe.pkg_xml = pkg_xml
-        pkg_recipe.license = pkg_fields['package']['license']
-        pkg_recipe.description = pkg_fields['package']['description']
-        if not isinstance(pkg_recipe.description, str):
-            if '#text' in pkg_recipe.description:
-                pkg_recipe.description = pkg_recipe.description['#text']
-            else:
-                pkg_recipe.description = "None"
-        pkg_recipe.description = pkg_recipe.description.replace('`', "")
-        if len(pkg_recipe.description) > 80:
-            pkg_recipe.description = pkg_recipe.description[:80]
-        try:
-            if 'url' not in pkg_fields['package']:
-                warn("no website field for package {}".format(pkg_name))
-            elif sys.version_info <= (3, 0):
-                    pkg_recipe.recipe = pkg_fields['package']['url'].decode()
-            elif isinstance(pkg_fields['package']['url'], str):
-                pkg_recipe.homepage = pkg_fields['package']['url']
-            elif '@type' in pkg_fields['package']['url']:
-                if pkg_fields['package']['url']['@type'] == 'website':
-                    if '#text' in pkg_fields['package']['url']:
-                        pkg_recipe.homepage =\
-                            pkg_fields['package']['url']['#text']
-            else:
-                warn("failed to parse website for package {}".format(pkg_name))
-        except TypeError as e:
-            warn("failed to parse website package {}: {}".format(pkg_name, e))
+    # parse throught package xml
+    try:
+        pkg_xml = ros_pkg.get_package_xml(distro.name)
+    except Exception as e:
+        warn("fetch metadata for package {}".format(pkg_name))
         return pkg_recipe
+    pkg_fields = xmltodict.parse(pkg_xml)
+
+    pkg_recipe.pkg_xml = pkg_xml
+    pkg_recipe.license = pkg_fields['package']['license']
+    pkg_recipe.description = pkg_fields['package']['description']
+    if not isinstance(pkg_recipe.description, str):
+        if '#text' in pkg_recipe.description:
+            pkg_recipe.description = pkg_recipe.description['#text']
+        else:
+            pkg_recipe.description = "None"
+    pkg_recipe.description = pkg_recipe.description.replace('`', "")
+    if len(pkg_recipe.description) > 80:
+        pkg_recipe.description = pkg_recipe.description[:80]
+    try:
+        if 'url' not in pkg_fields['package']:
+            warn("no website field for package {}".format(pkg_name))
+        elif sys.version_info <= (3, 0):
+                pkg_recipe.recipe = pkg_fields['package']['url'].decode()
+        elif isinstance(pkg_fields['package']['url'], str):
+            pkg_recipe.homepage = pkg_fields['package']['url']
+        elif '@type' in pkg_fields['package']['url']:
+            if pkg_fields['package']['url']['@type'] == 'website':
+                if '#text' in pkg_fields['package']['url']:
+                    pkg_recipe.homepage =\
+                        pkg_fields['package']['url']['#text']
+        else:
+            warn("failed to parse website for package {}".format(pkg_name))
+    except TypeError as e:
+        warn("failed to parse website package {}: {}".format(pkg_name, e))
+    return pkg_recipe
 
 
 class oe_installer(object):
-    def __init__(self, distro, pkg_name, has_patches=False):
+    def __init__(self, distro, pkg_name, tar_dir, has_patches=False):
         pkg = distro.release_packages[pkg_name]
         repo = distro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
 
-        pkg_rosinstall =\
-            _generate_rosinstall(pkg_name, repo.url,
-                                 get_release_tag(repo, pkg_name), True)
+        pkg_rosinstall = _generate_rosinstall(
+            pkg_name, repo.url, get_release_tag(repo, pkg_name), True
+        )
 
-        self.recipe =\
-            _gen_recipe_for_package(distro, pkg_name,
-                                    pkg, repo, ros_pkg, pkg_rosinstall)
+        self.recipe = _gen_recipe_for_package(
+            distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall, tar_dir
+        )
 
     def recipe_text(self):
         return self.recipe.get_recipe_text(org, org_license)
