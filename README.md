@@ -32,6 +32,7 @@ $ superflore-gen-ebuilds --help
 usage: Deploy ROS packages into Gentoo Linux [-h] [--ros-distro ROS_DISTRO]
                                              [--all] [--dry-run] [--pr-only]
                                              [--output-repository-path OUTPUT_REPOSITORY_PATH]
+                                             [--only ONLY [ONLY ...]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -42,6 +43,8 @@ optional arguments:
   --pr-only             ONLY file a PR to remote
   --output-repository-path OUTPUT_REPOSITORY_PATH
                         location of the Git repo
+  --only ONLY [ONLY ...]
+                        generate only the specified packages
 ```
 
 Common Usage:
@@ -59,6 +62,8 @@ update mode. *Note: this mode will file a PR with ros/ros-overlay.*
 If you don't want to file a PR with ros/ros-overlay, you should add
 the `--dry-run` flag. You can later decide to file the PR after inspection
 by using the `--pr-only` flag.
+
+To regenerate only the specified packages, use the `--only [pkg1] [pkg2] ... [pkgn]` flag (**note:** you will need to also use the `--ros-distro [distro]` flag.
 
 *If you want to use an existing repo instead of cloning one,
 add `--output-repository-path [path]`.*
