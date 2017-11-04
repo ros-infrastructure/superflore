@@ -40,11 +40,8 @@ class RosOverlay(object):
 
     def commit_changes(self, distro):
         info('Adding changes...')
-        if distro:
-            self.repo.git.add('ros-{0}'.format(distro))
-        else:
-            self.repo.git.add('ros-*')
-            distro = 'update'
+        self.repo.git.add('.')
+        distro = distro or 'update'
         commit_msg = {
             'update': 'rosdistro sync, {0}',
             'all': 'regenerate all distros, {0}',
