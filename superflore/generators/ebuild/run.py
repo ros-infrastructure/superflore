@@ -164,7 +164,7 @@ def main():
                 pr_message_file = open('.pr-message.tmp', 'w')
                 pr_message_file.write('%s\n%s\n' % (delta, ''))
                 sys.exit(0)
-            file_pr(overlay, delta, missing_deps)
+            file_pr(overlay, delta, '')
             clean_up()
             ok('Successfully synchronized repositories!')
             sys.exit(0)

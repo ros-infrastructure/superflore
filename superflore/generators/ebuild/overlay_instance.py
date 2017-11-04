@@ -30,27 +30,19 @@ class RosOverlay(object):
         info('Creating new branch {0}...'.format(self.branch_name))
         self.repo.create_branch(self.branch_name)
 
-    def clean_ros_ebuild_dirs(self, distro=None):
-        if distro:
-            info('Cleaning up ros-{0} directory...'.format(distro))
-            self.repo.git.rm('-rf', 'ros-{0}'.format(distro))
-        else:
-            info('Cleaning up ros-* directories...')
-            self.repo.git.rm('-rf', 'ros-*')
-
     def commit_changes(self, distro):
         info('Adding changes...')
-        self.repo.git.add('.')
-        distro = distro or 'update'
-        commit_msg = {
-            'update': 'rosdistro sync, {0}',
-            'all': 'regenerate all distros, {0}',
-            'lunar': 'regenerate ros-lunar, {0}',
-            'indigo': 'regenerate ros-indigo, {0}',
-            'kinetic': 'regenerate ros-kinetic, {0}',
-        }[distro].format(time.ctime())
+        self.repo.git.add(self.repo.repo_dir)
         info('Committing to branch {0}...'.format(self.branch_name))
-        self.repo.git.commit(m='{0}'.format(commit_msg))
+        self.repo.git.commit(m='{0}'.format(
+            {
+                'update': 'rosdistro sync, {0}',
+                'all': 'regenerate all distros, {0}',
+                'lunar': 'regenerate ros-lunar, {0}',
+                'indigo': 'regenerate ros-indigo, {0}',
+                'kinetic': 'regenerate ros-kinetic, {0}',
+            }[distro or 'update'].format(time.ctime()))
+        )
 
     def regenerate_manifests(self, regen_dict):
         info('Building docker image...')
