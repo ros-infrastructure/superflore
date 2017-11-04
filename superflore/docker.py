@@ -14,6 +14,9 @@
 
 import docker
 
+from superflore.utils import info
+from superflore.utils import ok
+
 
 class Docker(object):
     def __init__(self, dockerfile_directory, name):
@@ -42,9 +45,8 @@ class Docker(object):
             if i != len(self.bash_cmds) - 1:
                 cmd_string += ' && '
         cmd_string += "'"
-
         msg = "Running container with command string '%s'..."
-        print(msg % cmd_string)
+        info(msg % cmd_string)
 
         self.client.containers.run(
             image=self.image,
@@ -52,7 +54,7 @@ class Docker(object):
             command=cmd_string,
             volumes=self.directory_map,
         )
-        print("Done!")
+        ok("Docker container exited.")
 
 
 class BuildException(Exception):
