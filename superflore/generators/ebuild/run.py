@@ -106,6 +106,7 @@ def main():
         sys.exit(1)
     elif args.pr_only and not args.output_repository_path:
         err('Invalid args! no repository specified')
+        sys.exit(1)
     elif args.pr_only:
         try:
             with open('.pr-message.tmp', 'r') as msg_file:
@@ -146,8 +147,9 @@ def main():
                 info("Regenerating package '%s'..." % pkg)
                 regenerate_pkg(
                     overlay,
-                    pkg=pkg,
-                    distro=get_distro(args.ros_distro)
+                    pkg,
+                    get_distro(args.ros_distro),
+                    preserve_existing
                 )
             # Commit changes and file pull request
             regen_dict = dict()
@@ -155,16 +157,14 @@ def main():
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
             delta = "Regenerated: '%s'\n" % args.only
-            missing_deps = ''
             if args.dry_run:
                 info('Running in dry mode, not filing PR')
                 title_file = open('.pr-title.tmp', 'w')
                 title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
                 pr_message_file = open('.pr-message.tmp', 'w')
-                pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
+                pr_message_file.write('%s\n%s\n' % (delta, ''))
                 sys.exit(0)
             file_pr(overlay, delta, missing_deps)
-
             clean_up()
             ok('Successfully synchronized repositories!')
             sys.exit(0)
