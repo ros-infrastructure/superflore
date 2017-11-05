@@ -15,7 +15,6 @@
 import sys
 
 from superflore.exceptions import UnresolvedDependency
-
 from superflore.utils import get_license
 from superflore.utils import resolve_dep
 from superflore.utils import sanitize_string

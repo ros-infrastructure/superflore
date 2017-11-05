@@ -102,11 +102,9 @@ def main():
         selected_targets = [args.ros_distro]
         preserve_existing = False
     elif args.dry_run and args.pr_only:
-        err('Invalid args! cannot dry-run and file PR')
-        sys.exit(1)
+        parser.error('Invalid args! cannot dry-run and file PR')
     elif args.pr_only and not args.output_repository_path:
-        err('Invalid args! no repository specified')
-        sys.exit(1)
+        parser.error('Invalid args! no repository specified')
     elif args.pr_only:
         try:
             with open('.pr-message.tmp', 'r') as msg_file:
