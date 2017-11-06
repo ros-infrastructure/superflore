@@ -19,7 +19,6 @@ import sys
 import time
 
 from rosinstall_generator.distro import get_distro
-
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
