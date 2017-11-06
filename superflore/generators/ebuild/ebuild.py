@@ -20,6 +20,13 @@ from superflore.utils import resolve_dep
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 
+# TODO(allenh1): is there a better way to get these?
+depend_only_pkgs = [
+    'dev-util/gperf',
+    'app-doc/doxygen',
+    'virtual/pkgconfig'
+]
+
 
 class ebuild_keyword(object):
     def __init__(self, arch, stable):
@@ -70,7 +77,9 @@ class Ebuild(object):
             self.depends_external.append(depend)
 
     def add_run_depend(self, rdepend, internal=True):
-        if internal:
+        if rdepend in depend_only_pkgs and not internal:
+            self.depends_external.append(rdepend)
+        elif internal:
             self.rdepends.append(rdepend)
         else:
             self.rdepends_external.append(rdepend)
@@ -164,7 +173,11 @@ class Ebuild(object):
         for rdep in sorted(self.rdepends_external):
             try:
                 for res in resolve_dep(rdep, 'gentoo')[0]:
-                    ret += "    " + res + "\n"
+                    if res in depend_only_pkgs:
+                        self.depends_external.append(rdep)
+                        break
+                    else:
+                        ret += "    " + res + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(rdep)
 

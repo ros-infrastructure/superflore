@@ -18,21 +18,16 @@ import sys
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
-
 from rosinstall_generator.distro import _generate_rosinstall
 from rosinstall_generator.distro import get_package_names
-
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
-
 from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
-
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
-
 import xmltodict
 
 org = "Open Source Robotics Foundation"

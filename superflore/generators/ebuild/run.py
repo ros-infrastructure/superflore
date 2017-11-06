@@ -19,16 +19,11 @@ import sys
 import time
 
 from rosinstall_generator.distro import get_distro
-
 from superflore.generate_installers import generate_installers
-
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
-
 from superflore.repo_instance import RepoInstance
-
 from superflore.TempfileManager import TempfileManager
-
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
@@ -102,10 +97,9 @@ def main():
         selected_targets = [args.ros_distro]
         preserve_existing = False
     elif args.dry_run and args.pr_only:
-        err('Invalid args! cannot dry-run and file PR')
-        sys.exit(1)
+        parser.error('Invalid args! cannot dry-run and file PR')
     elif args.pr_only and not args.output_repository_path:
-        err('Invalid args! no repository specified')
+        parser.error('Invalid args! no repository specified')
     elif args.pr_only:
         try:
             with open('.pr-message.tmp', 'r') as msg_file:
@@ -132,10 +126,14 @@ def main():
             err('Failed to file PR!')
             err('reason: {0}'.format(e))
             sys.exit(1)
+    if not selected_targets:
+        selected_targets = active_distros
     with TempfileManager(args.output_repository_path) as _repo:
+        if not args.output_repository_path:
+            # give our group write permissions to the temp dir
+            os.chmod(_repo, 17407)
         # clone if args.output_repository_path is None
         overlay = RosOverlay(_repo, not args.output_repository_path)
-        selected_targets = active_distros
         # generate installers
         total_installers = dict()
         total_broken = set()
@@ -146,8 +144,9 @@ def main():
                 info("Regenerating package '%s'..." % pkg)
                 regenerate_pkg(
                     overlay,
-                    pkg=pkg,
-                    distro=get_distro(args.ros_distro)
+                    pkg,
+                    get_distro(args.ros_distro),
+                    preserve_existing
                 )
             # Commit changes and file pull request
             regen_dict = dict()
@@ -155,16 +154,14 @@ def main():
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
             delta = "Regenerated: '%s'\n" % args.only
-            missing_deps = ''
             if args.dry_run:
                 info('Running in dry mode, not filing PR')
                 title_file = open('.pr-title.tmp', 'w')
                 title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
                 pr_message_file = open('.pr-message.tmp', 'w')
-                pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
+                pr_message_file.write('%s\n%s\n' % (delta, ''))
                 sys.exit(0)
-            file_pr(overlay, delta, missing_deps)
-
+            file_pr(overlay, delta, '')
             clean_up()
             ok('Successfully synchronized repositories!')
             sys.exit(0)

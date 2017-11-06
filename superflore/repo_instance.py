@@ -16,8 +16,7 @@ import shutil
 
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
-
-from superflore.utils import err as error
+from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
 
@@ -54,8 +53,8 @@ class RepoInstance(object):
                 return
             fail_msg = 'Failed to remove file {0}'.format(filename)
             fail_msg += 'from source control.'
-            error(fail_msg)
-            error(' Exception: {0}'.format(g))
+            err(fail_msg)
+            err(' Exception: {0}'.format(g))
 
     def create_branch(self, branch_name):
         """

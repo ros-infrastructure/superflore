@@ -16,43 +16,31 @@ import os
 import time
 
 from superflore.docker import Docker
-
 from superflore.repo_instance import RepoInstance
-
 from superflore.utils import info
 from superflore.utils import rand_ascii_str
 
 
 class RosOverlay(object):
     def __init__(self, repo_dir, do_clone, org='ros', repo='ros-overlay'):
-        self.repo = RepoInstance(org, repo, repo_dir, do_clone)
+        self.repo = RepoInstance(
+            org, repo, repo_dir=repo_dir, do_clone=do_clone
+        )
         self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
         info('Creating new branch {0}...'.format(self.branch_name))
         self.repo.create_branch(self.branch_name)
 
-    def clean_ros_ebuild_dirs(self, distro=None):
-        if distro:
-            info('Cleaning up ros-{0} directory...'.format(distro))
-            self.repo.git.rm('-rf', 'ros-{0}'.format(distro))
-        else:
-            info('Cleaning up ros-* directories...')
-            self.repo.git.rm('-rf', 'ros-*')
-
     def commit_changes(self, distro):
         info('Adding changes...')
-        if distro:
-            self.repo.git.add('ros-{0}'.format(distro))
-        else:
-            self.repo.git.add('ros-*')
-            distro = 'update'
-        commit_msg = {
-            'update': 'rosdistro sync, {0}',
-            'all': 'regenerate all distros, {0}',
-            'lunar': 'regenerate ros-lunar, {0}',
-            'indigo': 'regenerate ros-indigo, {0}',
-            'kinetic': 'regenerate ros-kinetic, {0}',
-        }[distro].format(time.ctime())
+        self.repo.git.add(self.repo.repo_dir)
         info('Committing to branch {0}...'.format(self.branch_name))
+        commit_msg = {
+            'update': 'rosdistro sync, ',
+            'all': 'regenerate all distros, ',
+            'lunar': 'regenerate ros-lunar, ',
+            'indigo': 'regenerate ros-indigo, ',
+            'kinetic': 'regenerate ros-kinetic, ',
+        }[distro or 'update'] + time.ctime()
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(self, regen_dict):

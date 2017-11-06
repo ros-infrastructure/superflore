@@ -13,15 +13,13 @@
 # limitations under the License.
 
 import argparse
+import os
 import sys
 
 from superflore.generate_installers import generate_installers
-
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
-
 from superflore.TempfileManager import TempfileManager
-
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
@@ -72,6 +70,9 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
     with TempfileManager(args.output_repository_path) as _repo:
+        if not args.output_repository_path:
+            # give our group write permissions to the temp dir
+            os.chmod(_repo, 17407)
         overlay = RosMeta(_repo, not args.output_repository_path)
         selected_targets = active_distros
         if args.all:

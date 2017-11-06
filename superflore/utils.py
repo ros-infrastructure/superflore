@@ -21,11 +21,8 @@ import sys
 
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
-
 from superflore.rosdep_support import resolve_rosdep_key
-
 from termcolor import colored
-
 import yaml
 
 if sys.version_info[0] == 2:

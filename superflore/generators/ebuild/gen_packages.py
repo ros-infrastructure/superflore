@@ -19,21 +19,16 @@ import sys
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
-
 from rosinstall_generator.distro import _generate_rosinstall
 from rosinstall_generator.distro import get_package_names
-
 from superflore.exceptions import UnresolvedDependency
-
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
-
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
-
 import xmltodict
 
 # TODO(allenh1): This is a blacklist of things that

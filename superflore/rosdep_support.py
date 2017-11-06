@@ -33,7 +33,6 @@
 from rosdep2 import create_default_installer_context
 from rosdep2.catkin_support import get_catkin_view
 from rosdep2.lookup import ResolutionError
-
 from superflore.exceptions import UnresolvedDependency
 
 DEFAULT_ROS_DISTRO = 'indigo'
