@@ -16,7 +16,6 @@ import shutil
 
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
-
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
