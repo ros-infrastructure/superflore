@@ -72,6 +72,9 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
     with TempfileManager(args.output_repository_path) as _repo:
+        if not args.output_repository_path:
+            # give our group write permissions to the temp dir
+            os.chmod(_repo, 17407)
         overlay = RosMeta(_repo, not args.output_repository_path)
         selected_targets = active_distros
         if args.all:
