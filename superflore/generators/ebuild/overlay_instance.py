@@ -41,7 +41,7 @@ class RosOverlay(object):
             'indigo': 'regenerate ros-indigo, ',
             'kinetic': 'regenerate ros-kinetic, ',
         }[distro or 'update'] + time.ctime()
-        self.repo.git.commit(m='{0}'.format(commit_msg)
+        self.repo.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(self, regen_dict):
         info('Building docker image...')
