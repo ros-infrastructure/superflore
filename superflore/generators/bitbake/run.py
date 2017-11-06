@@ -16,10 +16,10 @@ import argparse
 import os
 import sys
 
-from superflore.TempfileManager import TempfileManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
+from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok

@@ -28,7 +28,6 @@ from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
-
 import xmltodict
 
 org = "Open Source Robotics Foundation"
