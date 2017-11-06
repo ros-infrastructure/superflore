@@ -29,7 +29,6 @@ import sys
 import tarfile
 
 from superflore.exceptions import NoPkgXml
-
 from superflore.utils import get_pkg_version
 from superflore.utils import info
 from superflore.utils import resolve_dep

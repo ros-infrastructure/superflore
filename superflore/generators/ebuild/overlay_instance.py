@@ -16,9 +16,7 @@ import os
 import time
 
 from superflore.docker import Docker
-
 from superflore.repo_instance import RepoInstance
-
 from superflore.utils import info
 from superflore.utils import rand_ascii_str
 
