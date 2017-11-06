@@ -14,7 +14,6 @@
 
 from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
-
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import info
