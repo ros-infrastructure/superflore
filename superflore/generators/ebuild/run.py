@@ -131,10 +131,11 @@ def main():
             err('Failed to file PR!')
             err('reason: {0}'.format(e))
             sys.exit(1)
+    if not selected_targets:
+        selected_targets = active_distros
     with TempfileManager(args.output_repository_path) as _repo:
         # clone if args.output_repository_path is None
         overlay = RosOverlay(_repo, not args.output_repository_path)
-        selected_targets = active_distros
         # generate installers
         total_installers = dict()
         total_broken = set()
