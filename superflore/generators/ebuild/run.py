@@ -134,6 +134,9 @@ def main():
     if not selected_targets:
         selected_targets = active_distros
     with TempfileManager(args.output_repository_path) as _repo:
+        if not args.output_repository_path:
+            # give our group write permissions to the temp dir
+            os.chmod(_repo, 17407)
         # clone if args.output_repository_path is None
         overlay = RosOverlay(_repo, not args.output_repository_path)
         # generate installers
