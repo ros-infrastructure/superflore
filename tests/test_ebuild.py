@@ -31,8 +31,8 @@ class TestEbuildOutput(unittest.TestCase):
             correct_text = expect_file.read()
         self.assertEqual(got_text, correct_text)
 
-    def test_bad_build_depend(self):
-        """Test Bad Build Dependency"""
+    def test_bad_external_build_depend(self):
+        """Test Bad External Build Dependency"""
         ebuild = Ebuild()
         ebuild.homepage = 'https://www.website.com'
         ebuild.description = 'an ebuild'
@@ -43,8 +43,8 @@ class TestEbuildOutput(unittest.TestCase):
         with self.assertRaises(UnresolvedDependency):
             ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
 
-    def test_bad_run_depend(self):
-        """Test Bad Build Dependency"""
+    def test_bad_external_run_depend(self):
+        """Test Bad External Run Dependency"""
         ebuild = Ebuild()
         ebuild.homepage = 'https://www.website.com'
         ebuild.description = 'an ebuild'
