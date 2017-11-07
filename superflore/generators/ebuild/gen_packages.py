@@ -148,10 +148,6 @@ def _gen_metadata_for_package(distro, pkg_name, pkg,
 
         pkg_metadata_xml.upstream_bug_url =\
             repo.url.replace("-release", "").replace(".git", "/issues")
-
-    """
-    @todo: longdescription
-    """
     return pkg_metadata_xml
 
 
