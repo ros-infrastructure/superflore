@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from superflore.generators.ebuild.ebuild import Ebuild
-
+from superflore.exceptions import UnresolvedDependency
 import unittest
 
 
@@ -26,7 +26,31 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
         ebuild.distro = 'lunar'
-        got_text = ebuild.get_ebuild_text('tests', 'BSD')
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         with open('tests/ebuild/simple_expected.ebuild', 'r') as expect_file:
             correct_text = expect_file.read()
         self.assertEqual(got_text, correct_text)
+
+    def test_bad_build_depend(self):
+        """Test Bad Build Dependency"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_run_depend('p2os_driver')
+        ebuild.add_build_depend('fake_package', False)
+        with self.assertRaises(UnresolvedDependency):
+            ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+
+    def test_bad_run_depend(self):
+        """Test Bad Build Dependency"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_run_depend('p2os_driver')
+        ebuild.add_run_depend('fake_package', False)
+        with self.assertRaises(UnresolvedDependency):
+            ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
