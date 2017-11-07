@@ -54,3 +54,25 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('fake_package', False)
         with self.assertRaises(UnresolvedDependency):
             ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+
+    def test_external_build_depend(self):
+        """Test External Build Dependency"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_run_depend('p2os_driver')
+        ebuild.add_build_depend('cmake', False)
+        ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+
+    def test_external_run_depend(self):
+        """Test External Run Dependency"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_run_depend('p2os_driver')
+        ebuild.add_run_depend('cmake', False)
+        ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
