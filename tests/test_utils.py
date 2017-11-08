@@ -64,7 +64,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'Boost-1.0')
         ret = get_license('GNU GPLv3')
         self.assertEqual(ret, 'GPL-3')
-
+        ret = get_license('Public Domain')
+        self.assertEqual(ret, 'public_domain')
 
 if __name__ == '__main__':
     unittest.main()

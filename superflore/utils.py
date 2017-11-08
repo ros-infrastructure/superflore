@@ -125,6 +125,7 @@ def get_license(l):
     cc_by_nc_sa_re = '^(CC(.)?BY(.)?NC(.)?SA(.)?)'
     moz_re = '^(Mozilla)((.)*(1\\.1))?'
     boost_re = '^(Boost)((.)*([1]))?'
+    pub_dom_re = '^(Public(.)?Domain)'
     mit_re = '^MIT'
     f = re.IGNORECASE
 
@@ -163,6 +164,8 @@ def get_license(l):
         return 'CC-BY-SA-3.0'
     elif re.search(boost_re, l, f):
         return 'Boost-1.0'
+    elif re.search(pub_dom_re, l, f):
+        return 'public_domain'
     else:
         print(colored('Could not match license "{0}".'.format(l), 'red'))
         raise UnknownLicense('bad license')
