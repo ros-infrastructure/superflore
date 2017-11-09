@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from superflore.generators.ebuild.ebuild import Ebuild
+from superflore.generators.ebuild.ebuild import ebuild_keyword
 from superflore.exceptions import UnresolvedDependency
 import unittest
 
@@ -78,3 +79,11 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('cmake', False)
         ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('dev-util/cmake' in ebuild_text)
+
+    def test_ebuild_keyword_unstable(self):
+        keyword = ebuild_keyword('amd64', False)
+        self.assertEqual(keyword.to_string(), '~amd64')
+
+    def test_ebuild_keyword_stable(self):
+        keyword = ebuild_keyword('amd64', True)
+        self.assertEqual(keyword.to_string(), 'amd64')
