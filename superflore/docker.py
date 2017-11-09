@@ -13,14 +13,16 @@
 # limitations under the License.
 
 import docker
+import os
 from superflore.utils import info
 from superflore.utils import ok
+from superflore.utils import warn
 
 
 class Docker(object):
     def __init__(self, dockerfile_directory, name):
         self.client = docker.from_env()
-        self.dockerfile_directory = dockerfile_directory
+        self.dockerfile_directory = os.path.dirname(dockerfile_directory)
         self.name = name
         self.image = None
         self.directory_map = dict()
