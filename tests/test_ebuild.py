@@ -189,3 +189,10 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.distro = kinetic
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('ROS_DISTRO="kinetic"' in got_text)
+
+    def test_catkin_nonbinary_mode(self):
+        ebuild = self.get_ebuild()
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertFalse('BUILD_BINARY="0"' in got_text)
+        ebuild.name = 'catkin'
+        self.assertTrue('BUILD_BINARY="0"' in got_text)
