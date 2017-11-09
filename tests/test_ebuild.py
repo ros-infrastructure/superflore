@@ -157,3 +157,17 @@ class TestEbuildOutput(unittest.TestCase):
         self.assertFalse('EPATCH_SUFFIX="patch"' in got_text)
         self.assertFalse('EPATCH_FORCE="yes"' in got_text)
         self.assertFalse('epatch' in got_text)
+
+    def test_opencv3_filter_flags(self):
+        """Test Filter Flags for OpenCV3"""
+        ebuild = self.get_ebuild()
+        ebuild.name = 'opencv3'
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue("filter-flags '-march=*' '-mcpu=*' '-mtune=*'" in got_text)
+
+    def test_stage_filter_flags(self):
+        """Test Filter Flags for Stage"""
+        ebuild = self.get_ebuild()
+        ebuild.name = 'stage'
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue("filter-flags '-std=*'" in got_text)
