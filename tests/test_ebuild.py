@@ -106,6 +106,12 @@ class TestEbuildOutput(unittest.TestCase):
         self.assertTrue('virtual/pkgconfig' in ebuild.depends_external)
         self.assertFalse('virtual/pkgconfig' in ebuild.rdepends_external)
 
+    def test_depend_only_unresolved_rosdep(self):
+        """Test DEPEND only packages"""
+        ebuild = self.get_ebuild()
+        ebuild.add_run_depend('pkgconfig', False)
+        self.assertTrue('virtual/pkgconfig' in ebuild.depends_external)
+
     def test_ebuild_keyword_unstable(self):
         """Test Unstable Keyword"""
         keyword = ebuild_keyword('amd64', False)
