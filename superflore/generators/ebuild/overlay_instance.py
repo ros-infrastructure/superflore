@@ -15,6 +15,7 @@
 import os
 import time
 
+from pkg_resources import resource_filename
 from superflore.docker import Docker
 from superflore.repo_instance import RepoInstance
 from superflore.utils import info
@@ -45,7 +46,8 @@ class RosOverlay(object):
 
     def regenerate_manifests(self, regen_dict):
         info('Building docker image...')
-        dock = Docker('repoman_docker', 'gentoo_repoman')
+        docker_file = resource_filename('repoman_docker', 'Dockerfile')
+        dock = Docker(docker_file, 'gentoo_repoman')
         dock.build()
         info('Running docker image...')
         info('Generating manifests...')

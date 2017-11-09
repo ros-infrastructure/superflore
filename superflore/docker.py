@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import docker
 from superflore.utils import info
 from superflore.utils import ok
 
 
 class Docker(object):
-    def __init__(self, dockerfile_directory, name):
+    def __init__(self, dockerfile, name):
         self.client = docker.from_env()
-        self.dockerfile_directory = dockerfile_directory
+        self.dockerfile_directory = os.path.dirname(dockerfile)
         self.name = name
         self.image = None
         self.directory_map = dict()
