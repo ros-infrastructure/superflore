@@ -181,3 +181,11 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.name = 'stage'
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue("filter-flags '-std=*'" in got_text)
+
+    def test_distro_variable_mapping(self):
+        ebuild = self.get_ebuild()
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue('ROS_DISTRO="lunar"' in got_text)
+        ebuild.distro = kinetic
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue('ROS_DISTRO="kinetic"' in got_text)
