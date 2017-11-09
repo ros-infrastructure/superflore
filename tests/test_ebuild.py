@@ -80,10 +80,80 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('dev-util/cmake' in ebuild_text)
 
+    def test_rdepend_depend(self):
+        """Test Disjoint RDEPEND/DEPEND"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_run_depend('p2os_driver')
+        self.assertTrue('p2os_driver' in ebuild.rdepends)
+        ebuild.add_build_depend('p2os_driver')
+        self.assertTrue('p2os_driver' in ebuild.rdepends)
+        self.assertFalse('p2os_driver' in ebuild.depends)
+        ebuild.add_run_depend('cmake', False)
+        self.assertTrue('cmake' in ebuild.rdepends_external)
+        self.assertFalse('cmake' in ebuild.rdepends)
+        ebuild.add_build_depend('cmake', False)
+        self.assertTrue('cmake' in ebuild.rdepends_external)
+        self.assertFalse('cmake' in ebuild.depends_external)
+        self.assertFalse('cmake' in ebuild.rdepends)
+        self.assertFalse('cmake' in ebuild.depends)
+
+    def test_build_depend_internal(self):
+        """Test build depends when internal/external"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_build_depend('p2os_driver', True)
+        self.assertTrue('p2os_driver' in ebuild.depends)
+        self.assertFalse('p2os_driver' in ebuild.depends_external)
+
+    def test_run_depend_internal(self):
+        """Test build depends when internal/external"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_run_depend('p2os_driver', True)
+        self.assertTrue('p2os_driver' in ebuild.rdepends)
+        self.assertFalse('p2os_driver' in ebuild.rdepends_external)
+
+    def test_depend_only_pkgs(self):
+        """Test DEPEND only packages"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_run_depend('virtual/pkgconfig', False)
+        self.assertTrue('virtual/pkgconfig' in ebuild.depends_external)
+        self.assertFalse('virtual/pkgconfig' in ebuild.rdepends_external)
+
     def test_ebuild_keyword_unstable(self):
+        """Test Unstable Keyword"""
         keyword = ebuild_keyword('amd64', False)
         self.assertEqual(keyword.to_string(), '~amd64')
 
     def test_ebuild_keyword_stable(self):
+        """Test Stable Keyword"""
         keyword = ebuild_keyword('amd64', True)
         self.assertEqual(keyword.to_string(), 'amd64')
+
+    def test_add_keyword(self):
+        """Test Add Keyword"""
+        ebuild = Ebuild()
+        ebuild.homepage = 'https://www.website.com'
+        ebuild.description = 'an ebuild'
+        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.distro = 'lunar'
+        ebuild.add_keyword('amd64', True)
+        ebuild.add_keyword('arm64', False)
+        amd64_stable = ebuild_keyword('amd64', True)
+        arm64_unstable = ebuild_keyword('arm64', False)
+        self.assertTrue(amd64_stable in ebuild.keys)
+        self.assertTrue(arm64_unstable in ebuild.keys)
