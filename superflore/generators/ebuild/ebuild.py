@@ -159,14 +159,7 @@ class Ebuild(object):
             pass
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
-
-        first = True
-        for i in self.keys:
-            if not first:
-                ret += " "
-            ret += i.to_string()
-            first = False
-
+        ret += ' '.join([key.to_string() for key in self.keys])
         ret += "\"\n"
         # RDEPEND
         ret += "RDEPEND=\"\n"
