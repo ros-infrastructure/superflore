@@ -19,7 +19,6 @@ import unittest
 
 
 class TestEbuildOutput(unittest.TestCase):
-    @classmethod
     def get_ebuild(self):
         ebuild = Ebuild()
         ebuild.homepage = 'https://www.website.com'
