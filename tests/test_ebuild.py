@@ -89,8 +89,10 @@ class TestEbuildOutput(unittest.TestCase):
         """Test build depends when internal/external"""
         ebuild = self.get_ebuild()
         ebuild.add_build_depend('p2os_driver', True)
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('p2os_driver' in ebuild.depends)
         self.assertFalse('p2os_driver' in ebuild.depends_external)
+        self.assertTrue('ros-lunar/p2os_driver' in got_text)
 
     def test_run_depend_internal(self):
         """Test build depends when internal/external"""
