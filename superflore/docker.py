@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import docker
 import os
+import docker
+
 from superflore.utils import info
 from superflore.utils import ok
-from superflore.utils import warn
 
 
 class Docker(object):
