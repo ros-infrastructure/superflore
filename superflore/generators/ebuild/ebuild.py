@@ -65,7 +65,6 @@ class Ebuild(object):
         self.unresolved_deps = list()
         self.name = None
         self.has_patches = False
-        self.die_msg = None
         self.python_3 = True
         self.illegal_desc_chars = '()[]{}|^$\\#\t\n\r\v\f\'\"\`'
 
@@ -90,7 +89,7 @@ class Ebuild(object):
     def add_keyword(self, keyword, stable=False):
         self.keys.append(ebuild_keyword(keyword, stable))
 
-    def get_ebuild_text(self, distributor, license_text, die_msg=None):
+    def get_ebuild_text(self, distributor, license_text):
         """
         Generate the ebuild in text, given the distributor line
         and the license text.
@@ -226,11 +225,6 @@ class Ebuild(object):
                 ret += "    filter-flags '-std=*'\n"
             ret += "    ros-cmake_src_configure\n"
             ret += "}\n"
-
-        if self.die_msg is not None:
-            self.die_msg = ' {0}'.format(die_msg)
-        else:
-            self.die_msg = ''
 
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")
