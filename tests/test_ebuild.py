@@ -186,7 +186,7 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild = self.get_ebuild()
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('ROS_DISTRO="lunar"' in got_text)
-        ebuild.distro = kinetic
+        ebuild.distro = 'kinetic'
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('ROS_DISTRO="kinetic"' in got_text)
 
@@ -195,4 +195,5 @@ class TestEbuildOutput(unittest.TestCase):
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertFalse('BUILD_BINARY="0"' in got_text)
         ebuild.name = 'catkin'
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('BUILD_BINARY="0"' in got_text)
