@@ -126,3 +126,16 @@ class TestEbuildOutput(unittest.TestCase):
         arm64_unstable = ebuild_keyword('arm64', False)
         self.assertTrue(amd64_stable in ebuild.keys)
         self.assertTrue(arm64_unstable in ebuild.keys)
+
+    def test_remove_python3(self):
+        """Test The python_3 Boolean"""
+        ebuild = self.get_ebuild()
+        ebuild.python_3 = False
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue('PYTHON_COMPAT=( python2_7 )' in got_text)
+
+    def test_default_python2_python3(self):
+        """Test That Python2/3 Is the Default"""
+        ebuild = self.get_ebuild()
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue('PYTHON_COMPAT=( python{2_7,3_5} )' in got_text)
