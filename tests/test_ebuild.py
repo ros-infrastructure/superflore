@@ -111,7 +111,8 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild = self.get_ebuild()
         ebuild.add_run_depend('pkg-config', False)
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
-        self.assertTrue('virtual/pkgconfig' in ebuild.depends_external)
+        self.assertTrue('pkg-config' in ebuild.depends_external)
+        self.assertTrue('virtual/pkgconfig' in got_text)
 
     def test_ebuild_keyword_unstable(self):
         """Test Unstable Keyword"""
