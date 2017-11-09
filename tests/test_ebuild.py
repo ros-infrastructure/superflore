@@ -65,6 +65,7 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_build_depend('cmake', False)
         ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue('dev-util/cmake' in ebuild_text)
 
     def test_external_run_depend(self):
         """Test External Run Dependency"""
@@ -76,3 +77,4 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_run_depend('cmake', False)
         ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue('dev-util/cmake' in ebuild_text)
