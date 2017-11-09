@@ -39,6 +39,9 @@ class ebuild_keyword(object):
         else:
             return '~{0}'.format(self.arch)
 
+    def __eq__(self, other):
+        return self.to_string() == other.to_string()
+
 
 class Ebuild(object):
     """
