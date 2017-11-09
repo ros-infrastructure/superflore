@@ -109,7 +109,8 @@ class TestEbuildOutput(unittest.TestCase):
     def test_depend_only_unresolved_rosdep(self):
         """Test DEPEND only packages"""
         ebuild = self.get_ebuild()
-        ebuild.add_run_depend('pkgconfig', False)
+        ebuild.add_run_depend('pkg-config', False)
+        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('virtual/pkgconfig' in ebuild.depends_external)
 
     def test_ebuild_keyword_unstable(self):
