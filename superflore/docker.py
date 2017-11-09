@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import os
-import docker
 
+import docker
 from superflore.utils import info
 from superflore.utils import ok
 
