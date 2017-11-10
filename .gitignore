@@ -11,3 +11,4 @@ superflore.egg-info/
 ros-indigo
 ros-kinetic
 ros-lunar
+.coverage
