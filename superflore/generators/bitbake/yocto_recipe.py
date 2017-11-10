@@ -25,7 +25,7 @@
 
 import hashlib
 import os.path
-import sys
+
 import tarfile
 
 from superflore.exceptions import NoPkgXml
@@ -33,19 +33,13 @@ from superflore.utils import get_pkg_version
 from superflore.utils import info
 from superflore.utils import resolve_dep
 
-if sys.version_info[0] == 2:
-    import requests
-    import urllib
+from urllib.request import urlopen
+import urllib
 
-    def get_http(url):
-        return requests.get(url).text
-else:
-    from urllib.request import urlopen
-    import urllib
 
-    def get_http(url):
-        response = urlopen(url)
-        return response.read()
+def get_http(url):
+    response = urlopen(url)
+    return response.read()
 
 
 class yoctoRecipe(object):

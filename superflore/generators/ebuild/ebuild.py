@@ -111,11 +111,7 @@ class Ebuild(object):
         self.description =\
             sanitize_string(self.description, self.illegal_desc_chars)
         self.description = trim_string(self.description)
-        if isinstance(self.description, str):
-            ret += "DESCRIPTION=\"" + self.description + "\"\n"
-        else:
-            ret += "DESCRIPTION=\"NONE\"\n"
-
+        ret += "DESCRIPTION=\"" + self.description + "\"\n"
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
         ret += "SRC_URI=\"" + self.src_uri
         ret += " -> ${PN}-" + self.distro + "-release-${PV}.tar.gz\"\n\n"
