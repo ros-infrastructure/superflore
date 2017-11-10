@@ -65,7 +65,7 @@ def generate_installers(
             changes.append('*{0} --> {1}*'.format(pkg, version))
             installers.append(pkg)
         except UnknownLicense as ul:
-            err("{0}%: Unknown License '{1}'.".format(percent, ul.what()))
+            err("{0}%: Unknown License '{1}'.".format(percent, str(ul)))
             bad_installers.append(pkg)
             failed = failed + 1
         except KeyError:
