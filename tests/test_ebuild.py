@@ -43,6 +43,7 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_build_depend('fake_package', False)
         with self.assertRaises(UnresolvedDependency):
             ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        self.assertTrue('fake_package' in ebuild.get_unresolved())
 
     def test_bad_external_run_depend(self):
         """Test Bad External Run Dependency"""
