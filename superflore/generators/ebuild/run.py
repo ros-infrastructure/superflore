@@ -89,7 +89,7 @@ def main():
     )
 
     args = parser.parse_args(sys.argv[1:])
-
+    selected_targets = None
     if args.all:
         warn('"All" mode detected... This may take a while!')
         preserve_existing = False
