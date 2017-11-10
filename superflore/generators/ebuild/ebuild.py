@@ -124,39 +124,36 @@ class Ebuild(object):
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
         ret += "SRC_URI=\"" + self.src_uri
         ret += " -> ${PN}-" + self.distro + "-release-${PV}.tar.gz\"\n\n"
-        try:
-            # license -- only add if valid
-            if isinstance(self.upstream_license, str):
-                split = self.upstream_license.split(',')
-                if len(split) > 1:
-                    # they did something like "BSD,GPL,blah"
-                    ret += 'LICENSE="( '
-                    ret += ' '.join([get_license(l) for l in split])
-                    ret += ') "\n'
-                else:
-                    ret += "LICENSE=\""
-                    ret += get_license(self.upstream_license) + "\"\n\n"
-            elif py_v < (3, 0):
-                self.upstream_license = self.upstream_license.decode()
-                split = self.upstream_license.split(',')
-                if len(split) > 1:
-                    # they did something like "BSD,GPL,blah"
-                    ret += 'LICENSE="( '
-                    ret += ' '.join(
-                        [get_license(l.replace(' ', '')) for l in split]
-                    )
-                    ret += ' )"\n'
-                else:
-                    ret += "LICENSE=\""
-                    ret += get_license(self.upstream_license) + "\"\n\n"
-            elif isinstance(self.upstream_license, list):
-                ret += "LICENSE=\"( "
+        # license -- only add if valid
+        if isinstance(self.upstream_license, str):
+            split = self.upstream_license.split(',')
+            if len(split) > 1:
+                # they did something like "BSD,GPL,blah"
+                ret += 'LICENSE="( '
+                ret += ' '.join([get_license(l) for l in split])
+                ret += ') "\n'
+            else:
+                ret += "LICENSE=\""
+                ret += get_license(self.upstream_license) + "\"\n\n"
+        elif py_v < (3, 0):
+            self.upstream_license = self.upstream_license.decode()
+            split = self.upstream_license.split(',')
+            if len(split) > 1:
+                # they did something like "BSD,GPL,blah"
+                ret += 'LICENSE="( '
                 ret += ' '.join(
-                    [get_license(ul) for ul in self.upstream_license]
+                    [get_license(l.replace(' ', '')) for l in split]
                 )
-                ret += " )\"\n"
-        except Exception:
-            pass
+                ret += ' )"\n'
+            else:
+                ret += "LICENSE=\""
+                ret += get_license(self.upstream_license) + "\"\n\n"
+        elif isinstance(self.upstream_license, list):
+            ret += "LICENSE=\"( "
+            ret += ' '.join(
+                [get_license(ul) for ul in self.upstream_license]
+            )
+            ret += " )\"\n"
         # iterate through the keywords, adding to the KEYWORDS line.
         ret += "KEYWORDS=\""
         ret += ' '.join([key.to_string() for key in self.keys])
