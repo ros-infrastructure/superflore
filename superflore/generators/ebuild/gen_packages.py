@@ -14,7 +14,6 @@
 
 import glob
 import os
-import sys
 
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag

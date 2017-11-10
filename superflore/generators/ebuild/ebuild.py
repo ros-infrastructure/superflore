@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 from superflore.exceptions import UnresolvedDependency
 from superflore.utils import get_license
 from superflore.utils import resolve_dep
