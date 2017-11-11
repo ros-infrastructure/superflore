@@ -1,4 +1,4 @@
-# Copyright 2017 Open Source Robotics Foundation, Inc.
+# Copyright 2017 Open Source Robotics Foundation, Inc.x3
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from superflore.utils import get_license
 from superflore.utils import resolve_dep
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
-
+from time import gmtime, strftime
 # TODO(allenh1): is there a better way to get these?
 depend_only_pkgs = [
     'dev-util/gperf',
@@ -96,7 +96,7 @@ class Ebuild(object):
 
         @todo: make the year dynamic
         """
-        ret = "# Copyright 2017 " + distributor + "\n"
+        ret = "# Copyright " + strftime("%Y", gmtime()) + distributor + "\n"
         ret += "# Distributed under the terms of the " + license_text
         ret += " license\n\n"
 
