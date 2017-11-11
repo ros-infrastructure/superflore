@@ -17,7 +17,6 @@ import os
 import random
 import re
 import string
-import sys
 
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
