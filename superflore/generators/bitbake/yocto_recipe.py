@@ -29,17 +29,10 @@ import os.path
 import tarfile
 
 from superflore.exceptions import NoPkgXml
+from superflore.utils import get_http
 from superflore.utils import get_pkg_version
 from superflore.utils import info
 from superflore.utils import resolve_dep
-
-from urllib.request import urlopen
-import urllib
-
-
-def get_http(url):
-    response = urlopen(url)
-    return response.read()
 
 
 class yoctoRecipe(object):
