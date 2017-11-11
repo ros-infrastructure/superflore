@@ -1,4 +1,4 @@
-# Copyright 2017 Open Source Robotics Foundation, Inc.x3
+# Copyright 2017 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,7 +94,6 @@ class Ebuild(object):
         Generate the ebuild in text, given the distributor line
         and the license text.
 
-        @todo: make the year dynamic
         """
         ret = "# Copyright " + strftime("%Y", gmtime()) + distributor + "\n"
         ret += "# Distributed under the terms of the " + license_text
