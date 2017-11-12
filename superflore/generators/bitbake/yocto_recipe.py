@@ -25,14 +25,13 @@
 
 import hashlib
 import os.path
-
 import tarfile
+from urllib.request import urlretrieve
 
 from superflore.exceptions import NoPkgXml
 from superflore.utils import get_pkg_version
 from superflore.utils import info
 from superflore.utils import resolve_dep
-from urllib.request import urlretrieve
 
 
 class yoctoRecipe(object):
