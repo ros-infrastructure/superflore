@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 from superflore.exceptions import UnresolvedDependency
 from superflore.utils import get_license
 from superflore.utils import resolve_dep
@@ -110,17 +108,10 @@ class Ebuild(object):
         ret += "inherit ros-cmake\n\n"
 
         # description, homepage, src_uri
-        py_v = sys.version_info
         self.description =\
             sanitize_string(self.description, self.illegal_desc_chars)
         self.description = trim_string(self.description)
-        if isinstance(self.description, str):
-            ret += "DESCRIPTION=\"" + self.description + "\"\n"
-        elif py_v <= (3, 0):
-            ret += "DESCRIPTION=\"" + self.description.decode() + "\"\n"
-        else:
-            ret += "DESCRIPTION=\"NONE\"\n"
-
+        ret += "DESCRIPTION=\"" + self.description + "\"\n"
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
         ret += "SRC_URI=\"" + self.src_uri
         ret += " -> ${PN}-" + self.distro + "-release-${PV}.tar.gz\"\n\n"
@@ -132,19 +123,6 @@ class Ebuild(object):
                 ret += 'LICENSE="( '
                 ret += ' '.join([get_license(l) for l in split])
                 ret += ') "\n'
-            else:
-                ret += "LICENSE=\""
-                ret += get_license(self.upstream_license) + "\"\n\n"
-        elif py_v < (3, 0):
-            self.upstream_license = self.upstream_license.decode()
-            split = self.upstream_license.split(',')
-            if len(split) > 1:
-                # they did something like "BSD,GPL,blah"
-                ret += 'LICENSE="( '
-                ret += ' '.join(
-                    [get_license(l.replace(' ', '')) for l in split]
-                )
-                ret += ' )"\n'
             else:
                 ret += "LICENSE=\""
                 ret += get_license(self.upstream_license) + "\"\n\n"
