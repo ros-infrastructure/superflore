@@ -17,7 +17,7 @@ import os
 import random
 import re
 import string
-import sys
+from urllib.request import urlopen
 
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
@@ -25,17 +25,10 @@ from superflore.rosdep_support import resolve_rosdep_key
 from termcolor import colored
 import yaml
 
-if sys.version_info[0] == 2:
-    import requests
 
-    def get_http(url):
-        return requests.get(url).text
-else:
-    from urllib.request import urlopen
-
-    def get_http(url):
-        response = urlopen(url)
-        return response.read()
+def get_http(url):
+    response = urlopen(url)
+    return response.read()
 
 
 def warn(string):
@@ -167,7 +160,7 @@ def get_license(l):
     elif re.search(pub_dom_re, l, f):
         return 'public_domain'
     else:
-        print(colored('Could not match license "{0}".'.format(l), 'red'))
+        err('Could not match license "{0}".'.format(l), 'red')
         raise UnknownLicense('bad license')
 
 
