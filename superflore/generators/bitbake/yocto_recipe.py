@@ -25,27 +25,13 @@
 
 import hashlib
 import os.path
-import sys
 import tarfile
+from urllib.request import urlretrieve
 
 from superflore.exceptions import NoPkgXml
 from superflore.utils import get_pkg_version
 from superflore.utils import info
 from superflore.utils import resolve_dep
-
-if sys.version_info[0] == 2:
-    import requests
-    import urllib
-
-    def get_http(url):
-        return requests.get(url).text
-else:
-    from urllib.request import urlopen
-    import urllib
-
-    def get_http(url):
-        response = urlopen(url)
-        return response.read()
 
 
 class yoctoRecipe(object):
@@ -99,7 +85,7 @@ class yoctoRecipe(object):
             info("using cached archive for package '%s'..." % self.name)
         else:
             info("downloading archive version for package '%s'..." % self.name)
-            urllib.request.urlretrieve(self.src_uri, self.getArchiveName())
+            urlretrieve(self.src_uri, self.getArchiveName())
 
     def extractArchive(self):
         tar = tarfile.open(self.getArchiveName(), "r:gz")

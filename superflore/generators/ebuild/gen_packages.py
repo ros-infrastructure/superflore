@@ -14,7 +14,6 @@
 
 import glob
 import os
-import sys
 
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
@@ -199,8 +198,6 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
     try:
         if 'url' not in pkg_fields['package']:
             warn("no website field for package {}".format(pkg_name))
-        elif sys.version_info <= (3, 0):
-            pkg_ebuild.homepage = pkg_fields['package']['url'].decode()
         elif isinstance(pkg_fields['package']['url'], str):
             pkg_ebuild.homepage = pkg_fields['package']['url']
         elif '@type' in pkg_fields['package']['url']:

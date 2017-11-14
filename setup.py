@@ -16,9 +16,6 @@ install_requires = [
     'docker'
 ]
 
-if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
-    install_requires.append('argparse')
-
 setup(
     name='superflore',
     version='0.1.0',
