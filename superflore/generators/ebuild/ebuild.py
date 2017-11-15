@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 from time import gmtime, strftime
 
 from superflore.exceptions import UnresolvedDependency
@@ -95,7 +94,8 @@ class Ebuild(object):
         Generate the ebuild in text, given the distributor line
         and the license text.
         """
-        ret = "# Copyright " + strftime("%Y", gmtime()) + " " + distributor + "\n"
+        ret = "# Copyright " + strftime("%Y", gmtime()) + " "
+        ret += distributor + "\n"
         ret += "# Distributed under the terms of the " + license_text
         ret += " license\n\n"
 
