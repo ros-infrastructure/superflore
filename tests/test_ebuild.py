@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from time import gmtime, strftime
+import re
 
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.ebuild import ebuild_keyword
@@ -34,13 +35,9 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild = self.get_ebuild()
         ebuild.add_run_depend('p2os_driver')
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
-        with open('tests/ebuild/simple_expected.ebuild', 'r+') as expect_file:
-            expect_file.read(16)
-            fileUpdateStr = "# Copyright " + strftime("%Y", gmtime())
-            fileUpdateStr += expect_file.read()
-            expect_file.write(fileUpdateStr)
-            expect_file.flush()
-            correct_text = fileUpdateStr;
+        with open('tests/ebuild/simple_expected.ebuild', 'r') as expect_file:
+            s = expect_file.read()
+             correct_text = re.sub('Copyright 2017', 'Copyright ' + strftime("%Y", gmtime()), s)
         self.assertEqual(got_text, correct_text)
 
     def test_bad_external_build_depend(self):
