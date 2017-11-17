@@ -40,7 +40,7 @@ class TestEbuildOutput(unittest.TestCase):
             fileUpdateStr += expect_file.read()
             expect_file.write(fileUpdateStr)
             expect_file.flush()
-            correct_text = expect_file.read()
+            correct_text = fileUpdateStr;
         self.assertEqual(got_text, correct_text)
 
     def test_bad_external_build_depend(self):
