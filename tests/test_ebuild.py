@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from time import gmtime, strftime
+import re
+
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.ebuild import ebuild_keyword
 from superflore.exceptions import UnresolvedDependency
@@ -33,7 +36,8 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         with open('tests/ebuild/simple_expected.ebuild', 'r') as expect_file:
-            correct_text = expect_file.read()
+            s = expect_file.read()
+            correct_text = re.sub('Copyright 2017', 'Copyright ' + strftime("%Y", gmtime()), s)
         self.assertEqual(got_text, correct_text)
 
     def test_bad_external_build_depend(self):
