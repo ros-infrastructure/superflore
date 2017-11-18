@@ -67,22 +67,21 @@ def main():
         help='location to store archived packages',
         type=str
     )
-
+    selected_targets = active_distros
     args = parser.parse_args(sys.argv[1:])
+    if args.all:
+        warn('"All" mode detected... this may take a while!')
+        preserve_existing = False
+    elif args.ros_distro:
+        warn('"{0}" distro detected...'.format(args.ros_distro))
+        selected_targets = [args.ros_distro]
+        preserve_existing = False
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
             os.chmod(_repo, 17407)
+        # clone if args.output-repository_path is None
         overlay = RosMeta(_repo, not args.output_repository_path)
-        selected_targets = active_distros
-        if args.all:
-            warn('"All" mode detected... this may take a while!')
-            preserve_existing = False
-        elif args.ros_distro:
-            selected_targets = [args.ros_distro]
-            preserve_existing = False
-        # clone current repo
-        selected_targets = active_distros
         # generate installers
         total_installers = dict()
         total_broken = set()
