@@ -160,7 +160,7 @@ def get_license(l):
     elif re.search(pub_dom_re, l, f):
         return 'public_domain'
     else:
-        err('Could not match license "{0}".'.format(l), 'red')
+        err('Could not match license "{0}".'.format(l))
         raise UnknownLicense('bad license')
 
 
