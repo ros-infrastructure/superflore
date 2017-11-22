@@ -44,7 +44,7 @@ def err(string):
 
 
 def info(string):
-    print(colored('>>> {0}'.format(string), 'cyan'))
+    print(colored('>>>> {0}'.format(string), 'cyan'))
 
 
 def make_dir(dirname):
