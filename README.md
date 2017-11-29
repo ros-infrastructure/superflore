@@ -77,3 +77,40 @@ time consuming.*
 If you wish to regenerate _all_ installers for _all_ ros distros, you
 should pass the `--all` flag in place of the `--ros-distro` flag. *Note:
 this takes an _extremely_ long amount of time.*
+
+
+F.A.Q.:
+=========
+Here are some specific use cases for Superflore.
+
+Gentoo:
+--------
+
+**Q**: _I need to patch this package. What are the steps involved here?_
+
+**A**: It's relatively simple to generate a patch for a package. From a 
+contributor standpoint, superflore does most of the heavy lifting for you.
+
+We'll assume you have already patched your source code, and your patch is
+named `fix-pkg.patch`. Also, we'll assume you're patching the package `foo`,
+and that you have a fork of ros/ros-overlay on its master branch within
+you home directory.
+
+```
+$ cd ${HOME}/ros-overlay/ros-[distro]/foo
+$ mkdir files
+$ cp /path/to/patch/fix-pkg.patch ./files
+$ git add files
+$ git commit -m "Add patch to fix package [foo] in [distro]."
+```
+
+Next, use Superflore to regenerate the package.
+
+```
+$ superflore-gen-ebuilds --only [foo] --ros-distro [distro] --output-repository-path ~/ros-overlay
+```
+
+After that command runs, a pull request will be filed on your behalf into
+the ROS overlay repository. **Note:** If you don't want a pull request to be
+filed, add the `--dry-run` flag to the above command, and, after you are ready
+to file the pr, run `superflore-gen-ebuilds --pr-only`.
