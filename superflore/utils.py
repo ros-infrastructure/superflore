@@ -196,5 +196,7 @@ def _resolve_dep_open_embedded(pkg):
         return 'catkin-native'
     elif pkg == 'python-catkin-pkg':
         return 'python-catkin-pkg-native'
+    elif pkg == 'libpoco-dev':
+        return 'poco'
     else:
         return pkg.replace('_', '-')
