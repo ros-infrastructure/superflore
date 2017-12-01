@@ -165,6 +165,7 @@ class yoctoRecipe(object):
         ret += '"\n'
 
         # SRC_URI
+        self.src_uri = self.src_uri.replace(self.name, '${PN}')
         ret += 'SRC_URI = "' + self.src_uri + ';'
         ret += 'downloadfilename=${ROS_SP}.tar.gz"\n\n'
         ret += 'SRC_URI[md5sum] = "' + self.src_md5 + '"\n'
