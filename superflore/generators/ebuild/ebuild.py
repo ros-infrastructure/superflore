@@ -114,6 +114,7 @@ class Ebuild(object):
         self.description = trim_string(self.description)
         ret += "DESCRIPTION=\"" + self.description + "\"\n"
         ret += "HOMEPAGE=\"" + self.homepage + "\"\n"
+        self.src_uri = self.src_uri.replace(self.name, '${PN}')
         ret += "SRC_URI=\"" + self.src_uri
         ret += " -> ${PN}-" + self.distro + "-release-${PV}.tar.gz\"\n\n"
         # license -- only add if valid

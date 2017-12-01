@@ -26,7 +26,8 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild = Ebuild()
         ebuild.homepage = 'https://www.website.com'
         ebuild.description = 'an ebuild'
-        ebuild.src_uri = 'https://www.website.com/download/stuff.tar.gz'
+        ebuild.src_uri = 'https://www.website.com/download/foo/archive/foo/release/lunar/0.0.0.tar.gz'
+        ebuild.name = 'foo'
         ebuild.distro = 'lunar'
         return ebuild
 
