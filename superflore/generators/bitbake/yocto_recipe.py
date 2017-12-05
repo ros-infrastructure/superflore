@@ -137,6 +137,8 @@ class yoctoRecipe(object):
         ret += 'AUTHOR = "' + self.author + '"\n'
         # section
         ret += 'SECTION = "devel"\n'
+        # ROS distro
+        ret += 'ROSDISTRO = "%s"\n' % (self.distro)
         self.get_license_line()
         if isinstance(self.license, str):
             ret += 'LICENSE = "%s"\n' % get_license(self.license)
