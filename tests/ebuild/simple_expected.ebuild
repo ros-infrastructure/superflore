@@ -8,7 +8,7 @@ inherit ros-cmake
 
 DESCRIPTION="an ebuild"
 HOMEPAGE="https://www.website.com"
-SRC_URI="https://www.website.com/download/stuff.tar.gz -> ${PN}-lunar-release-${PV}.tar.gz"
+SRC_URI="https://www.website.com/download/${PN}/archive/${PN}/release/lunar/0.0.0.tar.gz -> ${PN}-lunar-release-${PV}.tar.gz"
 
 LICENSE="LGPL-2"
 

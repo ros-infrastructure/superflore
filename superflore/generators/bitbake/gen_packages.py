@@ -57,7 +57,7 @@ def regenerate_installer(
         ok("recipe for package '%s' up to date, skpping..." % pkg)
         return None, []
     elif existing:
-        overlay.remove_file(existing[0])
+        overlay.repo.remove_file(existing[0])
     try:
         current = oe_installer(distro, pkg, tar_dir)
         current.recipe.name = pkg.replace('_', '-')
