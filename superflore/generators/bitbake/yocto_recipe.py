@@ -26,8 +26,8 @@
 import hashlib
 import os.path
 import tarfile
-from urllib.request import urlretrieve
 from time import gmtime, strftime
+from urllib.request import urlretrieve
 
 from superflore.exceptions import NoPkgXml
 from superflore.utils import get_pkg_version
