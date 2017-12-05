@@ -140,7 +140,7 @@ class yoctoRecipe(object):
             ret += 'LICENSE = "' + self.license + '"\n'
             first = True
             for lic in self.license:
-                if !first:
+                if first != True:
                     ret += ' '
                     first = False
                 ret += lic
