@@ -138,11 +138,11 @@ class yoctoRecipe(object):
         elif isinstance(self.license, list):
             self.license = self.license[0].replace(' ', '-')
             ret += 'LICENSE = "' + self.license + '"\n'
-            first = true
+            first = True
             for lic in self.license:
                 if !first:
                     ret += ' '
-                    first = False;
+                    first = False
                 ret += lic
             ret += '\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
