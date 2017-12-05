@@ -26,6 +26,7 @@
 import hashlib
 import os.path
 import tarfile
+from time import gmtime, strftime
 from urllib.request import urlretrieve
 
 from superflore.exceptions import NoPkgXml
@@ -114,7 +115,8 @@ class yoctoRecipe(object):
         Generate the Yocto Recipe, given the distributor line
         and the license text.
         """
-        ret = '# Copyright 2017 ' + distributor + '\n'
+        ret = "# Copyright " + strftime("%Y", gmtime()) + " "
+        ret += distributor + "\n"
         ret += '# Distributed under the terms of the ' + license_text
         ret += ' license\n\n'
 
@@ -136,16 +138,8 @@ class yoctoRecipe(object):
         elif isinstance(self.license, list):
             self.license = self.license[0].replace(' ', '-')
             ret += 'LICENSE = "' + self.license + '"\n'
-            """
-            TODO(allenh1): add this functionality
-            first = True
-            for lic in self.license:
-                if not first:
-                    ret += ' '
-                    first = False
-                ret += lic
+            ret += ' '.join(self.license)
             ret += '"\n'
-            """
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
         ret += ';endline='
