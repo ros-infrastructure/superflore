@@ -140,10 +140,10 @@ class yoctoRecipe(object):
             ret += 'LICENSE = "' + self.license + '"\n'
             first = True
             for lic in self.license:
-                if first != True:
+                if first == False:
                     ret += ' '
-                    first = False
                 ret += lic
+                first = False
             ret += '\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
