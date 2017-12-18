@@ -112,7 +112,9 @@ def main():
                         overlay,
                         regenerate_installer,
                         preserve_existing,
-                        tar_dir
+                        tar_dir,
+                        md5_cache,
+                        sha256_cache
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:
