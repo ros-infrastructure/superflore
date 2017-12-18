@@ -193,7 +193,7 @@ def _resolve_dep_open_embedded(pkg):
     elif pkg == 'python-empy':
         return 'python-empy-native'
     elif pkg == 'catkin':
-        return 'catkin-native'
+        return 'catkin-native catkin'
     elif pkg == 'python-catkin-pkg':
         return 'python-catkin-pkg-native'
     elif pkg == 'libpoco-dev':
