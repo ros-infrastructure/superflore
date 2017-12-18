@@ -14,6 +14,7 @@
 
 import argparse
 import os
+import pickle
 import sys
 
 from superflore.generate_installers import generate_installers
@@ -76,6 +77,22 @@ def main():
         warn('"{0}" distro detected...'.format(args.ros_distro))
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    # open cached tar file if it exists
+    md5_cache = None
+    sha256_cache = None
+    if args.tar_dir:
+        try:
+            md5_file = open('%s/md5_cache.pickle', 'rb')
+            md5_cache = pickle.load(md5_file)
+        except IOError:
+            md5_file = open('%s/md5_cache.pickle', 'wb')
+            md5_cache = dict()
+        try:
+            sha256_file = open('%s/md5_cache.pickle', 'rb')
+            sha256_cache = pickle.load(sha256_file)
+        except IOError:
+            sha256_file = open('%s/md5_cache.pickle', 'wb')
+            sha256_cache = dict()
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir

@@ -37,7 +37,7 @@ from superflore.utils import resolve_dep
 
 
 class yoctoRecipe(object):
-    def __init__(self, name, distro, src_uri, tar_dir):
+    def __init__(self, name, distro, src_uri, tar_dir, cache_file):
         self.name = name
         self.distro = distro.name
         self.version = get_pkg_version(distro, name)

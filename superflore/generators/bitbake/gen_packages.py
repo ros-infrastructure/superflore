@@ -35,7 +35,7 @@ org_license = "BSD"
 
 
 def regenerate_installer(
-    overlay, pkg, distro, preserve_existing, tar_dir
+    overlay, pkg, distro, preserve_existing, tar_dir, cache_file
 ):
     make_dir("{0}/recipes-ros-{1}".format(overlay.repo.repo_dir, distro.name))
     version = get_pkg_version(distro, pkg)
