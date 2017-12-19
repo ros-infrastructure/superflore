@@ -66,7 +66,7 @@ class yoctoRecipe(object):
             if self.getArchiveName() not in sha256_cache:
                 sha256_cache[self.getArchiveName()] = hashlib.sha256(
                     open(self.getArchiveName(), 'rb').read()).hexdigest()
-            self.src_sha256 = sha2_cache[self.getArchiveName()]
+            self.src_sha256 = sha256_cache[self.getArchiveName()]
         else:
             self.src_sha256 = hashlib.sha256(
                 open(self.getArchiveName(), 'rb').read()).hexdigest()
