@@ -84,14 +84,14 @@ def main():
         try:
             md5_file = open('%s/md5_cache.pickle', 'rb')
             md5_cache = pickle.load(md5_file)
+            close(md5_file)
         except IOError:
-            md5_file = open('%s/md5_cache.pickle', 'wb')
             md5_cache = dict()
         try:
             sha256_file = open('%s/md5_cache.pickle', 'rb')
             sha256_cache = pickle.load(sha256_file)
+            close(sha256_file)
         except IOError:
-            sha256_file = open('%s/md5_cache.pickle', 'wb')
             sha256_cache = dict()
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
