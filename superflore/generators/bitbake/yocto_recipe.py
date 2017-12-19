@@ -33,7 +33,7 @@ from superflore.exceptions import NoPkgXml
 from superflore.utils import get_pkg_version
 from superflore.utils import info
 from superflore.utils import resolve_dep
-from superflore.utils import getlicense
+from superflore.utils import get_license
 
 
 class yoctoRecipe(object):
@@ -138,7 +138,7 @@ class yoctoRecipe(object):
             ret += 'LICENSE = "' + self.license + '"\n'
         elif isinstance(self.license, list):
             ret += 'LICENSE = "' 
-            ret += '"\n' + ' & '.join([getlicense(l) for l in self.license])
+            ret += '"\n' + ' & '.join([get_license(l) for l in self.license])
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
         ret += ';endline='
