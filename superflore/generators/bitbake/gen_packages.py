@@ -114,7 +114,7 @@ def _gen_recipe_for_package(
     src_uri = pkg_rosinstall[0]['tar']['uri']
 
     pkg_recipe = yoctoRecipe(
-        pkg_name, distro, src_uri, tar_dir, md5_cache, sha256_cache
+        pkg_name, distro, src_uri, md5_cache, sha256_cache
     )
     # add run dependencies
     for rdep in pkg_run_deps:
