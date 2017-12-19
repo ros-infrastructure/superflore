@@ -1,7 +1,7 @@
 FROM gentoo/stage3-amd64
 
-
-RUN emerge-webrsync && emerge --sync && emerge app-crypt/gnupg repoman dev-vcs/git --autounmask-write
+RUN mkdir -p /usr/portage/gentoo && emerge-webrsync && emerge --sync \
+    && eselect profile set 12 && emerge app-crypt/gnupg repoman dev-vcs/git --autounmask-write
 
 ENV FEATURES sign
 ENV PORTAGE_GPG_DIR ~/.gnupg/
