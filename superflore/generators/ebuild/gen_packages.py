@@ -60,7 +60,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
             distro.name, pkg
         )
     )
-    if preserve_existing and existing:
+    if preserve_existing and os.path.isfile(ebuild_name):
         ok("ebuild for package '%s' up to date, skipping..." % pkg)
         return None, []
     elif existing:
