@@ -136,7 +136,7 @@ class yoctoRecipe(object):
             self.license = self.license.replace(' ', '-')
             ret += 'LICENSE = "' + self.license + '"\n'
         elif isinstance(self.license, list):
-            ret += 'LICENSE = "' + ' & '.join(self.license)
+            ret += 'LICENSE = "' + ' & '.join([getlicense(l) for l in self.license])
             ret += '"\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
