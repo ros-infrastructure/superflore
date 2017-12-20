@@ -58,6 +58,9 @@ class yoctoRecipe(object):
             if self.getArchiveName() not in md5_cache:
                 md5_cache[self.getArchiveName()] = hashlib.md5(
                     open(self.getArchiveName(), 'rb').read()).hexdigest()
+                md5_file = open('%s/md5_cache.pickle' % tar_dir, 'wb')
+                pickle.dump(md5_cache, md5_file)
+                md5_file.close()
             self.src_md5 = md5_cache[self.getArchiveName()]
         else:
             self.src_md5 = hashlib.md5(
@@ -66,6 +69,9 @@ class yoctoRecipe(object):
             if self.getArchiveName() not in sha256_cache:
                 sha256_cache[self.getArchiveName()] = hashlib.sha256(
                     open(self.getArchiveName(), 'rb').read()).hexdigest()
+                sha256_file = open('%s/sha256_cache.pickle' % tar_dir, 'wb')
+                pickle.dump(sha256_cache, sha256_file)
+                sha256_file.close()
             self.src_sha256 = sha256_cache[self.getArchiveName()]
         else:
             self.src_sha256 = hashlib.sha256(
