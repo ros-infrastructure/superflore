@@ -26,11 +26,6 @@ from termcolor import colored
 import yaml
 
 
-def get_http(url):
-    response = urlopen(url)
-    return response.read()
-
-
 def warn(string):
     print(colored('>>>> {0}'.format(string), 'yellow'))
 
@@ -71,24 +66,6 @@ def rand_ascii_str(length=10):
     Generates a random string of ascii characters of length 'length'
     """
     return ''.join(random.choice(string.ascii_letters) for x in range(length))
-
-
-def download_yamls():
-    global base_yml
-    global python_yml
-    global ruby_yml
-
-    base_url = "https://raw.githubusercontent.com/ros/rosdistro/master/rosdep"
-    base_yaml = "{0}/base.yaml".format(base_url)
-    python_yaml = "{0}/python.yaml".format(base_url)
-    ruby_yaml = "{0}/ruby.yaml".format(base_url)
-
-    info("Downloading latest base yml...")
-    base_yml = yaml.load(get_http(base_yaml))
-    info("Downloading latest python yml...", 'cyan')
-    python_yml = yaml.load(get_http(python_yaml))
-    info("Downloading latest ruby yml...", 'cyan')
-    ruby_yml = yaml.load(get_http(ruby_yaml))
 
 
 def sanitize_string(string, illegal_chars):
