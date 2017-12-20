@@ -165,9 +165,6 @@ def get_license(l):
 
 
 def resolve_dep(pkg, os):
-    """
-    TODO(allenh1): integrate rosdep
-    """
     if os == 'oe':
         return _resolve_dep_open_embedded(pkg)
     elif os == 'gentoo':
@@ -178,6 +175,9 @@ def resolve_dep(pkg, os):
 
 
 def _resolve_dep_open_embedded(pkg):
+    """
+    TODO(allenh1): integrate rosdep
+    """
     if pkg == 'python-yaml':
         return 'python-pyyaml'
     elif pkg == 'tinyxml2':
