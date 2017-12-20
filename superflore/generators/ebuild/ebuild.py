@@ -123,7 +123,7 @@ class Ebuild(object):
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
                 ret += 'LICENSE="( '
-                ret += ' '.join([get_license(l) for l in split])
+                ret += ' '.join([get_license(l.lstrip()) for l in split])
                 ret += ') "\n'
             else:
                 ret += "LICENSE=\""
