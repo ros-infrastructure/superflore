@@ -133,9 +133,7 @@ class yoctoRecipe(object):
         ret += 'SECTION = "devel"\n'
         self.get_license_line()
         if isinstance(self.license, str):
-            self.license = self.license.split(',')[0]
-            ret += 'LICENSE = "'
-            ret += ' & '.join([get_license(l) for l in self.license]) + '"\n'
+            ret += 'LICENSE = "%s"\n' % getlicense(self.license)
         elif isinstance(self.license, list):
             ret += 'LICENSE = "'
             ret += ' & '.join([get_license(l) for l in self.license]) + '"\n'
