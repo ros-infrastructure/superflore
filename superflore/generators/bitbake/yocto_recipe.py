@@ -26,9 +26,11 @@
 import hashlib
 import os.path
 import tarfile
+from time import gmtime, strftime
 from urllib.request import urlretrieve
 
 from superflore.exceptions import NoPkgXml
+from superflore.utils import get_license
 from superflore.utils import get_pkg_version
 from superflore.utils import info
 from superflore.utils import resolve_dep
@@ -114,7 +116,8 @@ class yoctoRecipe(object):
         Generate the Yocto Recipe, given the distributor line
         and the license text.
         """
-        ret = '# Copyright 2017 ' + distributor + '\n'
+        ret = "# Copyright " + strftime("%Y", gmtime()) + " "
+        ret += distributor + "\n"
         ret += '# Distributed under the terms of the ' + license_text
         ret += ' license\n\n'
 
@@ -130,22 +133,10 @@ class yoctoRecipe(object):
         ret += 'SECTION = "devel"\n'
         self.get_license_line()
         if isinstance(self.license, str):
-            self.license = self.license.split(',')[0]
-            self.license = self.license.replace(' ', '-')
-            ret += 'LICENSE = "' + self.license + '"\n'
+            ret += 'LICENSE = "%s"\n' % get_license(self.license)
         elif isinstance(self.license, list):
-            self.license = self.license[0].replace(' ', '-')
-            ret += 'LICENSE = "' + self.license + '"\n'
-            """
-            TODO(allenh1): add this functionality
-            first = True
-            for lic in self.license:
-                if not first:
-                    ret += ' '
-                    first = False
-                ret += lic
-            ret += '"\n'
-            """
+            ret += 'LICENSE = "'
+            ret += ' & '.join([get_license(l) for l in self.license]) + '"\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
         ret += ';endline='
