@@ -80,15 +80,17 @@ def main():
     # open cached tar file if it exists
     md5_cache = None
     sha256_cache = None
-    if args.tar_dir:
+    if args.tar_archive_dir:
         try:
-            md5_file = open('%s/md5_cache.pickle' % args.tar_dir, 'rb')
+            md5_file = open('%s/md5_cache.pickle' % args.tar_archive_dir, 'rb')
             md5_cache = pickle.load(md5_file)
             md5_file.close()
         except IOError:
             md5_cache = dict()
         try:
-            sha256_file = open('%s/sha256_cache.pickle' % args.tar_dir, 'rb')
+            sha256_file = open(
+                '%s/sha256_cache.pickle' % args.tar_archive_dir, 'rb'
+            )
             sha256_cache = pickle.load(sha256_file)
             sha256_file.close()
         except IOError:
