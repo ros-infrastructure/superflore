@@ -152,7 +152,6 @@ class Ebuild(object):
                         ret += "    " + res + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(rdep)
-
         ret += "\"\n"
 
         # DEPEND
