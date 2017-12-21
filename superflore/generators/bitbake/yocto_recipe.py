@@ -152,7 +152,9 @@ class yoctoRecipe(object):
         ret += ';md5='
         ret += str(self.license_md5)
         ret += '"\n\n'
-
+        # check for catkin
+        if self.name == 'catkin':
+            ret += 'CATKIN_NO_BIN="True"\n\n'
         # DEPEND
         first = True
         ret += 'DEPENDS = "'
