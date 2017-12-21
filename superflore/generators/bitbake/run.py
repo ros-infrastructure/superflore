@@ -95,26 +95,26 @@ def main():
         else:
             sha256_filename = None
             md5_filename = None
-        with TempfileManager(args.tar_archive_dir) as tar_dir:
-            with CacheManager(sha256_filename) as sha256_cache,\
-                 CacheManager(md5_filename) as md5_cache:
+        with TempfileManager(args.tar_archive_dir) as tar_dir,\
+             CacheManager(sha256_filename) as sha256_cache,\
+             CacheManager(md5_filename) as md5_cache:
                 for distro in selected_targets:
                     distro_installers, distro_broken, distro_changes =\
-                        generate_installers(
-                            distro,
-                            overlay,
-                            regenerate_installer,
-                            preserve_existing,
-                            tar_dir,
-                            md5_cache,
-                            sha256_cache
-                        )
-                    for key in distro_broken.keys():
-                        for pkg in distro_broken[key]:
-                            total_broken.add(pkg)
+                    generate_installers(
+                        distro,
+                        overlay,
+                        regenerate_installer,
+                        preserve_existing,
+                        tar_dir,
+                        md5_cache,
+                        sha256_cache
+                    )
+                for key in distro_broken.keys():
+                    for pkg in distro_broken[key]:
+                        total_broken.add(pkg)
 
-                    total_changes[distro] = distro_changes
-                    total_installers[distro] = distro_installers
+                total_changes[distro] = distro_changes
+                total_installers[distro] = distro_installers
 
         num_changes = 0
         for distro_name in total_changes:
