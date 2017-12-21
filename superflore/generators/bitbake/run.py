@@ -20,6 +20,7 @@ import sys
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
+from superflore.HashManager import HashManager
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import info
@@ -78,8 +79,6 @@ def main():
         selected_targets = [args.ros_distro]
         preserve_existing = False
     # open cached tar file if it exists
-    md5_cache = None
-    sha256_cache = None
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
@@ -90,10 +89,15 @@ def main():
         total_installers = dict()
         total_broken = set()
         total_changes = dict()
-
+        if args.tar_archive_dir:
+            sha256_filename = '%s/sha256_cache.pickle' % args.tar_archive_dir
+            md5_filename = '%s/md5_cache.pickle' % args.tar_archive_dir
+        else:
+            sha256_filename = None
+            md5_filename = None
         with TempfileManager(args.tar_archive_dir) as tar_dir:
-            with HashManager('%s/sha256_cache.pickle') % tar_dir as sha256_cache \
-                 HashManager('%s/md5_cache.pickle') % tar_dir as md5_cache:
+            with HashManager(sha256_filename) as sha256_cache,\
+                 HashManager(md5_filename) as md5_cache:
                 for distro in selected_targets:
                     distro_installers, distro_broken, distro_changes =\
                         generate_installers(

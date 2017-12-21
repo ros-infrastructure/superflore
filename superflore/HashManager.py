@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.utils import err
+import os
+import pickle
+
 from superflore.utils import info
 
 
@@ -21,16 +23,19 @@ class HashManager:
         self.filename = filename
         self.cache = dict()
 
-    def __enter__():
+    def __enter__(self):
         # load the initial cache, if it exists
-        if os.path.isfile(self.filename):
+        if self.filename and os.path.isfile(self.filename):
+            info("Loading cached file '%s'" % self.filename)
             self.cache_file = open(self.filename, 'rb')
             self.cache = pickle.load(self.cache_file)
             self.cache_file.close()
         return self.cache
 
     def __exit__(self, *args):
-        # save the cache
-        self.cache_file = open(self.filename, 'wb')
-        pickle.dump(self.cache, self.cache_file)
-        self.cache_file.close()
+        # save the cache, if it exists
+        if self.filename:
+            info("Saving cached file '%s'" % self.filename)
+            self.cache_file = open(self.filename, 'wb')
+            pickle.dump(self.cache, self.cache_file)
+            self.cache_file.close()
