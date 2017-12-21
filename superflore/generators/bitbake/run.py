@@ -14,13 +14,12 @@
 
 import argparse
 import os
-import pickle
 import sys
 
+from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
-from superflore.CacheManager import CacheManager
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import info
@@ -96,10 +95,10 @@ def main():
             sha256_filename = None
             md5_filename = None
         with TempfileManager(args.tar_archive_dir) as tar_dir,\
-             CacheManager(sha256_filename) as sha256_cache,\
-             CacheManager(md5_filename) as md5_cache:
-                for distro in selected_targets:
-                    distro_installers, distro_broken, distro_changes =\
+            CacheManager(sha256_filename) as sha256_cache,\
+            CacheManager(md5_filename) as md5_cache:  # noqa
+            for distro in selected_targets:
+                distro_installers, distro_broken, distro_changes =\
                     generate_installers(
                         distro,
                         overlay,
@@ -112,7 +111,6 @@ def main():
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:
                         total_broken.add(pkg)
-
                 total_changes[distro] = distro_changes
                 total_installers[distro] = distro_installers
 

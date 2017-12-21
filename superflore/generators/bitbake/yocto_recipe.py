@@ -25,7 +25,6 @@
 
 import hashlib
 import os.path
-import pickle
 import tarfile
 from time import gmtime, strftime
 from urllib.request import urlretrieve
@@ -60,7 +59,7 @@ class yoctoRecipe(object):
                 md5_cache[self.getArchiveName()] = hashlib.md5(
                     open(self.getArchiveName(), 'rb').read()).hexdigest()
                 sha256_cache[self.getArchiveName()] = hashlib.sha256(
-                open(self.getArchiveName(), 'rb').read()).hexdigest()
+                    open(self.getArchiveName(), 'rb').read()).hexdigest()
         self.src_sha256 = sha256_cache[self.getArchiveName()]
         self.src_md5 = md5_cache[self.getArchiveName()]
 
