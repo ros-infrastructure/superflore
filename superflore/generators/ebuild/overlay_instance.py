@@ -61,7 +61,6 @@ class RosOverlay(object):
                 pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(key, pkg)
                 dock.add_bash_command('cd {0}'.format(pkg_dir))
                 dock.add_bash_command('repoman manifest')
-                dock.add_bash_command('cd /tmp/ros-overlay')
         dock.run(show_cmd=True)
 
     def pull_request(self, message):
