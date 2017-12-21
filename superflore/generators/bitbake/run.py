@@ -80,21 +80,6 @@ def main():
     # open cached tar file if it exists
     md5_cache = None
     sha256_cache = None
-    if args.tar_archive_dir:
-        try:
-            md5_file = open('%s/md5_cache.pickle' % args.tar_archive_dir, 'rb')
-            md5_cache = pickle.load(md5_file)
-            md5_file.close()
-        except IOError:
-            md5_cache = dict()
-        try:
-            sha256_file = open(
-                '%s/sha256_cache.pickle' % args.tar_archive_dir, 'rb'
-            )
-            sha256_cache = pickle.load(sha256_file)
-            sha256_file.close()
-        except IOError:
-            sha256_cache = dict()
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
@@ -107,23 +92,25 @@ def main():
         total_changes = dict()
 
         with TempfileManager(args.tar_archive_dir) as tar_dir:
-            for distro in selected_targets:
-                distro_installers, distro_broken, distro_changes =\
-                    generate_installers(
-                        distro,
-                        overlay,
-                        regenerate_installer,
-                        preserve_existing,
-                        tar_dir,
-                        md5_cache,
-                        sha256_cache
-                    )
-                for key in distro_broken.keys():
-                    for pkg in distro_broken[key]:
-                        total_broken.add(pkg)
+            with HashManager('%s/sha256_cache.pickle') % tar_dir as sha256_cache \
+                 HashManager('%s/md5_cache.pickle') % tar_dir as md5_cache:
+                for distro in selected_targets:
+                    distro_installers, distro_broken, distro_changes =\
+                        generate_installers(
+                            distro,
+                            overlay,
+                            regenerate_installer,
+                            preserve_existing,
+                            tar_dir,
+                            md5_cache,
+                            sha256_cache
+                        )
+                    for key in distro_broken.keys():
+                        for pkg in distro_broken[key]:
+                            total_broken.add(pkg)
 
-                total_changes[distro] = distro_changes
-                total_installers[distro] = distro_installers
+                    total_changes[distro] = distro_changes
+                    total_installers[distro] = distro_installers
 
         num_changes = 0
         for distro_name in total_changes:
