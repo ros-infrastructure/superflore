@@ -20,7 +20,7 @@ import sys
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
-from superflore.HashManager import HashManager
+from superflore.CacheManager import CacheManager
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import info
@@ -96,8 +96,8 @@ def main():
             sha256_filename = None
             md5_filename = None
         with TempfileManager(args.tar_archive_dir) as tar_dir:
-            with HashManager(sha256_filename) as sha256_cache,\
-                 HashManager(md5_filename) as md5_cache:
+            with CacheManager(sha256_filename) as sha256_cache,\
+                 CacheManager(md5_filename) as md5_cache:
                 for distro in selected_targets:
                     distro_installers, distro_broken, distro_changes =\
                         generate_installers(

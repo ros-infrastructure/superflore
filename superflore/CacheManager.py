@@ -18,7 +18,7 @@ import pickle
 from superflore.utils import info
 
 
-class HashManager:
+class CacheManager:
     def __init__(self, filename):
         self.filename = filename
         self.cache = dict()
