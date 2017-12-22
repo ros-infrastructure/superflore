@@ -16,6 +16,7 @@ import argparse
 import os
 import sys
 
+from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
@@ -76,6 +77,7 @@ def main():
         warn('"{0}" distro detected...'.format(args.ros_distro))
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    # open cached tar file if it exists
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
@@ -86,8 +88,15 @@ def main():
         total_installers = dict()
         total_broken = set()
         total_changes = dict()
-
-        with TempfileManager(args.tar_archive_dir) as tar_dir:
+        if args.tar_archive_dir:
+            sha256_filename = '%s/sha256_cache.pickle' % args.tar_archive_dir
+            md5_filename = '%s/md5_cache.pickle' % args.tar_archive_dir
+        else:
+            sha256_filename = None
+            md5_filename = None
+        with TempfileManager(args.tar_archive_dir) as tar_dir,\
+            CacheManager(sha256_filename) as sha256_cache,\
+            CacheManager(md5_filename) as md5_cache:  # noqa
             for distro in selected_targets:
                 distro_installers, distro_broken, distro_changes =\
                     generate_installers(
@@ -95,12 +104,13 @@ def main():
                         overlay,
                         regenerate_installer,
                         preserve_existing,
-                        tar_dir
+                        tar_dir,
+                        md5_cache,
+                        sha256_cache
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:
                         total_broken.add(pkg)
-
                 total_changes[distro] = distro_changes
                 total_installers[distro] = distro_installers
 

@@ -35,7 +35,7 @@ org_license = "BSD"
 
 
 def regenerate_installer(
-    overlay, pkg, distro, preserve_existing, tar_dir
+    overlay, pkg, distro, preserve_existing, tar_dir, md5_cache, sha256_cache
 ):
     make_dir("{0}/recipes-ros-{1}".format(overlay.repo.repo_dir, distro.name))
     version = get_pkg_version(distro, pkg)
@@ -59,7 +59,7 @@ def regenerate_installer(
     elif existing:
         overlay.repo.remove_file(existing[0])
     try:
-        current = oe_installer(distro, pkg, tar_dir)
+        current = oe_installer(distro, pkg, tar_dir, md5_cache, sha256_cache)
         current.recipe.name = pkg.replace('_', '-')
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
@@ -104,7 +104,8 @@ def regenerate_installer(
 
 
 def _gen_recipe_for_package(
-    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall, tar_dir
+    distro, pkg_name, pkg, repo, ros_pkg,
+    pkg_rosinstall, tar_dir, md5_cache, sha256_cache
 ):
     pkg_dep_walker = DependencyWalker(distro)
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
@@ -112,7 +113,9 @@ def _gen_recipe_for_package(
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
     src_uri = pkg_rosinstall[0]['tar']['uri']
 
-    pkg_recipe = yoctoRecipe(pkg_name, distro, src_uri, tar_dir)
+    pkg_recipe = yoctoRecipe(
+        pkg_name, distro, src_uri, tar_dir, md5_cache, sha256_cache
+    )
     # add run dependencies
     for rdep in pkg_run_deps:
         pkg_recipe.add_depend(rdep)
@@ -164,7 +167,10 @@ def _gen_recipe_for_package(
 
 
 class oe_installer(object):
-    def __init__(self, distro, pkg_name, tar_dir, has_patches=False):
+    def __init__(
+        self, distro, pkg_name, tar_dir, md5_cache, sha256_cache,
+        has_patches=False
+    ):
         pkg = distro.release_packages[pkg_name]
         repo = distro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
@@ -174,7 +180,8 @@ class oe_installer(object):
         )
 
         self.recipe = _gen_recipe_for_package(
-            distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall, tar_dir
+            distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall,
+            tar_dir, md5_cache, sha256_cache
         )
 
     def recipe_text(self):

@@ -37,7 +37,9 @@ from superflore.utils import resolve_dep
 
 
 class yoctoRecipe(object):
-    def __init__(self, name, distro, src_uri, tar_dir):
+    def __init__(
+        self, name, distro, src_uri, tar_dir, md5_cache, sha256_cache
+    ):
         self.name = name
         self.distro = distro.name
         self.version = get_pkg_version(distro, name)
@@ -51,11 +53,15 @@ class yoctoRecipe(object):
         self.archive_name = None
         self.license_md5 = None
         self.tar_dir = tar_dir
-        self.downloadArchive()
-        self.src_sha256 = hashlib.sha256(
-            open(self.getArchiveName(), 'rb').read()).hexdigest()
-        self.src_md5 = hashlib.md5(
-            open(self.getArchiveName(), 'rb').read()).hexdigest()
+        if self.getArchiveName() not in md5_cache and \
+           self.getArchiveName() not in sha256_cache:
+                self.downloadArchive()
+                md5_cache[self.getArchiveName()] = hashlib.md5(
+                    open(self.getArchiveName(), 'rb').read()).hexdigest()
+                sha256_cache[self.getArchiveName()] = hashlib.sha256(
+                    open(self.getArchiveName(), 'rb').read()).hexdigest()
+        self.src_sha256 = sha256_cache[self.getArchiveName()]
+        self.src_md5 = md5_cache[self.getArchiveName()]
 
     def getFolderName(self):
         return self.name.replace("-", "_") + "-" + str(self.version)
