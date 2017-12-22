@@ -53,7 +53,7 @@ class yoctoRecipe(object):
         self.archive_name = None
         self.license_md5 = None
         self.tar_dir = tar_dir
-        if self.getArchiveName() not in md5_cache and \
+        if self.getArchiveName() not in md5_cache or \
            self.getArchiveName() not in sha256_cache:
                 self.downloadArchive()
                 md5_cache[self.getArchiveName()] = hashlib.md5(
