@@ -52,4 +52,4 @@ class RosMeta(object):
 
     def pull_request(self, message, distro):
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
-        self.repo.pull_request(message, pr_title, target_branch=distro)
+        self.repo.pull_request(message, pr_title, branch=distro)
