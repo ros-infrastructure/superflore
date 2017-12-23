@@ -34,9 +34,9 @@ preserve_existing = True
 overlay = None
 
 
-def file_pr(overlay, delta, missing_deps):
+def file_pr(overlay, delta, missing_deps, distro):
     try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
+        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps), distro)
     except Exception as e:
         err('Failed to file PR with allenh1/meta-ros repo!')
         err('  Exception: {0}'.format(e))
@@ -163,5 +163,5 @@ def main():
 
         # Commit changes and file pull request
         overlay.commit_changes(args.ros_distro)
-        file_pr(overlay, delta, missing_deps)
+        file_pr(overlay, delta, missing_deps, args.ros_distro)
         ok('Successfully synchronized repositories!')
