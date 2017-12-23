@@ -80,10 +80,14 @@ class RepoInstance(object):
         """
         self.git.rebase(i=target)
 
-    def pull_request(self, message, title):
+    def pull_request(self, message, title, branch='master', remote='origin'):
         info('Filing pull-request...')
-        self.git.pull_request(m='{0}'.format(message),
-                              title='{0}'.format(title))
+        self.git.pull_request(
+            m='{0}'.format(message),
+            title='{0}'.format(title),
+            target_branch='{0}'.format(branch),
+            target_remote='{0}'.format(remote),
+        )
         ok('Successfully filed a pull request.')
 
 
