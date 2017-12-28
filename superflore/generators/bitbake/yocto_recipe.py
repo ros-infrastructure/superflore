@@ -53,7 +53,7 @@ class yoctoRecipe(object):
         self.archive_name = None
         self.license_md5 = None
         self.tar_dir = tar_dir
-        if self.getArchiveName() not in md5_cache and \
+        if self.getArchiveName() not in md5_cache or \
            self.getArchiveName() not in sha256_cache:
                 self.downloadArchive()
                 md5_cache[self.getArchiveName()] = hashlib.md5(
@@ -117,7 +117,7 @@ class yoctoRecipe(object):
                                             dirs[4], dirs[5],
                                             dirs[6]).replace('.tar.gz', '')
 
-    def get_recipe_text(self, distributor, license_text, die_msg=None):
+    def get_recipe_text(self, distributor, license_text):
         """
         Generate the Yocto Recipe, given the distributor line
         and the license text.

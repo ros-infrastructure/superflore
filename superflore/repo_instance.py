@@ -89,13 +89,3 @@ class RepoInstance(object):
             target_remote='{0}'.format(remote),
         )
         ok('Successfully filed a pull request.')
-
-
-class CloneException(Exception):
-    def __init__(self, message):
-        self.message = message
-
-
-class BranchException(Exception):
-    def __init__(self, message):
-        self.message = message

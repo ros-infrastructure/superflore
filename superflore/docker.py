@@ -46,8 +46,9 @@ class Docker(object):
             if i != len(self.bash_cmds) - 1:
                 cmd_string += ' && '
         cmd_string += "'"
-        msg = "Running container with command string '%s'..."
-        info(msg % cmd_string)
+        if show_cmd:
+            msg = "Running container with command string '%s'..."
+            info(msg % cmd_string)
 
         self.client.containers.run(
             image=self.image,
@@ -56,13 +57,3 @@ class Docker(object):
             volumes=self.directory_map,
         )
         ok("Docker container exited.")
-
-
-class BuildException(Exception):
-    def __init__(self, message):
-        self.message = message
-
-
-class RunException(Exception):
-    def __init__(self, message):
-        self.message = message
