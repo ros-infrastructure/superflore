@@ -74,8 +74,7 @@ def resolve_rosdep_key(
     os_name,
     os_version,
     ros_distro=None,
-    ignored=None,
-    retry=True
+    ignored=None
 ):
     ignored = ignored or []
     ctx = create_default_installer_context()

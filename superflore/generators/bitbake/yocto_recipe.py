@@ -117,7 +117,7 @@ class yoctoRecipe(object):
                                             dirs[4], dirs[5],
                                             dirs[6]).replace('.tar.gz', '')
 
-    def get_recipe_text(self, distributor, license_text, die_msg=None):
+    def get_recipe_text(self, distributor, license_text):
         """
         Generate the Yocto Recipe, given the distributor line
         and the license text.
