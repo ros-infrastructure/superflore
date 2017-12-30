@@ -150,7 +150,7 @@ def main():
                         preserve_existing
                     )
                 except KeyError:
-                    erro("No package to satisfy key '%s'" % pkg)
+                    err("No package to satisfy key '%s'" % pkg)
                     sys.exit(1)
             # Commit changes and file pull request
             regen_dict = dict()
