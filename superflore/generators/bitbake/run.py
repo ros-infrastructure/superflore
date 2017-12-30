@@ -16,6 +16,7 @@ import argparse
 import os
 import sys
 
+from rosinstall_generator.distro import get_distro
 from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
@@ -68,6 +69,11 @@ def main():
         help='location to store archived packages',
         type=str
     )
+    parser.add_argument(
+        '--only',
+        nargs='+',
+        help='generate only the specified packages'
+    )
     selected_targets = active_distros
     args = parser.parse_args(sys.argv[1:])
     if args.all:
@@ -97,6 +103,32 @@ def main():
         with TempfileManager(args.tar_archive_dir) as tar_dir,\
             CacheManager(sha256_filename) as sha256_cache,\
             CacheManager(md5_filename) as md5_cache:  # noqa
+            if args.only:
+                for pkg in args.only:
+                    info("Regenerating package '%s'..." % pkg)
+                    try:
+                        regenerate_installer(
+                            overlay,
+                            pkg,
+                            get_distro(args.ros_distro),
+                            preserve_existing,
+                            tar_dir,
+                            md5_cache,
+                            sha256_cache
+                        )
+                    except KeyError:
+                        err("No package to satisfy key '%s'" % pkg)
+                        sys.exit(1)
+                # Commit changes and file pull request
+                regen_dict = dict()
+                regen_dict[args.ros_distro] = args.only
+                overlay.regenerate_manifests(regen_dict)
+                overlay.commit_changes(args.ros_distro)
+                delta = "Regenerated: '%s'\n" % args.only
+                file_pr(overlay, delta, '')
+                ok('Successfully synchronized repositories!')
+                sys.exit(0)
+
             for distro in selected_targets:
                 distro_installers, distro_broken, distro_changes =\
                     generate_installers(
