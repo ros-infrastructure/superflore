@@ -142,12 +142,16 @@ def main():
         if args.only:
             for pkg in args.only:
                 info("Regenerating package '%s'..." % pkg)
-                regenerate_pkg(
-                    overlay,
-                    pkg,
-                    get_distro(args.ros_distro),
-                    preserve_existing
-                )
+                try:
+                    regenerate_pkg(
+                        overlay,
+                        pkg,
+                        get_distro(args.ros_distro),
+                        preserve_existing
+                    )
+                except KeyError:
+                    err("No package to satisfy key '%s'" % pkg)
+                    sys.exit(1)
             # Commit changes and file pull request
             regen_dict = dict()
             regen_dict[args.ros_distro] = args.only
