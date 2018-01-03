@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from time import gmtime, strftime
-import re
+from pkg_resources import resource_filename
+from superflore.docker import Docker
+import unittest
 
-from superflore.docker import docker
 class TestDocker(unittest.TestCase):
     def get_image(self):
         docker_file = resource_filename('repoman_docker', 'Dockerfile')
@@ -23,9 +23,31 @@ class TestDocker(unittest.TestCase):
         return dock
 
     def test_init(self):
-        docker_instance = get_image()
+        docker_instance = self.get_image()
         self.assertTrue(docker_instance.client)
         self.assertEqual(docker_instance.name, 'gentoo_repoman')
         self.assertEqual(docker_instance.image, None)
         self.assertEqual(docker_instance.directory_map, dict())
 
+    def test_map_dir(self):
+        docker_instance = self.get_image()
+        docker_instance.map_directory('/tmp/host', '/tmp/container')
+        tmp = dict()
+        tmp['/tmp/host'] = dict()
+        tmp['/tmp/host']['bind'] = '/tmp/container'
+        tmp['/tmp/host']['mode'] = 'rw'
+        self.assertEqual(docker_instance.directory_map, tmp)
+        docker_instance = self.get_image()
+        docker_instance.map_directory('/tmp/host')
+        tmp = dict()
+        tmp['/tmp/host'] = dict()
+        tmp['/tmp/host']['bind'] = '/tmp/host'
+        tmp['/tmp/host']['mode'] = 'rw'
+        self.assertEqual(docker_instance.directory_map, tmp)
+
+    def test_add_bash_command(self):
+        docker_instance = self.get_image()
+        tmp = list()
+        tmp.append("echo 'hello, world!'")
+        docker_instance.add_bash_command("echo 'hello, world!'")
+        self.assertEqual(docker_instance.bash_cmds, tmp)
