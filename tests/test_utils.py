@@ -52,6 +52,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'Apache-2.0')
         ret = get_license('Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
         self.assertEqual(ret, 'Apache-2.0')
+        ret = get_license('Apache')
+        self.assertEqual(ret, 'Apache-1.0')
         ret = get_license('BSD-3')
         self.assertEqual(ret, 'BSD')
         ret = get_license('Apache-2')
@@ -66,6 +68,5 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'GPL-3')
         ret = get_license('Public Domain')
         self.assertEqual(ret, 'public_domain')
-
-if __name__ == '__main__':
-    unittest.main()
+        ret = get_license('GPL')
+        self.assertEqual(ret, 'GPL-1')
