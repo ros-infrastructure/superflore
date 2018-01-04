@@ -40,7 +40,7 @@ def info(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'cyan'))
 
 
-def make_dir(dirname):
+def make_dir(dirname):  # pragma: no cover
     try:
         os.makedirs(dirname)
     except OSError as e:
@@ -59,7 +59,7 @@ def get_pkg_version(distro, pkg_name):
     return maj_min_patch
 
 
-def rand_ascii_str(length=10):
+def rand_ascii_str(length=10):  # pragma: no cover
     """
     Generates a random string of ascii characters of length 'length'
     """
