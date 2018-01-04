@@ -24,19 +24,19 @@ from superflore.rosdep_support import resolve_rosdep_key
 from termcolor import colored
 
 
-def warn(string):
+def warn(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'yellow'))
 
 
-def ok(string):
+def ok(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'green'))
 
 
-def err(string):
+def err(string):  # pragma: no cover
     print(colored('!!!! {0}'.format(string), 'red'))
 
 
-def info(string):
+def info(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'cyan'))
 
 
