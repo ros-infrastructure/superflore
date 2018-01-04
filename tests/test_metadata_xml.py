@@ -30,4 +30,9 @@ class TestMetadataXml(unittest.TestCase):
     def test_metadata_format(self):
         """Test for parsing"""
         doc = xmltodict.parse(self.get_metadata_xml())
-        # TODO(allenh1): check parsing of fields is accurate
+        metadata = doc['pkgmetadata']
+        self.assertEqual(metadata['longdescription'], 'A ROS node that does cool stuff')
+        who = metadata['upstream']['maintainer']
+        self.assertEqual(who['email'], 'someone@example.com')
+        self.assertEqual(who['name'], 'Someone Important')
+        self.assertEqual(metadata['upstream']['bugs-to'], 'https://bugzilla.someone.com')
