@@ -203,7 +203,6 @@ class Ebuild(object):
             ret += "    ros-cmake_src_configure\n"
             ret += "}\n"
 
-
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")
 
