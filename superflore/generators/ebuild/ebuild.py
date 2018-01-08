@@ -184,14 +184,22 @@ class Ebuild(object):
             ret += "    ros-cmake_src_prepare\n"
             ret += "}\n"
 
-        special_pkgs = ['opencv3', 'stage']
         # source configuration
-        if self.name in special_pkgs:
+        if self.name == 'opencv3':
             ret += "\nsrc_configure() {\n"
-            if self.name == 'opencv3':
-                ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
-            elif self.name == 'stage':
-                ret += "    filter-flags '-std=*'\n"
+            ret += "    filter-flags '-march=*' '-mcpu=*' '-mtune=*'\n"
+            ret += "    if [[ $(gcc-major-version) -gt 4 ]]; then\n"
+            ret += "        local mycmakeargs=(\n"
+            ret += "            -DWITH_CUDA=OFF\n"
+            ret += "        )\n"
+            ret += '        ewarn "Cuda does not support GCC > 4, so cuda'
+            ret += ' has been disabled."\n'
+            ret += "    fi\n"
+            ret += "    ros-cmake_src_configure\n"
+            ret += "}\n"
+        elif self.name == 'stage':
+            ret += "\nsrc_configure() {\n"
+            ret += "    filter-flags '-std=*'\n"
             ret += "    ros-cmake_src_configure\n"
             ret += "}\n"
 
