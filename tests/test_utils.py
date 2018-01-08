@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.utils import make_dir
+from superflore.utils import rand_ascii_str
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 from superflore.utils import get_license
+from superflore.TempfileManager import TempfileManager
 
+import os
+import string
 import unittest
 
 
@@ -44,6 +49,22 @@ class TestUtils(unittest.TestCase):
         ret = trim_string('abcdef', length=6)
         self.assertEqual(ret, 'a[...]')
 
+    def test_mkdir(self):
+        """Tests the make directory funciton"""
+        with TempfileManager(None) as temp_dir:
+            created = '%s/test' % temp_dir
+            make_dir(created)
+            self.assertTrue(os.path.isdir(created))
+            # try and create the directory again, should pass
+            make_dir(created)
+            self.assertTrue(os.path.isdir(created))
+
+    def test_rand_ascii_str(self):
+        """Test the random ascii generation function"""
+        rand = rand_ascii_str(100)
+        self.assertEqual(len(rand), 100)
+        self.assertTrue(all(c in string.ascii_letters for c in rand))
+
     def test_get_license(self):
         """Test license recognition function"""
         ret = get_license('Apache License 2.0')
@@ -52,6 +73,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'Apache-2.0')
         ret = get_license('Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)')
         self.assertEqual(ret, 'Apache-2.0')
+        ret = get_license('Apache')
+        self.assertEqual(ret, 'Apache-1.0')
         ret = get_license('BSD-3')
         self.assertEqual(ret, 'BSD')
         ret = get_license('Apache-2')
@@ -66,6 +89,5 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'GPL-3')
         ret = get_license('Public Domain')
         self.assertEqual(ret, 'public_domain')
-
-if __name__ == '__main__':
-    unittest.main()
+        ret = get_license('GPL')
+        self.assertEqual(ret, 'GPL-1')
