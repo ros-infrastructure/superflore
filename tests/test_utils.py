@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from superflore.utils import make_dir
+from superflore.utils import rand_ascii_str
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 from superflore.utils import get_license
 from superflore.TempfileManager import TempfileManager
 
 import os
+import string
 import unittest
 
 
@@ -56,6 +58,12 @@ class TestUtils(unittest.TestCase):
             # try and create the directory again, should pass
             make_dir(created)
             self.assertTrue(os.path.isdir(created))
+
+    def test_rand_ascii_str(self):
+        """Test the random ascii generation function"""
+        rand = rand_ascii_str(100)
+        self.assertEqual(len(rand), 100)
+        self.assertTrue(all(c in string.ascii_letters for c in rand))
 
     def test_get_license(self):
         """Test license recognition function"""

@@ -59,7 +59,7 @@ def get_pkg_version(distro, pkg_name):
     return maj_min_patch
 
 
-def rand_ascii_str(length=10):  # pragma: no cover
+def rand_ascii_str(length=10):
     """
     Generates a random string of ascii characters of length 'length'
     """
