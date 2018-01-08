@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.utils import make_dir
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 from superflore.utils import get_license
+from superflore.TempfileManager import TempfileManager
 
+import os
 import unittest
 
 
@@ -43,6 +46,16 @@ class TestUtils(unittest.TestCase):
         # test mixed case
         ret = trim_string('abcdef', length=6)
         self.assertEqual(ret, 'a[...]')
+
+    def test_mkdir(self):
+        """Tests the make directory funciton"""
+        with TempfileManager(None) as temp_dir:
+            created = '%s/test' % temp_dir
+            make_dir(created)
+            self.assertTrue(os.path.isdir(created))
+            # try and create the directory again, should pass
+            make_dir(created)
+            self.assertTrue(os.path.isdir(created))
 
     def test_get_license(self):
         """Test license recognition function"""

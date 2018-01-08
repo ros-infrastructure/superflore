@@ -40,7 +40,7 @@ def info(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'cyan'))
 
 
-def make_dir(dirname):  # pragma: no cover
+def make_dir(dirname):
     try:
         os.makedirs(dirname)
     except OSError as e:
