@@ -24,8 +24,9 @@ RUN echo "[ros-overlay]" > /etc/portage/repos.conf/ros-overlay.conf &&\
     echo "ros-*/* PYTHON_TARGETS: -* python2_7" >> /etc/portage/package.use/iputils && \
     echo "ros-*/* PYTHON_SINGLE_TAGET: *- python2_7" >> /etc/portage/package.use/iputils && \
     perl-cleaner --reallyall
-RUN emerge -DNv @world
-RUN emerge ros-lunar/ros_base --autounmask-write=y; exit 0
-RUN etc-update --automode -3
-RUN emerge ros-lunar/ros_base --autounmask-write=y; exit 0
-RUN etc-update --automode -3 && etc-update --automode -3 && emerge ros-lunar/ros_base
+# RUN emerge glibc
+# RUN emerge -uDNv @world --with-bdeps=y
+# RUN emerge ros-lunar/ros_base --autounmask-write=y; exit 0
+# RUN etc-update --automode -3
+# RUN emerge ros-lunar/ros_base --autounmask-write=y; exit 0
+# RUN etc-update --automode -3 && etc-update --automode -3 && emerge ros-lunar/ros_base
