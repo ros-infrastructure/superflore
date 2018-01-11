@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from docker.errors import ContainerError
 from superflore.docker import Docker
 from superflore.utils import err
 from superflore.utils import info
@@ -43,7 +44,7 @@ class GentooBuilder:
                 self.container.run(rm=True, show_cmd=True)
                 self.package_list[pkg] = 'building'
                 ok("'%s': building" % pkg)
-            except:
+            except ContainerError:
                 self.package_list[pkg] = 'failing'
                 err("'%s': failing" % pkg)
             self.container.clear_commands()
