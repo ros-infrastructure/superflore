@@ -20,11 +20,8 @@ from superflore.utils import ok
 
 
 class Docker(object):
-    def __init__(self, dockerfile=None, name=None):
+    def __init__(self):
         self.client = docker.from_env()
-        if dockerfile:
-            self.dockerfile_directory = os.path.dirname(dockerfile)
-        self.name = name
         self.image = None
         self.directory_map = dict()
         self.bash_cmds = list()
@@ -40,12 +37,13 @@ class Docker(object):
     def clear_commands(self):
         self.bash_cmds = list()
 
-    def build(self):
-        if not self.dockerfile_directory:
+    def build(self, dockerfile):
+        dockerfile_directory = os.path.dirname(dockerfile)
+        if not dockerfile_directory:
             raise NoDockerfileSupplied(
                 'You must supply the location of the Dockerfile.'
             )
-        self.image = self.client.images.build(path=self.dockerfile_directory)
+        self.image = self.client.images.build(path=dockerfile_directory)
 
     def pull(self, org, repo):
         self.image = self.client.images.pull('%s/%s' % (org, repo))

@@ -47,8 +47,8 @@ class RosOverlay(object):
     def regenerate_manifests(self, regen_dict):
         info('Building docker image...')
         docker_file = resource_filename('repoman_docker', 'Dockerfile')
-        dock = Docker(docker_file, 'gentoo_repoman')
-        dock.build()
+        dock = Docker()
+        dock.build(docker_file)
         info('Running docker image...')
         info('Generating manifests...')
         dock.map_directory(
