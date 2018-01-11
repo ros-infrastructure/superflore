@@ -24,4 +24,20 @@ class GentooBuilder:
         self.package_list = dict()
 
     def add_target(self, ros_distro, pkg):
-        self.package_list['%s/%s' % (ros_distro, pkg)] = 'unknown'
+        # TODO(allenh1): it might be nice to add a Python3 target
+        # in case we want to test both.
+        self.package_list['ros-%s/%s' % (ros_distro, pkg)] = 'unknown'
+
+    def run(self):
+        # TODO(allenh1): add the ability to check out a non-master
+        # branch of the overlay (for CI).
+        for pkg in sorted(self.package_list.keys()):
+            self.container.add_bash_command('emaint sync -r ros-overlay')
+            self.container.add_bash_command('emerge %s' % pkg)
+            try:
+                self.container.run(rm=True, show_cmd=True)
+                package_list[pkg] = 'building'
+            except:
+                package_list[pkg] = 'failing'
+            self.container.clear_commands()
+        return self.package_list
