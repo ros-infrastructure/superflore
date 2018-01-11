@@ -37,6 +37,9 @@ class Docker(object):
     def add_bash_command(self, cmd):
         self.bash_cmds.append(cmd)
 
+    def clear_commands(self):
+        self.bash_cmds = list()
+
     def build(self):
         if not self.dockerfile_directory:
             raise NoDockerfileSupplied(
@@ -58,14 +61,13 @@ class Docker(object):
             msg = "Running container with command string '%s'..."
             info(msg % cmd_string)
 
-        log = self.client.containers.run(
+        self.client.containers.run(
             image=self.image,
             remove=rm,
             command=cmd_string,
             volumes=self.directory_map,
         )
         ok("Docker container exited.")
-        return log
 
 
 class NoDockerfileSupplied(Exception):
