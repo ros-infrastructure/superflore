@@ -18,14 +18,12 @@ import unittest
 
 class TestDocker(unittest.TestCase):
     def get_image(self):
-        docker_file = resource_filename('repoman_docker', 'Dockerfile')
-        dock = Docker(docker_file, 'gentoo_repoman')
+        dock = Docker()
         return dock
 
     def test_init(self):
         docker_instance = self.get_image()
         self.assertTrue(docker_instance.client)
-        self.assertEqual(docker_instance.name, 'gentoo_repoman')
         self.assertEqual(docker_instance.image, None)
         self.assertEqual(docker_instance.directory_map, dict())
 
