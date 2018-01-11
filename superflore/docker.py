@@ -20,9 +20,10 @@ from superflore.utils import ok
 
 
 class Docker(object):
-    def __init__(self, dockerfile, name):
+    def __init__(self, dockerfile=None, name=None):
         self.client = docker.from_env()
-        self.dockerfile_directory = os.path.dirname(dockerfile)
+        if dockerfile:
+            self.dockerfile_directory = os.path.dirname(dockerfile)
         self.name = name
         self.image = None
         self.directory_map = dict()
@@ -37,7 +38,14 @@ class Docker(object):
         self.bash_cmds.append(cmd)
 
     def build(self):
+        if not self.dockerfile_directory:
+            raise NoDockerfileSupplied(
+                'You must supply the location of the Dockerfile.'
+            )
         self.image = self.client.images.build(path=self.dockerfile_directory)
+
+    def pull(self, org, repo):
+        self.image = self.client.images.pull('%s/%s' % (org, repo))
 
     def run(self, rm=True, show_cmd=False):
         cmd_string = "bash -c '"
@@ -50,10 +58,16 @@ class Docker(object):
             msg = "Running container with command string '%s'..."
             info(msg % cmd_string)
 
-        self.client.containers.run(
+        log = self.client.containers.run(
             image=self.image,
             remove=rm,
             command=cmd_string,
             volumes=self.directory_map,
         )
         ok("Docker container exited.")
+        return log
+
+
+class NoDockerfileSupplied(Exception):
+    def __init__(self, message):
+        self.message = message
