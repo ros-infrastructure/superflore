@@ -13,6 +13,9 @@
 # limitations under the License.
 
 from superflore.docker import Docker
+from superflore.utils import err
+from superflore.utils import info
+from superflore.utils import ok
 
 
 class GentooBuilder:
@@ -31,13 +34,17 @@ class GentooBuilder:
     def run(self):
         # TODO(allenh1): add the ability to check out a non-master
         # branch of the overlay (for CI).
+        info('testing gentoo package integrity')
         for pkg in sorted(self.package_list.keys()):
+            info("testing package '%s'" % pkg)
             self.container.add_bash_command('emaint sync -r ros-overlay')
             self.container.add_bash_command('emerge %s' % pkg)
             try:
                 self.container.run(rm=True, show_cmd=True)
                 package_list[pkg] = 'building'
+                ok("'%s': building" % pkg)
             except:
                 package_list[pkg] = 'failing'
+                err("'%s': failing" % pkg)
             self.container.clear_commands()
         return self.package_list
