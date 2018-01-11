@@ -41,10 +41,10 @@ class GentooBuilder:
             self.container.add_bash_command('emerge %s' % pkg)
             try:
                 self.container.run(rm=True, show_cmd=True)
-                package_list[pkg] = 'building'
+                self.package_list[pkg] = 'building'
                 ok("'%s': building" % pkg)
             except:
-                package_list[pkg] = 'failing'
+                self.package_list[pkg] = 'failing'
                 err("'%s': failing" % pkg)
             self.container.clear_commands()
         return self.package_list
