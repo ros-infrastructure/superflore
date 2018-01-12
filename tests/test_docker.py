@@ -22,20 +22,20 @@ class TestDocker(unittest.TestCase):
         return dock
 
     def test_init(self):
-        docker_instance = self.get_image()
+        docker_instance = Docker()
         self.assertTrue(docker_instance.client)
         self.assertEqual(docker_instance.image, None)
         self.assertEqual(docker_instance.directory_map, dict())
 
     def test_map_dir(self):
-        docker_instance = self.get_image()
+        docker_instance = Docker()
         docker_instance.map_directory('/tmp/host', '/tmp/container')
         tmp = dict()
         tmp['/tmp/host'] = dict()
         tmp['/tmp/host']['bind'] = '/tmp/container'
         tmp['/tmp/host']['mode'] = 'rw'
         self.assertEqual(docker_instance.directory_map, tmp)
-        docker_instance = self.get_image()
+        docker_instance = Docker()
         docker_instance.map_directory('/tmp/host')
         tmp = dict()
         tmp['/tmp/host'] = dict()
@@ -44,7 +44,7 @@ class TestDocker(unittest.TestCase):
         self.assertEqual(docker_instance.directory_map, tmp)
 
     def test_add_bash_command(self):
-        docker_instance = self.get_image()
+        docker_instance = Docker()
         tmp = list()
         tmp.append("echo 'hello, world!'")
         docker_instance.add_bash_command("echo 'hello, world!'")

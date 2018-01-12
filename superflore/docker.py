@@ -39,7 +39,7 @@ class Docker(object):
 
     def build(self, dockerfile):
         dockerfile_directory = os.path.dirname(dockerfile)
-        if not dockerfile_directory:
+        if not os.path.isdir(dockerfile_directory):
             raise NoDockerfileSupplied(
                 'You must supply the location of the Dockerfile.'
             )
