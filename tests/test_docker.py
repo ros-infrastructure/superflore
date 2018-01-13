@@ -19,12 +19,14 @@ import unittest
 
 class TestDocker(unittest.TestCase):
     def test_init(self):
+        """Test Docker __init__"""
         docker_instance = Docker()
         self.assertTrue(docker_instance.client)
         self.assertEqual(docker_instance.image, None)
         self.assertEqual(docker_instance.directory_map, dict())
 
     def test_map_dir(self):
+        """Test Docker mount directory map"""
         docker_instance = Docker()
         docker_instance.map_directory('/tmp/host', '/tmp/container')
         tmp = dict()
@@ -41,6 +43,7 @@ class TestDocker(unittest.TestCase):
         self.assertEqual(docker_instance.directory_map, tmp)
 
     def test_add_bash_command(self):
+        """Test Docker add bash command"""
         docker_instance = Docker()
         tmp = list()
         tmp.append("echo 'hello, world!'")
@@ -48,6 +51,7 @@ class TestDocker(unittest.TestCase):
         self.assertEqual(docker_instance.bash_cmds, tmp)
 
     def test_build(self):
+        """Test Docker build"""
         docker_instance = Docker()
         with self.assertRaises(NoDockerfileSupplied):
             docker_instance.build('Dockerfile')
@@ -55,10 +59,12 @@ class TestDocker(unittest.TestCase):
         docker_instance.build(docker_file)
 
     def test_pull(self):
+        """Test Docker pull"""
         docker_instance = Docker()
         docker_instance.pull('ubuntu', 'zesty')
 
     def test_run(self):
+        """Test Docker run"""
         docker_instance = Docker()
         docker_instance.add_bash_command("echo 'hello, docker'")
         docker_instance.run()

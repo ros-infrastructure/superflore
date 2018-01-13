@@ -32,7 +32,7 @@ setup(
     test_suite='tests',
     data_files=[
         ('repoman_docker', ['repoman_docker/Dockerfile']),
-        ('test_docker', ['tests/test_docker/Dockerfile']),
+        ('test_docker', ['tests/docker/Dockerfile']),
     ],
     include_package_data = True,
     entry_points={
