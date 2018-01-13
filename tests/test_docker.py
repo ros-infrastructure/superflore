@@ -53,3 +53,12 @@ class TestDocker(unittest.TestCase):
             docker_instance.build('Dockerfile')
         docker_file = resource_filename('test_docker', 'Dockerfile')
         docker_instance.build(docker_file)
+
+    def test_pull(self):
+        docker_instance = Docker()
+        docker_instance.pull('ubuntu', 'zesty')
+
+    def test_run(self):
+        docker_instance = Docker()
+        docker_instance.add_bash_command("echo 'hello, docker'")
+        docker_instance.run()
