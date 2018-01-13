@@ -55,7 +55,7 @@ class TestDocker(unittest.TestCase):
         docker_instance = Docker()
         with self.assertRaises(NoDockerfileSupplied):
             docker_instance.build('Dockerfile')
-        docker_file = resource_filename('test_docker', 'Dockerfile')
+        docker_file = resource_filename('tests/docker', 'Dockerfile')
         docker_instance.build(docker_file)
 
     def test_pull(self):
