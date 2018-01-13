@@ -14,6 +14,7 @@
 
 from pkg_resources import resource_filename
 from superflore.docker import Docker
+from superflore.docker import NoDockerfileSupplied
 import unittest
 
 class TestDocker(unittest.TestCase):
@@ -45,3 +46,10 @@ class TestDocker(unittest.TestCase):
         tmp.append("echo 'hello, world!'")
         docker_instance.add_bash_command("echo 'hello, world!'")
         self.assertEqual(docker_instance.bash_cmds, tmp)
+
+    def test_build(self):
+        docker_instance = Docker()
+        with self.assertRaises(NoDockerfileSupplied):
+            docker_instance.build('Dockerfile')
+        docker_file = resource_filename('test_docker', 'Dockerfile')
+        docker_instance.build(docker_file)
