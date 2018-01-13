@@ -17,10 +17,6 @@ from superflore.docker import Docker
 import unittest
 
 class TestDocker(unittest.TestCase):
-    def get_image(self):
-        dock = Docker()
-        return dock
-
     def test_init(self):
         docker_instance = Docker()
         self.assertTrue(docker_instance.client)
