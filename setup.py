@@ -33,7 +33,7 @@ setup(
     data_files=[
         ('repoman_docker', ['repoman_docker/Dockerfile']),
         ('test_docker', ['tests/test_docker/Dockerfile']),
-    ]
+    ],
     include_package_data = True,
     entry_points={
         'console_scripts' : [
