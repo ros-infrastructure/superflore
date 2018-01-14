@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pkg_resources import resource_filename
 from superflore.docker import Docker
 from superflore.docker import NoDockerfileSupplied
 import unittest
@@ -55,13 +54,7 @@ class TestDocker(unittest.TestCase):
         docker_instance = Docker()
         with self.assertRaises(NoDockerfileSupplied):
             docker_instance.build('Dockerfile')
-        docker_file = resource_filename('tests/docker', 'Dockerfile')
-        docker_instance.build(docker_file)
-
-    def test_pull(self):
-        """Test Docker pull"""
-        docker_instance = Docker()
-        docker_instance.pull('ubuntu', 'zesty')
+        docker_instance.build('tests/docker/Dockerfile')
 
     def test_run(self):
         """Test Docker run"""
