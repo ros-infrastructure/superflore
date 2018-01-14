@@ -124,7 +124,7 @@ class Ebuild(object):
                 # they did something like "BSD,GPL,blah"
                 ret += 'LICENSE="( '
                 ret += ' '.join([get_license(l.strip()) for l in split])
-                ret += ') "\n'
+                ret += ' )"\n'
             else:
                 ret += "LICENSE=\""
                 ret += get_license(self.upstream_license) + "\"\n\n"
