@@ -15,6 +15,7 @@
 import os
 
 import docker
+from getpass import getpass
 from superflore.utils import info
 from superflore.utils import ok
 
@@ -45,6 +46,13 @@ class Docker(object):
                 'You must supply the location of the Dockerfile.'
             )
         self.image = self.client.images.build(path=dockerfile_directory)
+
+    def login(self):
+        # TODO(allenh1): add OAuth here, and fall back on user input
+        # if the OAuth doesn't exist (however one finds that).
+        user = getpass('Docker user:')
+        pswd = getpass('Docker password:')
+        self.client.login(user, pswd)
 
     def pull(self, org, repo):
         self.image = self.client.images.pull('%s/%s' % (org, repo))

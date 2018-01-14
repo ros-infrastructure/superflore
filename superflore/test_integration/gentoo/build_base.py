@@ -24,6 +24,7 @@ class GentooBuilder:
         self, image_owner='allenh1', image_name='ros_gentoo_base'
     ):
         self.container = Docker()
+        self.container.login()
         self.container.pull(image_owner, image_name)
         self.package_list = dict()
 
@@ -37,15 +38,15 @@ class GentooBuilder:
         # branch of the overlay (for CI).
         info('testing gentoo package integrity')
         for pkg in sorted(self.package_list.keys()):
-            info("testing package '%s'" % pkg)
             self.container.add_bash_command('emaint sync -r ros-overlay')
             self.container.add_bash_command('emerge %s' % pkg)
+            self.conainter.login()
             try:
                 self.container.run(rm=True, show_cmd=True)
                 self.package_list[pkg] = 'building'
-                ok("'%s': building" % pkg)
+                ok("  '%s': building" % pkg)
             except ContainerError:
                 self.package_list[pkg] = 'failing'
-                err("'%s': failing" % pkg)
+                err("  '%s': failing" % pkg)
             self.container.clear_commands()
         return self.package_list
