@@ -62,3 +62,10 @@ class TestDocker(unittest.TestCase):
         docker_instance.build('tests/docker/Dockerfile')
         docker_instance.add_bash_command("echo Hello, docker")
         docker_instance.run()
+
+    def test_pull(self):
+        """Test Docker pull"""
+        docker_instance = Docker()
+        docker_instance.pull('allenh1', 'ros_gentoo_base')
+        docker_instance.add_bash_command("echo Hello, Gentoo")
+        docker_instance.run()
