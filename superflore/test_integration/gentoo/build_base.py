@@ -40,7 +40,6 @@ class GentooBuilder:
         for pkg in sorted(self.package_list.keys()):
             self.container.add_bash_command('emaint sync -r ros-overlay')
             self.container.add_bash_command('emerge %s' % pkg)
-            self.conainter.login()
             try:
                 self.container.run(rm=True, show_cmd=True)
                 self.package_list[pkg] = 'building'
