@@ -54,8 +54,8 @@ class Docker(object):
         pswd = getpass('Docker password:')
         self.client.login(user, pswd)
 
-    def pull(self, org, repo):
-        self.image = self.client.images.pull('%s/%s' % (org, repo))
+    def pull(self, org, repo, tag='latest'):
+        self.image = self.client.images.pull('%s/%s:%s' % (org, repo, tag))
 
     def run(self, rm=True, show_cmd=False):
         cmd_string = "bash -c '"
