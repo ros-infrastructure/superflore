@@ -13,39 +13,55 @@
 # limitations under the License.
 
 import argparse
-import os
 import sys
-import time
 
 from superflore.test_integration.gentoo.build_base import GentooBuilder
+import yaml
 
 
 active_distros = ['indigo', 'kinetic', 'lunar']
 
+
 def main():
-    # TODO(allenh1): parse for '-f [filename]'
-    distros = active_distros
     tester = GentooBuilder()
-    parser = argparse.ArgumentParser('Check if ROS packages are building for Gentoo Linux')
+    parser = argparse.ArgumentParser(
+        'Check if ROS packages are building for Gentoo Linux'
+    )
     parser.add_argument(
         '--ros-distro',
         help='distro(s) to check',
         type=str,
         nargs="+",
-        default=active_distros
+        default=active_distros,
     )
     parser.add_argument(
-        'pkgs',
-        metavar='package',
+        '--pkgs',
         help='packages to build',
         type=str,
-        nargs='+'
+        nargs='+',
+    )
+    parser.add_argument(
+        '-f',
+        help='build packages specified by the input file',
+        type=str
     )
     args = parser.parse_args(sys.argv[1:])
 
-    for distro in args.ros_distro:
-        for pkg in args.pkgs:
-            tester.add_target(distro, pkg)
+    if args.f:
+        # load the yaml file holding the test files
+        with open(args.f, 'r') as test_file:
+            test_dict = yaml.load(test_file)
+            for distro, pkg_list in test_dict.items():
+                for pkg in pkg_list:
+                    tester.add_target(distro, pkg)
+    elif args.pkgs:
+        # use passed-in arguments to test
+        for distro in args.ros_distro:
+            for pkg in args.pkgs:
+                tester.add_target(distro, pkg)
+    else:
+        parser.error('Invalid args! You must supply a package list.')
+        sys.exit(1)
     results = tester.run()
     failures = 0
     for test_case in results.keys():

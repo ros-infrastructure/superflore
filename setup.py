@@ -13,7 +13,8 @@ install_requires = [
     'gitpython',
     'git-pull-request',
     'requests',
-    'docker'
+    'docker',
+    'pyyaml'
 ]
 
 setup(
