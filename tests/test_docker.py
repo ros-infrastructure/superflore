@@ -59,5 +59,6 @@ class TestDocker(unittest.TestCase):
     def test_run(self):
         """Test Docker run"""
         docker_instance = Docker()
-        docker_instance.add_bash_command("echo 'hello, docker'")
+        docker_instance.build('tests/docker/Dockerfile')
+        docker_instance.add_bash_command("echo Hello, docker")
         docker_instance.run()
