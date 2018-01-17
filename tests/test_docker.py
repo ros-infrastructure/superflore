@@ -12,32 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pkg_resources import resource_filename
 from superflore.docker import Docker
+from superflore.docker import NoDockerfileSupplied
 import unittest
 
 class TestDocker(unittest.TestCase):
-    def get_image(self):
-        docker_file = resource_filename('repoman_docker', 'Dockerfile')
-        dock = Docker(docker_file, 'gentoo_repoman')
-        return dock
-
     def test_init(self):
-        docker_instance = self.get_image()
+        """Test Docker __init__"""
+        docker_instance = Docker()
         self.assertTrue(docker_instance.client)
-        self.assertEqual(docker_instance.name, 'gentoo_repoman')
         self.assertEqual(docker_instance.image, None)
         self.assertEqual(docker_instance.directory_map, dict())
 
     def test_map_dir(self):
-        docker_instance = self.get_image()
+        """Test Docker mount directory map"""
+        docker_instance = Docker()
         docker_instance.map_directory('/tmp/host', '/tmp/container')
         tmp = dict()
         tmp['/tmp/host'] = dict()
         tmp['/tmp/host']['bind'] = '/tmp/container'
         tmp['/tmp/host']['mode'] = 'rw'
         self.assertEqual(docker_instance.directory_map, tmp)
-        docker_instance = self.get_image()
+        docker_instance = Docker()
         docker_instance.map_directory('/tmp/host')
         tmp = dict()
         tmp['/tmp/host'] = dict()
@@ -46,8 +42,30 @@ class TestDocker(unittest.TestCase):
         self.assertEqual(docker_instance.directory_map, tmp)
 
     def test_add_bash_command(self):
-        docker_instance = self.get_image()
+        """Test Docker add bash command"""
+        docker_instance = Docker()
         tmp = list()
         tmp.append("echo 'hello, world!'")
         docker_instance.add_bash_command("echo 'hello, world!'")
         self.assertEqual(docker_instance.bash_cmds, tmp)
+
+    def test_build(self):
+        """Test Docker build"""
+        docker_instance = Docker()
+        with self.assertRaises(NoDockerfileSupplied):
+            docker_instance.build('Dockerfile')
+        docker_instance.build('tests/docker/Dockerfile')
+
+    def test_run(self):
+        """Test Docker run"""
+        docker_instance = Docker()
+        docker_instance.build('tests/docker/Dockerfile')
+        docker_instance.add_bash_command("echo Hello, docker")
+        docker_instance.run()
+
+    def test_pull(self):
+        """Test Docker pull"""
+        docker_instance = Docker()
+        docker_instance.pull('allenh1', 'ros_gentoo_base')
+        docker_instance.add_bash_command("echo Hello, Gentoo")
+        docker_instance.run()

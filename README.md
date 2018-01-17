@@ -27,6 +27,7 @@ Instructions:
 Usage:
 ======
 
+### Generating Gentoo Ebuilds
 ```
 $ superflore-gen-ebuilds --help
 usage: Deploy ROS packages into Gentoo Linux [-h] [--ros-distro ROS_DISTRO]
@@ -45,6 +46,35 @@ optional arguments:
                         location of the Git repo
   --only ONLY [ONLY ...]
                         generate only the specified packages
+```
+
+### Testing Gentoo Ebuilds
+```
+$ superflore-check-ebuilds -h
+usage: Check if ROS packages are building for Gentoo Linux [-h]
+                                                           [--ros-distro ROS_DISTRO [ROS_DISTRO ...]]
+                                                           [--pkgs PKGS [PKGS ...]]
+                                                           [-f F]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --ros-distro ROS_DISTRO [ROS_DISTRO ...]
+                        distro(s) to check
+  --pkgs PKGS [PKGS ...]
+                        packages to build
+  -f F                  build packages specified by the input file
+```
+
+If a file is to be passed as input, it is expected to be in proper yaml format, such as the below.
+
+```
+indigo:
+  - catkin
+  - p2os_msgs
+kinetic:
+  - catkin
+lunar:
+  - catkin
 ```
 
 Common Usage:

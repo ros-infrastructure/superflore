@@ -13,7 +13,8 @@ install_requires = [
     'gitpython',
     'git-pull-request',
     'requests',
-    'docker'
+    'docker',
+    'pyyaml'
 ]
 
 setup(
@@ -30,12 +31,16 @@ setup(
     description='Super Bloom',
     license='Apache 2.0',
     test_suite='tests',
-    data_files=[('repoman_docker', ['repoman_docker/Dockerfile'])],
+    data_files=[
+        ('repoman_docker', ['repoman_docker/Dockerfile']),
+        ('test_docker', ['tests/docker/Dockerfile']),
+    ],
     include_package_data = True,
     entry_points={
         'console_scripts' : [
             'superflore-gen-ebuilds = superflore.generators.ebuild:main',
-            'superflore-gen-meta-pkgs = superflore.generators.bitbake:main'
+            'superflore-gen-meta-pkgs = superflore.generators.bitbake:main',
+            'superflore-check-ebuilds = superflore.test_integration.gentoo:main',
         ],
         'common' : [
             'repo_instance = superflore.repo_instance',
