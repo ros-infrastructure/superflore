@@ -51,7 +51,7 @@ class Docker(object):
     def login(self):
         # TODO(allenh1): add OAuth here, and fall back on user input
         # if the OAuth doesn't exist (however one finds that).
-        if not ('DOCKER_USERNAME' in os.environ and \
+        if not ('DOCKER_USERNAME' in os.environ and
                 'DOCKER_PASSWORD' in os.environ):
             if os.isatty(sys.stdin.fileno()):
                 user = getpass('Docker username:')
