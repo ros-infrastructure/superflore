@@ -44,8 +44,10 @@ def clean_up():
 
 
 def file_pr(overlay, delta, missing_deps):
+    msg = 'This Superflore PR was generated with the following arguments.\n'
+    msg += "  '%s'" % ' '.join(sys.argv)
     try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
+        overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps))
     except Exception as e:
         err('Failed to file PR with ros/ros-overlay repo!')
         err('Exception: {0}'.format(e))
