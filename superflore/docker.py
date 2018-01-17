@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from getpass import getpass
 import os
 
 import docker
-from getpass import getpass
-
 from superflore.utils import info
 from superflore.utils import ok
 
