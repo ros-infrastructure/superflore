@@ -69,7 +69,7 @@ class Docker(object):
     def pull(self, org, repo, tag='latest'):
         self.image = self.client.images.pull('%s/%s:%s' % (org, repo, tag))
 
-    def run(self, rm=True, show_cmd=False):
+    def run(self, rm=True, show_cmd=False, privileged=False):
         cmd_string = "bash -c '"
         for i, bash_cmd in enumerate(self.bash_cmds):
             cmd_string += bash_cmd
@@ -84,6 +84,7 @@ class Docker(object):
             image=self.image,
             remove=rm,
             command=cmd_string,
+            privileged=privileged,
             volumes=self.directory_map,
         )
         ok("Docker container exited.")
