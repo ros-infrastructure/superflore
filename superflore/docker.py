@@ -14,6 +14,7 @@
 
 from getpass import getpass
 import os
+import sys
 
 import docker
 from superflore.utils import info
@@ -50,8 +51,19 @@ class Docker(object):
     def login(self):
         # TODO(allenh1): add OAuth here, and fall back on user input
         # if the OAuth doesn't exist (however one finds that).
-        user = getpass('Docker user:')
-        pswd = getpass('Docker password:')
+        if not ('DOCKER_USERNAME' in os.environ and \
+                'DOCKER_PASSWORD' in os.environ):
+            if os.isatty(sys.stdin.fileno()):
+                user = getpass('Docker username:')
+                pswd = getpass('Docker password:')
+            else:
+                raise RuntimeError(
+                    "Please set 'DOCKER_USERNAME' and 'DOCKER_PASSWORD'" +
+                    " when not in interactive mode."
+                )
+        else:
+            user = os.environ['DOCKER_USERNAME']
+            pswd = os.environ['DOCKER_PASSWORD']
         self.client.login(user, pswd)
 
     def pull(self, org, repo, tag='latest'):

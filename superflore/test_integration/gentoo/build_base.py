@@ -24,7 +24,6 @@ class GentooBuilder:
         self, image_owner='allenh1', image_name='ros_gentoo_base'
     ):
         self.container = Docker()
-        self.container.login()
         self.container.pull(image_owner, image_name)
         self.package_list = dict()
 
