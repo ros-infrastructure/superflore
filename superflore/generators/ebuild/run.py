@@ -43,9 +43,12 @@ def clean_up():
         os.remove('.pr-title.tmp')
 
 
-def file_pr(overlay, delta, missing_deps):
-    msg = 'This Superflore PR was generated with the following arguments.\n'
-    msg += "  '%s'" % ' '.join(sys.argv)
+def file_pr(overlay, delta, missing_deps, comment):
+    msg = ''
+    if comment:
+        msg += '%s\n' % comment
+    msg += 'This Superflore PR was generated with the following arguments.\n\n'
+    msg += '```\n%s\n```' % ' '.join(sys.argv)
     try:
         overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps))
     except Exception as e:
@@ -89,7 +92,11 @@ def main():
         nargs='+',
         help='generate only the specified packages'
     )
-
+    parser.add_argument(
+        '--pr-comment',
+        help='comment to add to the PR',
+        type=str
+    )
     args = parser.parse_args(sys.argv[1:])
     selected_targets = None
     if args.all:
@@ -167,7 +174,7 @@ def main():
                 pr_message_file = open('.pr-message.tmp', 'w')
                 pr_message_file.write('%s\n%s\n' % (delta, ''))
                 sys.exit(0)
-            file_pr(overlay, delta, '')
+            file_pr(overlay, delta, '', args.pr_comment)
             clean_up()
             ok('Successfully synchronized repositories!')
             sys.exit(0)
@@ -246,7 +253,7 @@ def main():
             pr_message_file = open('.pr-message.tmp', 'w')
             pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
             sys.exit(0)
-        file_pr(overlay, delta, missing_deps)
+        file_pr(overlay, delta, missing_deps, args.pr_comment)
 
         clean_up()
         ok('Successfully synchronized repositories!')
