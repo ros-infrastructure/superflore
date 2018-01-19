@@ -25,6 +25,7 @@ from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
+from superflore.utils import file_pr
 from superflore.utils import info
 from superflore.utils import ok
 from superflore.utils import warn
@@ -41,15 +42,6 @@ def clean_up():
         os.remove('.pr-message.tmp')
     if os.path.exists('.pr-title.tmp'):
         os.remove('.pr-title.tmp')
-
-
-def file_pr(overlay, delta, missing_deps):
-    try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps))
-    except Exception as e:
-        err('Failed to file PR with ros/ros-overlay repo!')
-        err('Exception: {0}'.format(e))
-        sys.exit(1)
 
 
 def main():
@@ -87,7 +79,11 @@ def main():
         nargs='+',
         help='generate only the specified packages'
     )
-
+    parser.add_argument(
+        '--pr-comment',
+        help='comment to add to the PR',
+        type=str
+    )
     args = parser.parse_args(sys.argv[1:])
     selected_targets = None
     if args.all:
@@ -165,7 +161,7 @@ def main():
                 pr_message_file = open('.pr-message.tmp', 'w')
                 pr_message_file.write('%s\n%s\n' % (delta, ''))
                 sys.exit(0)
-            file_pr(overlay, delta, '')
+            file_pr(overlay, delta, '', args.pr_comment)
             clean_up()
             ok('Successfully synchronized repositories!')
             sys.exit(0)
@@ -244,7 +240,7 @@ def main():
             pr_message_file = open('.pr-message.tmp', 'w')
             pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
             sys.exit(0)
-        file_pr(overlay, delta, missing_deps)
+        file_pr(overlay, delta, missing_deps, args.pr_comment)
 
         clean_up()
         ok('Successfully synchronized repositories!')

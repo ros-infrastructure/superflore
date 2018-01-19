@@ -17,6 +17,7 @@ import os
 import random
 import re
 import string
+import sys
 
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
@@ -38,6 +39,25 @@ def err(string):  # pragma: no cover
 
 def info(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'cyan'))
+
+
+def file_pr(overlay, delta, missing_deps, comment):
+    msg = ''
+    if comment:
+        msg += '%s\n' % comment
+    msg += 'This Superflore PR was generated with the following arguments.\n\n'
+    msg += '```\n%s\n```' % ' '.join(sys.argv)
+    try:
+        overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps))
+    except Exception as e:
+        err(
+            'Failed to file PR with the %s/%s repo!' % (
+                overlay.repo.repo_owner,
+                overlay.repo.repo_name
+            )
+        )
+        err('Exception: {0}'.format(e))
+        sys.exit(1)
 
 
 def make_dir(dirname):

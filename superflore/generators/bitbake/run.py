@@ -23,6 +23,7 @@ from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
+from superflore.utils import file_pr
 from superflore.utils import info
 from superflore.utils import ok
 from superflore.utils import warn
@@ -33,15 +34,6 @@ active_distros = ['indigo', 'kinetic', 'lunar']
 mode = 'update'
 preserve_existing = True
 overlay = None
-
-
-def file_pr(overlay, delta, missing_deps, distro):
-    try:
-        overlay.pull_request('{0}\n{1}'.format(delta, missing_deps), distro)
-    except Exception as e:
-        err('Failed to file PR with allenh1/meta-ros repo!')
-        err('  Exception: {0}'.format(e))
-        sys.exit(1)
 
 
 def main():

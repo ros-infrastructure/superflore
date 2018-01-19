@@ -44,15 +44,15 @@ def generate_installers(
         version = get_pkg_version(distro, pkg)
         percent = '%.1f' % (100 * (float(i) / total))
         try:
-            current, bad_deps = gen_pkg_func(
+            current, current_info = gen_pkg_func(
                 overlay, pkg, distro, preserve_existing, *args
             )
-            if not current and bad_deps:
+            if not current and current_info:
                 # we are missing dependencies
                 failed_msg = "{0}%: Failed to generate".format(percent)
                 failed_msg += " installer for package '%s'!" % pkg
                 err(failed_msg)
-                borkd_pkgs[pkg] = bad_deps
+                borkd_pkgs[pkg] = current_info
                 failed = failed + 1
                 continue
             elif not current and preserve_existing:
@@ -62,7 +62,14 @@ def generate_installers(
             success_msg = 'Successfully generated installer for package'
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
             succeeded = succeeded + 1
-            changes.append('*{0} --> {1}*'.format(pkg, version))
+            if current_info:
+                changes.append(
+                    '*{0} {1} --> {2}*'.format(
+                        pkg, current_info, version
+                    )
+                )
+            else:
+                changes.append('*{0} {1}*'.format(pkg, version))
             installers.append(pkg)
         except UnknownLicense as ul:
             err("{0}%: Unknown License '{1}'.".format(percent, str(ul)))
