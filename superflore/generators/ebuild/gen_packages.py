@@ -54,17 +54,16 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % (pkg))
     # otherwise, remove a (potentially) existing ebuild.
-    existing = glob.glob(
-        '{0}/ros-{1}/{2}/*.ebuild'.format(
-            overlay.repo.repo_dir,
-            distro.name, pkg
-        )
-    )
+    prefix = '{0}/ros-{1}/{2}/'.format(overlay.repo.repo_dir, distro.name, pkg)
+    existing = glob.glob('%s*.ebuild' % prefix)
+    previous_version = None
     if preserve_existing and os.path.isfile(ebuild_name):
         ok("ebuild for package '%s' up to date, skipping..." % pkg)
         return None, []
     elif existing:
         overlay.repo.remove_file(existing[0])
+        # TODO(allenh1): figure out how to propogate this value upward...
+        previous_version = existing[0].lstrip(prefix).rstrip('.ebuild')
         manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
             overlay.repo.repo_dir, distro.name, pkg
         )
