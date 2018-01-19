@@ -62,7 +62,6 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
         return None, []
     elif existing:
         overlay.repo.remove_file(existing[0])
-        # TODO(allenh1): figure out how to propogate this value upward...
         previous_version = existing[0].lstrip(prefix).rstrip('.ebuild')
         manifest_file = '{0}/ros-{1}/{2}/Manifest'.format(
             overlay.repo.repo_dir, distro.name, pkg
@@ -109,7 +108,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     except Exception as e:
         err("Failed to write ebuild/metadata to disk!")
         raise e
-    return current, []
+    return current, previous_version
 
 
 def _gen_metadata_for_package(distro, pkg_name, pkg,
