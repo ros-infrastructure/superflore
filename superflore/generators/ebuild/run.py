@@ -25,6 +25,7 @@ from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
+from superflore.utils import file_pr
 from superflore.utils import info
 from superflore.utils import ok
 from superflore.utils import warn
@@ -41,20 +42,6 @@ def clean_up():
         os.remove('.pr-message.tmp')
     if os.path.exists('.pr-title.tmp'):
         os.remove('.pr-title.tmp')
-
-
-def file_pr(overlay, delta, missing_deps, comment):
-    msg = ''
-    if comment:
-        msg += '%s\n' % comment
-    msg += 'This Superflore PR was generated with the following arguments.\n\n'
-    msg += '```\n%s\n```' % ' '.join(sys.argv)
-    try:
-        overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps))
-    except Exception as e:
-        err('Failed to file PR with ros/ros-overlay repo!')
-        err('Exception: {0}'.format(e))
-        sys.exit(1)
 
 
 def main():
