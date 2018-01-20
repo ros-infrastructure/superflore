@@ -179,7 +179,7 @@ def main():
                 title_file = open('.pr-title.tmp', 'w')
                 title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
                 pr_message_file = open('.pr-message.tmp', 'w')
-                pr_message_file.write('%s\n%s\n' % (delta, ''))
+                pr_message_file.write('%s\n%s\n' % (pr_comment, ''))
                 sys.exit(0)
             file_pr(overlay, '', '', pr_comment)
             clean_up()
