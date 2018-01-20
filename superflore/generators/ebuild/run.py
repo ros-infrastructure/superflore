@@ -22,9 +22,9 @@ from rosinstall_generator.distro import get_distro
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
-
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
+from superflore.test_integration.gentoo.test_yml import TestYml
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import info
@@ -184,6 +184,7 @@ def main():
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
+        test_file = TestYml(selected_targets)
         for distro in selected_targets:
             distro_installers, distro_broken, distro_changes =\
                 generate_installers(
@@ -198,7 +199,7 @@ def main():
 
             total_changes[distro] = distro_changes
             total_installers[distro] = distro_installers
-
+        test_file.distro_changes = total_installers
         num_changes = 0
         for distro_name in total_changes:
             num_changes += len(total_changes[distro_name])
@@ -212,6 +213,8 @@ def main():
         # remove duplicates
         inst_list = total_broken
 
+        with open('%s/test-pr/latest.yml' % _repo, 'w') as ci_file:
+            ci_file.write(test_file.get_text())
         delta = "Changes:\n"
         delta += "========\n"
 
