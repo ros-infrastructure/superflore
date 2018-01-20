@@ -22,6 +22,7 @@ from rosinstall_generator.distro import get_distro
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
+
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
@@ -45,9 +46,6 @@ def clean_up():
 
 
 def main():
-    global overlay
-    global preserve_existing
-
     parser = argparse.ArgumentParser('Deploy ROS packages into Gentoo Linux')
     parser.add_argument(
         '--ros-distro',
