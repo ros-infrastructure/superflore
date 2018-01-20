@@ -17,15 +17,18 @@ class TestYml:
     def __init__(self, distros):
         # TODO(allenh1): type checking on args
         self.distro_changes = dict()
-        for distro in distros:
-            self.distro_changes[distro] = list()
+        if isinstance(distros, str):
+            self.distro_changes[distros] = list()
+        else:
+            for distro in distros:
+                self.distro_changes[distro] = list()
 
     def add_package(self, distro, pkg):
         self.distro_changes[distro].append(pkg)
 
     def get_text(self):
         ret = ''
-        for distro in self.distro_changes:
+        for distro in self.distro_changes.keys():
             ret += '%s:\n' % distro
             for pkg in self.distro_changes[distro]:
                 ret += '  - %s\n' % pkg

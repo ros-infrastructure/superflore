@@ -170,6 +170,11 @@ def main():
             regen_dict = dict()
             regen_dict[args.ros_distro] = args.only
             overlay.regenerate_manifests(regen_dict)
+            test_file = TestYml(args.ros_distro)
+            for pkg in args.only:
+                test_file.add_package(args.ros_distro, pkg)
+            with open('%s/test-pr/latest.yml' % _repo, 'w') as ci_file:
+                ci_file.write(test_file.get_text())
             overlay.commit_changes(args.ros_distro)
             if args.dry_run:
                 # TODO(allenh1): update this PR style.
