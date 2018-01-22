@@ -85,6 +85,7 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     selected_targets = None
+    preserve_existing = True
     if args.all:
         warn('"All" mode detected... This may take a while!')
         preserve_existing = False
