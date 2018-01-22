@@ -28,9 +28,9 @@ class TestYml:
 
     def get_text(self):
         ret = ''
-        for distro in self.distro_changes.keys():
+        for distro in sorted(self.distro_changes.keys()):
             if self.distro_changes[distro]:
                 ret += '%s:\n' % distro
-                for pkg in self.distro_changes[distro]:
+                for pkg in sorted(self.distro_changes[distro]):
                     ret += '  - %s\n' % pkg
         return ret
