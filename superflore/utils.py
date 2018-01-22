@@ -45,7 +45,7 @@ def file_pr(overlay, delta, missing_deps, comment):
     msg = ''
     if comment:
         msg += '%s\n' % comment
-    msg += 'This Superflore PR was generated with the following arguments.\n\n'
+    msg += 'To reproduce this PR, run the following command.\n\n'
     msg += '```\n%s\n```' % ' '.join(sys.argv)
     try:
         overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps))

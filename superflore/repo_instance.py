@@ -89,3 +89,6 @@ class RepoInstance(object):
             target_remote='{0}'.format(remote),
         )
         ok('Successfully filed a pull request.')
+
+    def get_last_hash(self):
+        return self.repo.head.object.hexsha

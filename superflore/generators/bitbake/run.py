@@ -66,8 +66,14 @@ def main():
         nargs='+',
         help='generate only the specified packages'
     )
+    parser.add_argument(
+        '--pr-comment',
+        help='comment to add to the PR',
+        type=str
+    )
     selected_targets = active_distros
     args = parser.parse_args(sys.argv[1:])
+    pr_comment = args.pr_comment
     if args.all:
         warn('"All" mode detected... this may take a while!')
         preserve_existing = False
@@ -82,6 +88,24 @@ def main():
             os.chmod(_repo, 17407)
         # clone if args.output-repository_path is None
         overlay = RosMeta(_repo, not args.output_repository_path)
+        if not args.only:
+            pr_comment = pr_comment or (
+                'Superflore yocto generator began regeneration of all ' +
+                'packages form ROS distribution(s) %s from allenh1\'s ' +
+                'fork of Meta-ROS from commit %s.' % (
+                    selected_targets,
+                    overlay.repo.get_last_hash()
+                )
+            )
+        else:
+            pr_comment = pr_comment or (
+                'Superflore yocto generator began regeneration of package(s)' +
+                ' %s from ROS distro %s from allenh1\'s fork of Meta-ROS ' +
+                'from commit %s.' % (
+                    args.only,
+                    overlay.repo.get_last_hash()
+                )
+            )
         # generate installers
         total_installers = dict()
         total_broken = set()
@@ -117,7 +141,7 @@ def main():
                 overlay.regenerate_manifests(regen_dict)
                 overlay.commit_changes(args.ros_distro)
                 delta = "Regenerated: '%s'\n" % args.only
-                file_pr(overlay, delta, '')
+                file_pr(overlay, delta, '', pr_comment)
                 ok('Successfully synchronized repositories!')
                 sys.exit(0)
 
@@ -187,5 +211,5 @@ def main():
 
         # Commit changes and file pull request
         overlay.commit_changes(args.ros_distro)
-        file_pr(overlay, delta, missing_deps, args.ros_distro)
+        file_pr(overlay, delta, missing_deps, pr_comment)
         ok('Successfully synchronized repositories!')

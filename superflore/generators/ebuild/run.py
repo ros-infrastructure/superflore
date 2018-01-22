@@ -85,6 +85,7 @@ def main():
         type=str
     )
     args = parser.parse_args(sys.argv[1:])
+    pr_comment = args.pr_comment
     selected_targets = None
     if args.all:
         warn('"All" mode detected... This may take a while!')
@@ -130,12 +131,31 @@ def main():
             os.chmod(_repo, 17407)
         # clone if args.output_repository_path is None
         overlay = RosOverlay(_repo, not args.output_repository_path)
+        if not preserve_existing and not args.only:
+            pr_comment = pr_comment or (
+                'Superflore ebuild generator began regeneration of all'
+                ' packages from ROS distro %s from ROS-Overlay commit %s.' % (
+                    selected_targets,
+                    overlay.repo.get_last_hash()
+                )
+            )
+        elif not args.only:
+            pr_comment = pr_comment or (
+                'Superflore ebuild generator ran update from ROS-Overlay ' +
+                'commit %s.' % (overlay.repo.get_last_hash())
+            )
         # generate installers
         total_installers = dict()
         total_broken = set()
         total_changes = dict()
-
         if args.only:
+            pr_comment = pr_comment or (
+                'Superflore ebuild generator began regeneration of ' +
+                'package(s) %s from commit %s.' % (
+                    args.only,
+                    overlay.repo.get_last_hash()
+                )
+            )
             for pkg in args.only:
                 info("Regenerating package '%s'..." % pkg)
                 try:
@@ -153,15 +173,15 @@ def main():
             regen_dict[args.ros_distro] = args.only
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
-            delta = "Regenerated: '%s'\n" % args.only
             if args.dry_run:
+                # TODO(allenh1): update this PR style.
                 info('Running in dry mode, not filing PR')
                 title_file = open('.pr-title.tmp', 'w')
                 title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
                 pr_message_file = open('.pr-message.tmp', 'w')
-                pr_message_file.write('%s\n%s\n' % (delta, ''))
+                pr_message_file.write('%s\n%s\n' % (pr_comment, ''))
                 sys.exit(0)
-            file_pr(overlay, delta, '', args.pr_comment)
+            file_pr(overlay, '', '', pr_comment)
             clean_up()
             ok('Successfully synchronized repositories!')
             sys.exit(0)
@@ -240,7 +260,7 @@ def main():
             pr_message_file = open('.pr-message.tmp', 'w')
             pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
             sys.exit(0)
-        file_pr(overlay, delta, missing_deps, args.pr_comment)
+        file_pr(overlay, delta, missing_deps, pr_comment)
 
         clean_up()
         ok('Successfully synchronized repositories!')
