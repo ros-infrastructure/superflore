@@ -15,7 +15,6 @@
 
 class TestYml:
     def __init__(self, distros):
-        # TODO(allenh1): type checking on args
         self.distro_changes = dict()
         if isinstance(distros, str):
             self.distro_changes[distros] = list()
