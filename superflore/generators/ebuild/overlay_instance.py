@@ -15,7 +15,6 @@
 import os
 import time
 
-from pkg_resources import resource_filename
 from superflore.docker import Docker
 from superflore.repo_instance import RepoInstance
 from superflore.utils import info
@@ -44,11 +43,16 @@ class RosOverlay(object):
         }[distro or 'update'] + time.ctime()
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
-    def regenerate_manifests(self, regen_dict):
-        info('Building docker image...')
-        docker_file = resource_filename('repoman_docker', 'Dockerfile')
+    def regenerate_manifests(
+        self, regen_dict, image_owner='allenh1', image_name='ros_gentoo_base'
+    ):
+        info(
+            "Pulling docker image '%s/%s:latest'..." % (
+                image_owner, image_name
+            )
+        )
         dock = Docker()
-        dock.build(docker_file)
+        dock.pull(image_owner, image_name)
         info('Running docker image...')
         info('Generating manifests...')
         dock.map_directory(
