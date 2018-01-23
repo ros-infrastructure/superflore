@@ -32,7 +32,6 @@ setup(
     license='Apache 2.0',
     test_suite='tests',
     data_files=[
-        ('repoman_docker', ['repoman_docker/Dockerfile']),
         ('test_docker', ['tests/docker/Dockerfile']),
     ],
     include_package_data = True,
