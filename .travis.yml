@@ -1,9 +1,9 @@
-dist: trusty
+dist: xenial
 sudo: required
 language: python
 services: docker
 python:
-  - "3.4"
+  # - "3.4"
   - "3.5"
   # PyPy versions
   - "pypy3"
