@@ -1,3 +1,5 @@
+dist: trusty
+sudo: required
 language: python
 services: docker
 python:
@@ -17,5 +19,5 @@ install:
 script:
   - sudo rosdep init
   - rosdep update
-  - python -m 'nose'
+  - python -m 'nose' --exclude test_pull
   - python -m 'flake8' superflore --import-order-style=google
