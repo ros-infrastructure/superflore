@@ -46,7 +46,9 @@ def file_pr(overlay, delta, missing_deps, comment):
     if comment:
         msg += '%s\n' % comment
     msg += 'To reproduce this PR, run the following command.\n\n'
-    msg += '```\n%s\n```' % ' '.join(sys.argv)
+    args = sys.argv
+    args[0] = args[0].split('/')[-1]
+    msg += '```\n%s\n```' % ' '.join(args)
     try:
         overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps))
     except Exception as e:
