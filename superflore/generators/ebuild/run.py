@@ -24,6 +24,7 @@ from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
+from superflore.test_integration.gentoo.test_yml import TestYml
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import info
@@ -45,9 +46,6 @@ def clean_up():
 
 
 def main():
-    global overlay
-    global preserve_existing
-
     parser = argparse.ArgumentParser('Deploy ROS packages into Gentoo Linux')
     parser.add_argument(
         '--ros-distro',
@@ -87,6 +85,7 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     selected_targets = None
+    preserve_existing = True
     if args.all:
         warn('"All" mode detected... This may take a while!')
         preserve_existing = False
@@ -172,6 +171,11 @@ def main():
             regen_dict = dict()
             regen_dict[args.ros_distro] = args.only
             overlay.regenerate_manifests(regen_dict)
+            test_file = TestYml(args.ros_distro)
+            for pkg in args.only:
+                test_file.add_package(args.ros_distro, pkg)
+            with open('%s/test-pr/latest.yml' % _repo, 'w') as ci_file:
+                ci_file.write(test_file.get_text())
             overlay.commit_changes(args.ros_distro)
             if args.dry_run:
                 # TODO(allenh1): update this PR style.
@@ -186,6 +190,7 @@ def main():
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
+        test_file = TestYml(selected_targets)
         for distro in selected_targets:
             distro_installers, distro_broken, distro_changes =\
                 generate_installers(
@@ -200,7 +205,7 @@ def main():
 
             total_changes[distro] = distro_changes
             total_installers[distro] = distro_installers
-
+        test_file.distro_changes = total_installers
         num_changes = 0
         for distro_name in total_changes:
             num_changes += len(total_changes[distro_name])
@@ -214,6 +219,8 @@ def main():
         # remove duplicates
         inst_list = total_broken
 
+        with open('%s/test-pr/latest.yml' % _repo, 'w') as ci_file:
+            ci_file.write(test_file.get_text())
         delta = "Changes:\n"
         delta += "========\n"
 
