@@ -160,6 +160,7 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
+    pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, "test")
 
     pkg_keywords = ['x86', 'amd64', 'arm', 'arm64']
 
@@ -174,6 +175,10 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
     # add build tool dependencies
     for tdep in pkg_buildtool_deps:
         pkg_ebuild.add_build_depend(tdep, tdep in pkg_names[0])
+
+    # add test dependencies
+    for test_dep in pkg_test_deps:
+        pkg_ebuild.add_test_depend(test_dep, test_dep in pkg_names[0])
 
     # add keywords
     for key in pkg_keywords:

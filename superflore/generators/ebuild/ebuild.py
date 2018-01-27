@@ -59,6 +59,8 @@ class Ebuild(object):
         self.rdepends_external = list()
         self.depends = list()
         self.depends_external = list()
+        self.tdepends = list()
+        self.tdepends_external = list()
         self.distro = None
         self.cmake_package = True
         self.base_yml = None
@@ -85,6 +87,12 @@ class Ebuild(object):
             self.rdepends.append(rdepend)
         else:
             self.rdepends_external.append(rdepend)
+
+    def add_test_depend(self, tdepend, internal=True):
+        if not internal:
+            self.tdepends_external.append(tdepend)
+        else:
+            self.tdepends.append(tdepend)
 
     def add_keyword(self, keyword, stable=False):
         self.keys.append(ebuild_keyword(keyword, stable))
@@ -138,10 +146,15 @@ class Ebuild(object):
         ret += "KEYWORDS=\""
         ret += ' '.join([key.to_string() for key in self.keys])
         ret += "\"\n"
+        if len(self.tdepends) or len(self.tdepends_external):
+            ret += 'IUSE="test"\n'
         # RDEPEND
         ret += "RDEPEND=\"\n"
         for rdep in sorted(self.rdepends):
             ret += "    " + "ros-" + self.distro + "/" + rdep + "\n"
+        # internal test dependencies
+        for tdep in sorted(self.tdepends):
+            ret += "    " + "test? ( ros-" + self.distro + "/" + tdep + " )\n"
         for rdep in sorted(self.rdepends_external):
             try:
                 for res in resolve_dep(rdep, 'gentoo')[0]:
@@ -152,8 +165,14 @@ class Ebuild(object):
                         ret += "    " + res + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(rdep)
+        # external test dependencies
+        for tdep in sorted(self.tdepends_external):
+            try:
+                for res in resolve_dep(tdep, 'gentoo')[0]:
+                    ret += "    test? ( " + res + " )\n"
+            except UnresolvedDependency:
+                self.unresolved_deps.append(tdep)
         ret += "\"\n"
-
         # DEPEND
         ret += "DEPEND=\"${RDEPEND}\n"
         for bdep in sorted(self.depends):
