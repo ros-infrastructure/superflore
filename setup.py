@@ -19,7 +19,7 @@ install_requires = [
 
 setup(
     name='superflore',
-    version='0.2.0',
+    version='0.2.1',
     packages=find_packages(exclude=['tests']),
     author='Hunter L. Allen',
     author_email='hunter@openrobotics.org',

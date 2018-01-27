@@ -1,5 +1,29 @@
 # Change Log
 
+## [v0.2.1](https://github.com/ros-infrastructure/superflore/tree/v0.2.1) (2018-01-26)
+[Full Changelog](https://github.com/ros-infrastructure/superflore/compare/v0.2.0...v0.2.1)
+
+**Implemented enhancements:**
+
+- Fix CI [\#125](https://github.com/ros-infrastructure/superflore/pull/125) ([allenh1](https://github.com/allenh1))
+- Strip the path from the executable name. [\#124](https://github.com/ros-infrastructure/superflore/pull/124) ([allenh1](https://github.com/allenh1))
+- Add in test dependencies, enabled by the use flag 'test' [\#123](https://github.com/ros-infrastructure/superflore/pull/123) ([allenh1](https://github.com/allenh1))
+- Use allenh1/ros\_gentoo\_base for Docker [\#122](https://github.com/ros-infrastructure/superflore/pull/122) ([allenh1](https://github.com/allenh1))
+- More Explicit PRs [\#120](https://github.com/ros-infrastructure/superflore/pull/120) ([allenh1](https://github.com/allenh1))
+- Add command line arguments to the PR text. [\#119](https://github.com/ros-infrastructure/superflore/pull/119) ([allenh1](https://github.com/allenh1))
+- Add test for ros-infrastructure/superflore\#117. [\#118](https://github.com/ros-infrastructure/superflore/pull/118) ([allenh1](https://github.com/allenh1))
+- Gentoo Integration Tests [\#115](https://github.com/ros-infrastructure/superflore/pull/115) ([allenh1](https://github.com/allenh1))
+- Add opencv3 check [\#114](https://github.com/ros-infrastructure/superflore/pull/114) ([allenh1](https://github.com/allenh1))
+- More utils tests [\#113](https://github.com/ros-infrastructure/superflore/pull/113) ([allenh1](https://github.com/allenh1))
+- Add metadata.xml tests. [\#112](https://github.com/ros-infrastructure/superflore/pull/112) ([allenh1](https://github.com/allenh1))
+- Docker tests [\#111](https://github.com/ros-infrastructure/superflore/pull/111) ([allenh1](https://github.com/allenh1))
+- Add `--only \[pkg\_1\] \[pkg\_2\] ... \[pkg\_n\]` [\#109](https://github.com/ros-infrastructure/superflore/pull/109) ([allenh1](https://github.com/allenh1))
+
+**Fixed bugs:**
+
+- Multi-License Line Fix [\#117](https://github.com/ros-infrastructure/superflore/issues/117)
+- Add test for ros-infrastructure/superflore\\#117. [\#118](https://github.com/ros-infrastructure/superflore/pull/118) ([allenh1](https://github.com/allenh1))
+
 ## [v0.2.0](https://github.com/ros-infrastructure/superflore/tree/v0.2.0) (2017-12-28)
 [Full Changelog](https://github.com/ros-infrastructure/superflore/compare/v0.1.0...v0.2.0)
 
