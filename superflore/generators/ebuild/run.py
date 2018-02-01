@@ -135,7 +135,7 @@ def main():
     if args.upstream_repo:
         # check that the upstream_repo is a github repo
         if 'github.com' not in args.upstream_repo:
-            raise RuntimeException('Non-GitHub repos are not supported!')
+            raise RuntimeError('Non-GitHub repos are not supported!')
         upstream = args.upstream_repo
         upstream = upstream.replace('https://github.com/', '').split('/')
         repo_org = upstream[0]
