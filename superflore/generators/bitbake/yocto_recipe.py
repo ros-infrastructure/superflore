@@ -38,7 +38,7 @@ from superflore.utils import resolve_dep
 
 class yoctoRecipe(object):
     def __init__(
-        self, name, distro, src_uri, tar_dir, md5_cache, sha256_cache
+        self, name, distro, src_uri, tar_dir, md5_cache, sha256_cache, patches
     ):
         self.name = name
         self.distro = distro.name
@@ -52,6 +52,7 @@ class yoctoRecipe(object):
         self.license_line = None
         self.archive_name = None
         self.license_md5 = None
+        self.patches = patches
         self.tar_dir = tar_dir
         if self.getArchiveName() not in md5_cache or \
            self.getArchiveName() not in sha256_cache:
@@ -173,5 +174,9 @@ class yoctoRecipe(object):
         ret += 'SRC_URI[sha256sum] = "' + self.src_sha256 + '"\n'
         ret += 'S = "${WORKDIR}/'
         ret += self.get_src_location() + '"\n\n'
+        # Check for patches
+        if self.patch_files:
+            ret += 'SRC_URI += "\\\n'
+            ret += ' \\\n'.join(self.patch_files) + '"\n'
         ret += 'inherit catkin\n'
         return ret
