@@ -41,7 +41,7 @@ def info(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'cyan'))
 
 
-def file_pr(overlay, delta, missing_deps, comment):
+def file_pr(overlay, delta, missing_deps, comment, distro=None):
     msg = ''
     if comment:
         msg += '%s\n' % comment
@@ -50,7 +50,7 @@ def file_pr(overlay, delta, missing_deps, comment):
     args[0] = args[0].split('/')[-1]
     msg += '```\n%s\n```' % ' '.join(args)
     try:
-        overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps))
+        overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps), distro)
     except Exception as e:
         err(
             'Failed to file PR with the %s/%s repo!' % (

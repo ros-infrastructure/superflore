@@ -52,7 +52,7 @@ class yoctoRecipe(object):
         self.license_line = None
         self.archive_name = None
         self.license_md5 = None
-        self.patches = patches
+        self.patch_files = patches
         self.tar_dir = tar_dir
         if self.getArchiveName() not in md5_cache or \
            self.getArchiveName() not in sha256_cache:
@@ -177,6 +177,14 @@ class yoctoRecipe(object):
         # Check for patches
         if self.patch_files:
             ret += 'SRC_URI += "\\\n'
-            ret += ' \\\n'.join(self.patch_files) + '"\n'
+            ret += ' \\\n'.join(self.patch_files) + '"\n\n'
+        if self.name == 'catkin':
+            ret += 'FILES_${PN} += "\\\n'
+            ret += '    /opt/ros/${ROSDISTRO}/_setup_util.py \\\n'
+            ret += '    /opt/ros/${ROSDISTRO}/env.sh \\\n'
+            ret += '    /opt/ros/${ROSDISTRO}/setup.bash \\\n'
+            ret += '    /opt/ros/${ROSDISTRO}/setup.sh \\\n'
+            ret += '    /opt/ros/${ROSDISTRO}/setup.zsh \\\n'
+            ret += '    /opt/ros/${ROSDISTRO}/.rosinstall"\n\n'
         ret += 'inherit catkin\n'
         return ret

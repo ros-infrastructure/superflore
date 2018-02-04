@@ -120,9 +120,10 @@ def main():
         else:
             pr_comment = pr_comment or (
                 'Superflore yocto generator began regeneration of package(s)' +
-                ' %s from ROS distro %s from allenh1\'s fork of Meta-ROS ' +
+                ' %s from ROS distro %s from allenh1 fork of Meta-ROS ' +
                 'from commit %s.' % (
                     args.only,
+                    args.ros_distro,
                     overlay.repo.get_last_hash()
                 )
             )
@@ -158,10 +159,9 @@ def main():
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
-                overlay.regenerate_manifests(regen_dict)
                 overlay.commit_changes(args.ros_distro)
                 delta = "Regenerated: '%s'\n" % args.only
-                file_pr(overlay, delta, '', pr_comment)
+                file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro)
                 ok('Successfully synchronized repositories!')
                 sys.exit(0)
 

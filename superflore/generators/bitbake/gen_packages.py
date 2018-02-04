@@ -53,7 +53,7 @@ def regenerate_installer(
             pkg
         )
     )
-    patch_path = '/recipes-ros-{1}/{2}/files/'.format(distro.name, pkg)
+    patch_path = '/recipes-ros-{0}/{1}/files/'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
     patches = None
     if os.path.exists(patch_path):
