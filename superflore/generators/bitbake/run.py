@@ -120,12 +120,10 @@ def main():
         else:
             pr_comment = pr_comment or (
                 'Superflore yocto generator began regeneration of package(s)' +
-                ' %s from ROS distro %s from allenh1 fork of Meta-ROS ' +
-                'from commit %s.' % (
+                ' %s from ROS distro %s from allenh1\'s fork of Meta-ROS ' % (
                     args.only,
-                    args.ros_distro,
-                    overlay.repo.get_last_hash()
-                )
+                    args.ros_distro
+                ) + ' from commit %s.' % (overlay.repo.get_last_hash())
             )
         # generate installers
         total_installers = dict()
