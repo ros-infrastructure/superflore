@@ -21,6 +21,7 @@ from rosinstall_generator.distro import get_distro
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
+from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import clean_up
@@ -34,56 +35,12 @@ from superflore.utils import warn
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
-# just update packages, by default.
-preserve_existing = True
-overlay = None
 
 
 def main():
-    global overlay
-    global preserve_existing
-
-    parser = argparse.ArgumentParser('Deploy ROS packages into Gentoo Linux')
-    parser.add_argument(
-        '--ros-distro',
-        help='regenerate packages for the specified distro',
-        type=str
-    )
-    parser.add_argument(
-        '--all',
-        help='regenerate all packages in all distros',
-        action="store_true"
-    )
-    parser.add_argument(
-        '--dry-run',
-        help='run without filing a PR to remote',
-        action="store_true"
-    )
-    parser.add_argument(
-        '--pr-only',
-        help='ONLY file a PR to remote',
-        action='store_true'
-    )
-    parser.add_argument(
-        '--output-repository-path',
-        help='location of the Git repo',
-        type=str
-    )
-    parser.add_argument(
-        '--only',
-        nargs='+',
-        help='generate only the specified packages'
-    )
-    parser.add_argument(
-        '--pr-comment',
-        help='comment to add to the PR',
-        type=str
-    )
-    parser.add_argument(
-        '--upstream-repo',
-        help='location of the upstream repository',
-        type=str
-    )
+    overlay = None
+    preserve_existing = True
+    parser = get_parser('Deploy ROS packages into Gentoo Linux')
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     selected_targets = None

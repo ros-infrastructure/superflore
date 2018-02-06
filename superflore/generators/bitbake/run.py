@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import os
 import sys
 
@@ -21,6 +20,7 @@ from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
+from superflore.parser import get_parser
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import file_pr
@@ -30,50 +30,15 @@ from superflore.utils import warn
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
-# just update packages, by default.
-mode = 'update'
-preserve_existing = True
-overlay = None
 
 
 def main():
-    global overlay
-    global preserve_existing
-
-    parser = argparse.ArgumentParser('Deploy ROS packages into Yocto Linux')
-    parser.add_argument(
-        '--ros-distro',
-        help='regenerate packages for the specified distro',
-        type=str
-    )
-    parser.add_argument(
-        '--all',
-        help='regenerate all packages in all distros',
-        action="store_true"
-    )
-    parser.add_argument(
-        '--output-repository-path',
-        help='location of the Git repo',
-        type=str
-    )
+    preserve_existing = True
+    overlay = None
+    parser = get_parser('Deploy ROS packages into Yocto Linux')
     parser.add_argument(
         '--tar-archive-dir',
         help='location to store archived packages',
-        type=str
-    )
-    parser.add_argument(
-        '--only',
-        nargs='+',
-        help='generate only the specified packages'
-    )
-    parser.add_argument(
-        '--pr-comment',
-        help='comment to add to the PR',
-        type=str
-    )
-    parser.add_argument(
-        '--upstream-repo',
-        help='location of the upstream repository',
         type=str
     )
     selected_targets = active_distros
