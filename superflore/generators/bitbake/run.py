@@ -21,6 +21,7 @@ from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
 from superflore.parser import get_parser
+from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import file_pr
@@ -51,6 +52,21 @@ def main():
         warn('"{0}" distro detected...'.format(args.ros_distro))
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    elif args.dry_run and args.pr_only:
+        parser.error('Invalid args! cannot dry-run and file PR')
+    elif args.pr_only and not args.output_repository_path:
+        parser.error('Invalid args! no repository specified')
+    elif args.pr_only:
+        try:
+            prev_overlay = RepoInstance(args.output_repository_path, False)
+            msg, title = load_pr()
+            prev_overlay.pull_request(msg, title)
+            clean_up()
+            sys.exit(0)
+        except Exception as e:
+            err('Failed to file PR!')
+            err('reason: {0}'.format(e))
+            sys.exit(1)
     repo_org = 'allenh1'
     repo_name = 'meta-ros'
     if args.upstream_repo:
@@ -124,6 +140,9 @@ def main():
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 overlay.commit_changes(args.ros_distro)
+                if args.dry_run:
+                    save_pr(overlay, args.only, pr_comment)
+                    sys.exit(0)
                 delta = "Regenerated: '%s'\n" % args.only
                 file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro)
                 ok('Successfully synchronized repositories!')
@@ -195,5 +214,9 @@ def main():
 
         # Commit changes and file pull request
         overlay.commit_changes(args.ros_distro)
+        if args.dry_run:
+            info('Running in dry mode, not filing PR')
+            save_pr(overlay, delta, missing_deps, pr_comment)
+            sys.exit(0)
         file_pr(overlay, delta, missing_deps, pr_comment)
         ok('Successfully synchronized repositories!')
