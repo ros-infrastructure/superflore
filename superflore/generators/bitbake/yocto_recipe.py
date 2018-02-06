@@ -38,7 +38,8 @@ from superflore.utils import resolve_dep
 
 class yoctoRecipe(object):
     def __init__(
-        self, name, distro, src_uri, tar_dir, md5_cache, sha256_cache, patches
+        self, name, distro, src_uri, tar_dir,
+        md5_cache, sha256_cache, patches, incs
     ):
         self.name = name
         self.distro = distro.name
@@ -53,6 +54,7 @@ class yoctoRecipe(object):
         self.archive_name = None
         self.license_md5 = None
         self.patch_files = patches
+        self.inc_files = incs
         self.tar_dir = tar_dir
         if self.getArchiveName() not in md5_cache or \
            self.getArchiveName() not in sha256_cache:
@@ -178,13 +180,8 @@ class yoctoRecipe(object):
         if self.patch_files:
             ret += 'SRC_URI += "\\\n'
             ret += ' \\\n'.join(self.patch_files) + '"\n\n'
-        if self.name == 'catkin':
-            ret += 'FILES_${PN} += "\\\n'
-            ret += '    /opt/ros/${ROSDISTRO}/_setup_util.py \\\n'
-            ret += '    /opt/ros/${ROSDISTRO}/env.sh \\\n'
-            ret += '    /opt/ros/${ROSDISTRO}/setup.bash \\\n'
-            ret += '    /opt/ros/${ROSDISTRO}/setup.sh \\\n'
-            ret += '    /opt/ros/${ROSDISTRO}/setup.zsh \\\n'
-            ret += '    /opt/ros/${ROSDISTRO}/.rosinstall"\n\n'
+        if self.inc_files:
+            self.inc_files = ['require %s' % f for f in self.inc_files]
+            ret += '\n'.join(self.inc_files)
         ret += 'inherit catkin\n'
         return ret
