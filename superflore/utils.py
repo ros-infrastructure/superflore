@@ -78,8 +78,9 @@ def load_pr():
     clean_up()
 
 
-def file_pr(overlay, delta, missing_deps, comment):
+def file_pr(overlay, delta, missing_deps, comment, distro=None):
     try:
+        msg = get_pr_text(comment)
         overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps), distro)
     except Exception as e:
         err(
