@@ -23,10 +23,13 @@ from superflore.generators.bitbake.ros_meta import RosMeta
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
+from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import info
+from superflore.utils import load_pr
 from superflore.utils import ok
+from superflore.utils import save_pr
 from superflore.utils import warn
 
 # Modify if a new distro is added
