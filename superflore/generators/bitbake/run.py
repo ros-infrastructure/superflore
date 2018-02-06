@@ -71,6 +71,11 @@ def main():
         help='comment to add to the PR',
         type=str
     )
+    parser.add_argument(
+        '--upstream-repo',
+        help='location of the upstream repository',
+        type=str
+    )
     selected_targets = active_distros
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
@@ -81,13 +86,28 @@ def main():
         warn('"{0}" distro detected...'.format(args.ros_distro))
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    repo_org = 'allenh1'
+    repo_name = 'meta-ros'
+    if args.upstream_repo:
+        # check the repo is GitHub
+        if 'github.com' not in args.upstream_repo:
+            raise RuntimeError('Non-GitHub repos are not supported!')
+        upstream = args.upstream_repo
+        upstream = upstream.replace('https://github.com/', '').split('/')
+        repo_org = upstream[0]
+        repo_name = upstream[1]
     # open cached tar file if it exists
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
             os.chmod(_repo, 17407)
         # clone if args.output-repository_path is None
-        overlay = RosMeta(_repo, not args.output_repository_path)
+        overlay = RosMeta(
+            _repo,
+            not args.output_repository_path,
+            org=repo_org,
+            repo=repo_name
+        )
         if not args.only:
             pr_comment = pr_comment or (
                 'Superflore yocto generator began regeneration of all ' +

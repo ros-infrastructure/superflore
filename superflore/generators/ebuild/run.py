@@ -84,6 +84,11 @@ def main():
         help='comment to add to the PR',
         type=str
     )
+    parser.add_argument(
+        '--upstream-repo',
+        help='location of the upstream repository',
+        type=str
+    )
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     selected_targets = None
@@ -125,12 +130,27 @@ def main():
             sys.exit(1)
     if not selected_targets:
         selected_targets = active_distros
+    repo_org = 'ros'
+    repo_name = 'ros-overlay'
+    if args.upstream_repo:
+        # check that the upstream_repo is a github repo
+        if 'github.com' not in args.upstream_repo:
+            raise RuntimeError('Non-GitHub repos are not supported!')
+        upstream = args.upstream_repo
+        upstream = upstream.replace('https://github.com/', '').split('/')
+        repo_org = upstream[0]
+        repo_name = upstream[1]
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
             os.chmod(_repo, 17407)
         # clone if args.output_repository_path is None
-        overlay = RosOverlay(_repo, not args.output_repository_path)
+        overlay = RosOverlay(
+            _repo,
+            not args.output_repository_path,
+            org=repo_org,
+            repo=repo_name
+        )
         if not preserve_existing and not args.only:
             pr_comment = pr_comment or (
                 'Superflore ebuild generator began regeneration of all'
