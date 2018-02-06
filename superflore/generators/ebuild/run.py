@@ -27,7 +27,9 @@ from superflore.TempfileManager import TempfileManager
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import info
+from superflore.utils import load_pr
 from superflore.utils import ok
+from superflore.utils import save_pr_text
 from superflore.utils import warn
 
 # Modify if a new distro is added
@@ -35,13 +37,6 @@ active_distros = ['indigo', 'kinetic', 'lunar']
 # just update packages, by default.
 preserve_existing = True
 overlay = None
-
-
-def clean_up():
-    if os.path.exists('.pr-message.tmp'):
-        os.remove('.pr-message.tmp')
-    if os.path.exists('.pr-title.tmp'):
-        os.remove('.pr-title.tmp')
 
 
 def main():
@@ -104,23 +99,8 @@ def main():
         parser.error('Invalid args! no repository specified')
     elif args.pr_only:
         try:
-            with open('.pr-message.tmp', 'r') as msg_file:
-                msg = msg_file.read().rstrip('\n')
-            with open('.pr-title.tmp', 'r') as title_file:
-                title = title_file.read().rstrip('\n')
-        except OSError:
-            err('Failed to open PR title/message file!')
-            err(
-                'Please supply the %s and %s files' % (
-                    '.pr_message.tmp',
-                    '.pr_title.tmp'
-                )
-            )
-            raise
-        try:
             prev_overlay = RepoInstance(args.output_repository_path, False)
-            info('PR message:\n"%s"\n' % msg)
-            info('PR title:\n"%s"\n' % title)
+            msg, title = load_pr()
             prev_overlay.pull_request(msg, title)
             clean_up()
             sys.exit(0)
@@ -194,12 +174,7 @@ def main():
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
             if args.dry_run:
-                # TODO(allenh1): update this PR style.
-                info('Running in dry mode, not filing PR')
-                title_file = open('.pr-title.tmp', 'w')
-                title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
-                pr_message_file = open('.pr-message.tmp', 'w')
-                pr_message_file.write('%s\n%s\n' % (pr_comment, ''))
+                save_pr(overlay, args.only, pr_comment)
                 sys.exit(0)
             file_pr(overlay, '', '', pr_comment)
             clean_up()
@@ -275,10 +250,7 @@ def main():
 
         if args.dry_run:
             info('Running in dry mode, not filing PR')
-            title_file = open('.pr-title.tmp', 'w')
-            title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
-            pr_message_file = open('.pr-message.tmp', 'w')
-            pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
+            save_pr(overlay, delta, missing_deps, pr_comment)
             sys.exit(0)
         file_pr(overlay, delta, missing_deps, pr_comment)
 
