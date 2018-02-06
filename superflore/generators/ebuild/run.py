@@ -24,12 +24,13 @@ from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
+from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
-from superflore.utils import save_pr_text
+from superflore.utils import save_pr
 from superflore.utils import warn
 
 # Modify if a new distro is added
