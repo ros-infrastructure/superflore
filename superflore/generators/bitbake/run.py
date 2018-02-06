@@ -110,9 +110,9 @@ def main():
         )
         if not args.only:
             pr_comment = pr_comment or (
-                'Superflore yocto generator began regeneration of all ' +
-                'packages form ROS distribution(s) %s from allenh1\'s ' +
-                'fork of Meta-ROS from commit %s.' % (
+                'Superflore yocto generator began regeneration of all '
+                'packages form ROS distribution(s) %s on Meta-ROS from '
+                'commit %s.' % (
                     selected_targets,
                     overlay.repo.get_last_hash()
                 )
@@ -120,8 +120,7 @@ def main():
         else:
             pr_comment = pr_comment or (
                 'Superflore yocto generator began regeneration of package(s)'
-                ' %s from ROS distro %s from allenh1\'s fork of Meta-ROS'
-                ' from commit %s.' % (
+                ' %s from ROS distro %s from Meta-ROS from commit %s.' % (
                     args.only,
                     args.ros_distro,
                     overlay.repo.get_last_hash()
