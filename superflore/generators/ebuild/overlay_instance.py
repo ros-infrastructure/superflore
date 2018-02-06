@@ -67,6 +67,6 @@ class RosOverlay(object):
                 dock.add_bash_command('repoman manifest')
         dock.run(show_cmd=True)
 
-    def pull_request(self, message):
+    def pull_request(self, message, overlay=None):
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
         self.repo.pull_request(message, pr_title)

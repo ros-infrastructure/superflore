@@ -50,6 +50,6 @@ class RosMeta(object):
         info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
-    def pull_request(self, message, distro):
+    def pull_request(self, message, distro=None):
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
         self.repo.pull_request(message, pr_title, branch=distro)

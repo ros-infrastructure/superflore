@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import glob
+import os
 import sys
 
 from rosdistro.dependency_walker import DependencyWalker
@@ -52,14 +53,33 @@ def regenerate_installer(
             pkg
         )
     )
-
+    # check for .inc files
+    inc_files = None
+    inc_files = glob.glob(
+        '{0}/recipes-ros-{1}/{2}/*.inc'.format(
+            overlay.repo.repo_dir,
+            distro.name,
+            pkg
+        )
+    )
+    # check for patches
+    patch_path = '/recipes-ros-{0}/{1}/files/'.format(distro.name, pkg)
+    patch_path = overlay.repo.repo_dir + patch_path
+    patches = None
+    if os.path.exists(patch_path):
+        patches = [
+            f.replace(patch_path, '    ')
+            for f in glob.glob('%s*.patch' % patch_path)
+        ]
     if preserve_existing and existing:
         ok("recipe for package '%s' up to date, skpping..." % pkg)
         return None, []
     elif existing:
         overlay.repo.remove_file(existing[0])
     try:
-        current = oe_installer(distro, pkg, tar_dir, md5_cache, sha256_cache)
+        current = oe_installer(
+            distro, pkg, tar_dir, md5_cache, sha256_cache, patches, inc_files
+        )
         current.recipe.name = pkg.replace('_', '-')
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
@@ -105,7 +125,7 @@ def regenerate_installer(
 
 def _gen_recipe_for_package(
     distro, pkg_name, pkg, repo, ros_pkg,
-    pkg_rosinstall, tar_dir, md5_cache, sha256_cache
+    pkg_rosinstall, tar_dir, md5_cache, sha256_cache, patches, incs
 ):
     pkg_dep_walker = DependencyWalker(distro)
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
@@ -114,7 +134,14 @@ def _gen_recipe_for_package(
     src_uri = pkg_rosinstall[0]['tar']['uri']
 
     pkg_recipe = yoctoRecipe(
-        pkg_name, distro, src_uri, tar_dir, md5_cache, sha256_cache
+        pkg_name,
+        distro,
+        src_uri,
+        tar_dir,
+        md5_cache,
+        sha256_cache,
+        patches,
+        incs
     )
     # add run dependencies
     for rdep in pkg_run_deps:
@@ -168,8 +195,7 @@ def _gen_recipe_for_package(
 
 class oe_installer(object):
     def __init__(
-        self, distro, pkg_name, tar_dir, md5_cache, sha256_cache,
-        has_patches=False
+        self, distro, pkg_name, tar_dir, md5_cache, sha256_cache, patches, inc
     ):
         pkg = distro.release_packages[pkg_name]
         repo = distro.repositories[pkg.repository_name].release_repository
@@ -181,7 +207,7 @@ class oe_installer(object):
 
         self.recipe = _gen_recipe_for_package(
             distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall,
-            tar_dir, md5_cache, sha256_cache
+            tar_dir, md5_cache, sha256_cache, patches, inc
         )
 
     def recipe_text(self):
