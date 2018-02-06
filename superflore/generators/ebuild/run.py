@@ -16,7 +16,6 @@
 import argparse
 import os
 import sys
-import time
 
 from rosinstall_generator.distro import get_distro
 from superflore.generate_installers import generate_installers
