@@ -132,8 +132,8 @@ def main():
             if args.dry_run:
                 save_pr(overlay, args.only, pr_comment)
                 sys.exit(0)
-            file_pr(overlay, '', '', pr_comment)
-            clean_up()
+            delta = "Regenerated: '%s'\n" % args.only
+            file_pr(overlay, delta, '', pr_comment)
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
