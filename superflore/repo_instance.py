@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import shutil
 
 from git import Repo
@@ -42,7 +43,7 @@ class RepoInstance(object):
             )
         self.github = Github(os.environ['SUPERFLORE_GITHUB_TOKEN'])
         self.gh_user = self.github.get_user()
-        self.gh_upstream = self.github.get_repo('%s/%s', repo_owner, repo_name)
+        self.gh_upstream = self.github.get_repo('%s/%s' % (repo_owner, repo_name))
 
     def clone(self, branch=None):
         shutil.rmtree(self.repo_dir)
@@ -54,6 +55,7 @@ class RepoInstance(object):
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         if branch:
             self.git.checkout(branch)
+            self.branch = branch
 
     def remove_file(self, filename, ignore_fail=False):
         try:
@@ -71,6 +73,7 @@ class RepoInstance(object):
         @todo: error checking
         """
         info(self.git.checkout('HEAD', b=branch_name))
+        self.branch = branch_name
 
     def remove_branch(self, branch_name):
         """
@@ -83,6 +86,7 @@ class RepoInstance(object):
         @todo: error checking
         """
         self.git.checkout(branch_name)
+        self.branch = branch_name
 
     def rebase(self, target):
         """
@@ -92,18 +96,23 @@ class RepoInstance(object):
 
     def pull_request(self, message, title, branch='master', remote='origin'):
         info('Forking repository if a fork does not exist...')
+        # TODO(allenh1): Don't fork if you're authorized for repo
         forked_repo = self.gh_user.create_fork(self.gh_upstream)
-        info('Pushing changes to remote...')
-        self.git.remote.add('github')
-        # TODO(allenh1): do the git push logic
+        info('Pushing changes to fork...')
+        self.git.remote('add', 'github', forked_repo.html_url)
+        self.git.push('-u', 'github', self.branch or 'master')
         info('Filing pull-request...')
-        self.git.pull_request(
-            m='{0}'.format(message),
-            title='{0}'.format(title),
-            target_branch='{0}'.format(branch),
-            target_remote='{0}'.format(remote),
-        )
+        pr_from = '%s:%s' % (self.gh_user.login, self.branch)
+        info(pr_from)
+        pr = forked_repo.create_pull(title, message, pr_from)
+        # self.git.pull_request(
+        #     m='{0}'.format(message),
+        #     title='{0}'.format(title),
+        #     target_branch='{0}'.format(branch),
+        #     target_remote='{0}'.format(remote),
+        # )
         ok('Successfully filed a pull request.')
+        # TODO(allenh1): print the URL of the PR here
 
     def get_last_hash(self):
         return self.repo.head.object.hexsha
