@@ -39,11 +39,16 @@ class RepoInstance(object):
         if 'SUPERFLORE_GITHUB_TOKEN' not in os.environ:
             raise NoGitHubAuthToken(
                 'Please create an OAuth token for Superflore, and place '
-                'the string in the environment variable SUPERFLORE_GITHUB_TOKEN'
+                'the string in the environment variable '
+                'SUPERFLORE_GITHUB_TOKEN'
             )
         self.github = Github(os.environ['SUPERFLORE_GITHUB_TOKEN'])
         self.gh_user = self.github.get_user()
-        self.gh_upstream = self.github.get_repo('%s/%s' % (repo_owner, repo_name))
+        self.gh_upstream = self.github.get_repo(
+            '%s/%s' % (
+                repo_owner, repo_name
+            )
+        )
 
     def clone(self, branch=None):
         shutil.rmtree(self.repo_dir)

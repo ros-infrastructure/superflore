@@ -32,6 +32,7 @@ class NoPkgXml(Exception):
     def __init__(self, message):
         self.message = message
 
+
 def NoGitHubAuthToken(Exception):
     def __init__(self, message):
         self.message = message
