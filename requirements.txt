@@ -11,3 +11,5 @@ rosdep
 pep8
 docker
 pyyaml
+pygithub
+

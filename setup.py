@@ -13,7 +13,8 @@ install_requires = [
     'gitpython',
     'requests',
     'docker',
-    'pyyaml'
+    'pyyaml',
+    'pygithub'
 ]
 
 setup(
