@@ -102,15 +102,13 @@ class RepoInstance(object):
         self.git.remote('add', 'github', forked_repo.html_url)
         self.git.push('-u', 'github', self.branch or 'master')
         info('Filing pull-request...')
-        pr_from = '%s:%s' % (self.gh_user.login, self.branch)
-        info(pr_from)
-        pr = forked_repo.create_pull(title, message, pr_from)
-        # self.git.pull_request(
-        #     m='{0}'.format(message),
-        #     title='{0}'.format(title),
-        #     target_branch='{0}'.format(branch),
-        #     target_remote='{0}'.format(remote),
-        # )
+        pr_head = '%s:%s' % (self.gh_user.login, self.branch)
+        pr = self.gh_upstream.create_pull(
+            title=title,
+            body=message,
+            base='master',
+            head=pr_head
+        )
         ok('Successfully filed a pull request.')
         # TODO(allenh1): print the URL of the PR here
 

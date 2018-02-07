@@ -63,7 +63,6 @@ def main():
         except Exception as e:
             err('Failed to file PR!')
             err('reason: {0}'.format(e))
-            raise e
             sys.exit(1)
     if not selected_targets:
         selected_targets = active_distros
