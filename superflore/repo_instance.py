@@ -110,7 +110,7 @@ class RepoInstance(object):
             head=pr_head
         )
         ok('Successfully filed a pull request.')
-        # TODO(allenh1): print the URL of the PR here
+        ok('  %s' % pr.html_url)
 
     def get_last_hash(self):
         return self.repo.head.object.hexsha
