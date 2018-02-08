@@ -11,10 +11,10 @@ install_requires = [
     'rosdistro',
     'rosdep',
     'gitpython',
-    'git-pull-request',
     'requests',
     'docker',
-    'pyyaml'
+    'pyyaml',
+    'pygithub'
 ]
 
 setup(

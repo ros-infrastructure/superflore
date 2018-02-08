@@ -2,7 +2,6 @@ nose
 flake8
 flake8-import-order
 termcolor
-git-pull-request
 xmltodict
 gitpython
 rosinstall_generator
@@ -12,3 +11,4 @@ rosdep
 pep8
 docker
 pyyaml
+pygithub

@@ -44,7 +44,7 @@ def test_pep8():
     """Test source code for PEP8 conformance"""
     this_dir = os.path.dirname(os.path.abspath(__file__))
     source_dir = os.path.join(this_dir, '..', 'superflore')
-    cmd = [sys.executable, '-m', 'pep8', source_dir, '--count']
+    cmd = [sys.executable, '-m', 'pycodestyle', source_dir, '--count']
     if sys.version_info < (3, 4):
         # Unless Python3, skip files with new syntax, like `yield from`
         cmd.append('--exclude={0}/*async_execute_process_asyncio/impl.py'.format(source_dir))

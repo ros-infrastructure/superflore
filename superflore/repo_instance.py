@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import shutil
 
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
+from github import Github
+from superflore.exceptions import NoGitHubAuthToken
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
@@ -33,6 +36,19 @@ class RepoInstance(object):
         else:
             self.repo = Repo(repo_dir)
         self.git = self.repo.git
+        if 'SUPERFLORE_GITHUB_TOKEN' not in os.environ:
+            raise NoGitHubAuthToken(
+                'Please create an OAuth token for Superflore, and place '
+                'the string in the environment variable '
+                'SUPERFLORE_GITHUB_TOKEN'
+            )
+        self.github = Github(os.environ['SUPERFLORE_GITHUB_TOKEN'])
+        self.gh_user = self.github.get_user()
+        self.gh_upstream = self.github.get_repo(
+            '%s/%s' % (
+                repo_owner, repo_name
+            )
+        )
 
     def clone(self, branch=None):
         shutil.rmtree(self.repo_dir)
@@ -44,6 +60,7 @@ class RepoInstance(object):
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         if branch:
             self.git.checkout(branch)
+            self.branch = branch
 
     def remove_file(self, filename, ignore_fail=False):
         try:
@@ -61,6 +78,7 @@ class RepoInstance(object):
         @todo: error checking
         """
         info(self.git.checkout('HEAD', b=branch_name))
+        self.branch = branch_name
 
     def remove_branch(self, branch_name):
         """
@@ -73,6 +91,7 @@ class RepoInstance(object):
         @todo: error checking
         """
         self.git.checkout(branch_name)
+        self.branch = branch_name
 
     def rebase(self, target):
         """
@@ -81,14 +100,22 @@ class RepoInstance(object):
         self.git.rebase(i=target)
 
     def pull_request(self, message, title, branch='master', remote='origin'):
+        info('Forking repository if a fork does not exist...')
+        # TODO(allenh1): Don't fork if you're authorized for repo
+        forked_repo = self.gh_user.create_fork(self.gh_upstream)
+        info('Pushing changes to fork...')
+        self.git.remote('add', 'github', forked_repo.html_url)
+        self.git.push('-u', 'github', self.branch or 'master')
         info('Filing pull-request...')
-        self.git.pull_request(
-            m='{0}'.format(message),
-            title='{0}'.format(title),
-            target_branch='{0}'.format(branch),
-            target_remote='{0}'.format(remote),
+        pr_head = '%s:%s' % (self.gh_user.login, self.branch)
+        pr = self.gh_upstream.create_pull(
+            title=title,
+            body=message,
+            base='master',
+            head=pr_head
         )
         ok('Successfully filed a pull request.')
+        ok('  %s' % pr.html_url)
 
     def get_last_hash(self):
         return self.repo.head.object.hexsha
