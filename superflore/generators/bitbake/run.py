@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import os
 import sys
 
@@ -21,59 +20,29 @@ from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_installer
 from superflore.generators.bitbake.ros_meta import RosMeta
+from superflore.parser import get_parser
+from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
+from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import info
+from superflore.utils import load_pr
 from superflore.utils import ok
+from superflore.utils import save_pr
 from superflore.utils import warn
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
-# just update packages, by default.
-mode = 'update'
-preserve_existing = True
-overlay = None
 
 
 def main():
-    global overlay
-    global preserve_existing
-
-    parser = argparse.ArgumentParser('Deploy ROS packages into Yocto Linux')
-    parser.add_argument(
-        '--ros-distro',
-        help='regenerate packages for the specified distro',
-        type=str
-    )
-    parser.add_argument(
-        '--all',
-        help='regenerate all packages in all distros',
-        action="store_true"
-    )
-    parser.add_argument(
-        '--output-repository-path',
-        help='location of the Git repo',
-        type=str
-    )
+    preserve_existing = True
+    overlay = None
+    parser = get_parser('Deploy ROS packages into Yocto Linux')
     parser.add_argument(
         '--tar-archive-dir',
         help='location to store archived packages',
-        type=str
-    )
-    parser.add_argument(
-        '--only',
-        nargs='+',
-        help='generate only the specified packages'
-    )
-    parser.add_argument(
-        '--pr-comment',
-        help='comment to add to the PR',
-        type=str
-    )
-    parser.add_argument(
-        '--upstream-repo',
-        help='location of the upstream repository',
         type=str
     )
     selected_targets = active_distros
@@ -86,6 +55,21 @@ def main():
         warn('"{0}" distro detected...'.format(args.ros_distro))
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    elif args.dry_run and args.pr_only:
+        parser.error('Invalid args! cannot dry-run and file PR')
+    elif args.pr_only and not args.output_repository_path:
+        parser.error('Invalid args! no repository specified')
+    elif args.pr_only:
+        try:
+            prev_overlay = RepoInstance(args.output_repository_path, False)
+            msg, title = load_pr()
+            prev_overlay.pull_request(msg, title)
+            clean_up()
+            sys.exit(0)
+        except Exception as e:
+            err('Failed to file PR!')
+            err('reason: {0}'.format(e))
+            sys.exit(1)
     repo_org = 'allenh1'
     repo_name = 'meta-ros'
     if args.upstream_repo:
@@ -159,6 +143,9 @@ def main():
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 overlay.commit_changes(args.ros_distro)
+                if args.dry_run:
+                    save_pr(overlay, args.only, pr_comment)
+                    sys.exit(0)
                 delta = "Regenerated: '%s'\n" % args.only
                 file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro)
                 ok('Successfully synchronized repositories!')
@@ -230,5 +217,9 @@ def main():
 
         # Commit changes and file pull request
         overlay.commit_changes(args.ros_distro)
+        if args.dry_run:
+            info('Running in dry mode, not filing PR')
+            save_pr(overlay, delta, missing_deps, pr_comment)
+            sys.exit(0)
         file_pr(overlay, delta, missing_deps, pr_comment)
         ok('Successfully synchronized repositories!')

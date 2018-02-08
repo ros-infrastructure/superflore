@@ -13,82 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import os
 import sys
-import time
 
 from rosinstall_generator.distro import get_distro
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
+from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
+from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import info
+from superflore.utils import load_pr
 from superflore.utils import ok
+from superflore.utils import save_pr
 from superflore.utils import warn
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar']
-# just update packages, by default.
-preserve_existing = True
-overlay = None
-
-
-def clean_up():
-    if os.path.exists('.pr-message.tmp'):
-        os.remove('.pr-message.tmp')
-    if os.path.exists('.pr-title.tmp'):
-        os.remove('.pr-title.tmp')
 
 
 def main():
-    global overlay
-    global preserve_existing
-
-    parser = argparse.ArgumentParser('Deploy ROS packages into Gentoo Linux')
-    parser.add_argument(
-        '--ros-distro',
-        help='regenerate packages for the specified distro',
-        type=str
-    )
-    parser.add_argument(
-        '--all',
-        help='regenerate all packages in all distros',
-        action="store_true"
-    )
-    parser.add_argument(
-        '--dry-run',
-        help='run without filing a PR to remote',
-        action="store_true"
-    )
-    parser.add_argument(
-        '--pr-only',
-        help='ONLY file a PR to remote',
-        action='store_true'
-    )
-    parser.add_argument(
-        '--output-repository-path',
-        help='location of the Git repo',
-        type=str
-    )
-    parser.add_argument(
-        '--only',
-        nargs='+',
-        help='generate only the specified packages'
-    )
-    parser.add_argument(
-        '--pr-comment',
-        help='comment to add to the PR',
-        type=str
-    )
-    parser.add_argument(
-        '--upstream-repo',
-        help='location of the upstream repository',
-        type=str
-    )
+    overlay = None
+    preserve_existing = True
+    parser = get_parser('Deploy ROS packages into Gentoo Linux')
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     selected_targets = None
@@ -104,23 +55,8 @@ def main():
         parser.error('Invalid args! no repository specified')
     elif args.pr_only:
         try:
-            with open('.pr-message.tmp', 'r') as msg_file:
-                msg = msg_file.read().rstrip('\n')
-            with open('.pr-title.tmp', 'r') as title_file:
-                title = title_file.read().rstrip('\n')
-        except OSError:
-            err('Failed to open PR title/message file!')
-            err(
-                'Please supply the %s and %s files' % (
-                    '.pr_message.tmp',
-                    '.pr_title.tmp'
-                )
-            )
-            raise
-        try:
             prev_overlay = RepoInstance(args.output_repository_path, False)
-            info('PR message:\n"%s"\n' % msg)
-            info('PR title:\n"%s"\n' % title)
+            msg, title = load_pr()
             prev_overlay.pull_request(msg, title)
             clean_up()
             sys.exit(0)
@@ -194,15 +130,10 @@ def main():
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
             if args.dry_run:
-                # TODO(allenh1): update this PR style.
-                info('Running in dry mode, not filing PR')
-                title_file = open('.pr-title.tmp', 'w')
-                title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
-                pr_message_file = open('.pr-message.tmp', 'w')
-                pr_message_file.write('%s\n%s\n' % (pr_comment, ''))
+                save_pr(overlay, args.only, pr_comment)
                 sys.exit(0)
-            file_pr(overlay, '', '', pr_comment)
-            clean_up()
+            delta = "Regenerated: '%s'\n" % args.only
+            file_pr(overlay, delta, '', pr_comment)
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
@@ -275,10 +206,7 @@ def main():
 
         if args.dry_run:
             info('Running in dry mode, not filing PR')
-            title_file = open('.pr-title.tmp', 'w')
-            title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
-            pr_message_file = open('.pr-message.tmp', 'w')
-            pr_message_file.write('%s\n%s\n' % (delta, missing_deps))
+            save_pr(overlay, delta, missing_deps, pr_comment)
             sys.exit(0)
         file_pr(overlay, delta, missing_deps, pr_comment)
 

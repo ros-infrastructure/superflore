@@ -18,6 +18,7 @@ import random
 import re
 import string
 import sys
+import time
 
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
@@ -41,7 +42,7 @@ def info(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'cyan'))
 
 
-def file_pr(overlay, delta, missing_deps, comment, distro=None):
+def get_pr_text(comment=None):
     msg = ''
     if comment:
         msg += '%s\n' % comment
@@ -49,7 +50,37 @@ def file_pr(overlay, delta, missing_deps, comment, distro=None):
     args = sys.argv
     args[0] = args[0].split('/')[-1]
     msg += '```\n%s\n```' % ' '.join(args)
+
+
+def save_pr(overlay, delta, missing_deps, comment):
+    with open('.pr-title.tmp', 'w') as title_file:
+        title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
+    with open('.pr-message.tmp', 'w') as pr_msg_file:
+        pr_msg_file.write('%s\n' % get_pr_text(comment))
+
+
+def load_pr():
     try:
+        with open('.pr-message.tmp', 'r') as msg_file:
+            msg = msg_file.read().rstrip('\n')
+        with open('.pr-title.tmp', 'r') as title_file:
+            title = title_file.read().rstrip('\n')
+    except OSError:
+        err('Failed to open PR title/message file!')
+        err(
+            'Please supply the %s and %s files' % (
+                '.pr_message.tmp',
+                '.pr_title.tmp'
+            )
+        )
+        raise
+    return msg, title
+    clean_up()
+
+
+def file_pr(overlay, delta, missing_deps, comment, distro=None):
+    try:
+        msg = get_pr_text(comment)
         overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps), distro)
     except Exception as e:
         err(
@@ -60,6 +91,13 @@ def file_pr(overlay, delta, missing_deps, comment, distro=None):
         )
         err('Exception: {0}'.format(e))
         sys.exit(1)
+
+
+def clean_up():
+    if os.path.exists('.pr-message.tmp'):
+        os.remove('.pr-message.tmp')
+    if os.path.exists('.pr-title.tmp'):
+        os.remove('.pr-title.tmp')
 
 
 def make_dir(dirname):
