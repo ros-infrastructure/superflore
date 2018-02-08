@@ -21,7 +21,7 @@ class PackageXmlParser:
         self.upstream_name = None
         self.homepage = None
         pkg_fields = xmltodict.parse(pkg_xml)
-        self.upstream_license =pkg_fields['package']['license']
+        self.upstream_license = pkg_fields['package']['license']
         self.description = pkg_fields['package']['description']
         if 'description' in pkg_fields['package']:
             # fill longdescription, if available (defaults to "NONE").
