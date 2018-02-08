@@ -23,6 +23,7 @@ from rosinstall_generator.distro import get_package_names
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
+from superflore.package_xml_parser import PackageXmlParser
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
