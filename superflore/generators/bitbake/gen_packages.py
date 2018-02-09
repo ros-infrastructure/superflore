@@ -14,7 +14,6 @@
 
 import glob
 import os
-import sys
 
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
@@ -161,7 +160,7 @@ def _gen_recipe_for_package(
     except Exception as e:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_recipe
-    pkg_fields = PackageXmlParser(pkg_xml)
+    pkg_fields = PackageXmlParser(pkg_xml, pkg_name)
     pkg_recipe.pkg_xml = pkg_xml
     pkg_recipe.license = pkg_fields.upstream_license
     pkg_recipe.description = pkg_fields.description.replace('`', '')[:80]

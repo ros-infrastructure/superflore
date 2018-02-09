@@ -120,9 +120,10 @@ def _gen_metadata_for_package(
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
-    pkg_fields = PackageXmlParser(pkg_xml)
+    pkg_fields = PackageXmlParser(pkg_xml, pkg_name)
     pkg_metadata_xml.upstream_email = pkg_fields.upstream_email
     pkg_metadata_xml.upstream_name = pkg_fields.upstream_name
+    pkg_metadata_xml.longdescription = pkg_fields.longdescription
     pkg_metadata_xml.upstream_bug_url =\
         repo.url.replace("-release", "").replace(".git", "/issues")
     return pkg_metadata_xml
@@ -171,10 +172,9 @@ def _gen_ebuild_for_package(
     except Exception as e:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild
-    pkg_fields = PackageXmlParser(pkg_xml)
+    pkg_fields = PackageXmlParser(pkg_xml, pkg_name)
     pkg_ebuild.upstream_license = pkg_fields.upstream_license
-    pkg_ebuild.description = pkg_fields.description
-    pkg_ebuild.description = pkg_fields.description.replace('`', "")[:80]
+    pkg_ebuild.description = pkg_fields.description.replace('`', '')[:80]
     pkg_ebuild.homepage = pkg_fields.homepage
     return pkg_ebuild
 

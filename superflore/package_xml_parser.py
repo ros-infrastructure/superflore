@@ -12,27 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.utils import warn
 import xmltodict
 
 
 class PackageXmlParser:
-    def __init__(self, pkg_xml):
+    def __init__(self, pkg_xml, pkg_name):
         self.upstream_email = None
         self.upstream_name = None
-        self.homepage = None
+        self.homepage = 'https://wiki.ros.org'
         pkg_fields = xmltodict.parse(pkg_xml)
         self.upstream_license = pkg_fields['package']['license']
         self.description = pkg_fields['package']['description']
+        if not isinstance(self.description, str):
+            if '#text' in self.description:
+                self.description = self.description['#text']
+            else:
+                self.description = 'None'
         if 'description' in pkg_fields['package']:
             # fill longdescription, if available (defaults to "NONE").
-            pkg_metadata_xml.longdescription = pkg_fields['package']['description']
+            self.longdescription = pkg_fields['package']['description']
         if 'maintainer' in pkg_fields['package']:
             if isinstance(pkg_fields['package']['maintainer'], list):
                 self.upstream_email =\
                     pkg_fields['package']['maintainer'][0]['@email']
                 self.upstream_name =\
                     pkg_fields['package']['maintainer'][0]['#text']
-            elif isinstance(pkg_fields['package']['maintainer']['@email'], list):
+            elif isinstance(
+                pkg_fields['package']['maintainer']['@email'], list
+            ):
                 self.upstream_email =\
                     pkg_fields['package']['maintainer'][0]['@email']
                 self.upstream_name =\
