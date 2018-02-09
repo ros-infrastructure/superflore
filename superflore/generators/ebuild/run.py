@@ -130,7 +130,7 @@ def main():
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
             if args.dry_run:
-                save_pr(overlay, args.only, pr_comment)
+                save_pr(overlay, args.only, comment=pr_comment)
                 sys.exit(0)
             delta = "Regenerated: '%s'\n" % args.only
             file_pr(overlay, delta, '', pr_comment)
@@ -206,9 +206,9 @@ def main():
 
         if args.dry_run:
             info('Running in dry mode, not filing PR')
-            save_pr(overlay, delta, missing_deps, pr_comment)
+            save_pr(overlay, delta, missing_deps, comment=pr_comment)
             sys.exit(0)
-        file_pr(overlay, delta, missing_deps, pr_comment)
+        file_pr(overlay, delta, missing_deps, comment=pr_comment)
 
         clean_up()
         ok('Successfully synchronized repositories!')

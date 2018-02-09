@@ -15,6 +15,7 @@
 import glob
 import os
 
+from catkin_pkg.package import parse_package_string
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
@@ -23,7 +24,6 @@ from rosinstall_generator.distro import get_package_names
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
-from superflore.package_xml_parser import PackageXmlParser
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
@@ -120,10 +120,14 @@ def _gen_metadata_for_package(
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
-    pkg_fields = PackageXmlParser(pkg_xml, pkg_name)
-    pkg_metadata_xml.upstream_email = pkg_fields.upstream_email
-    pkg_metadata_xml.upstream_name = pkg_fields.upstream_name
-    pkg_metadata_xml.longdescription = pkg_fields.longdescription
+    pkg = parse_package_string(pkg_xml)
+    pkg_metadata_xml.upstream_email = [
+        author.email for author in pkg.maintainers
+    ][0]
+    pkg_metadata_xml.upstream_name = [
+        author.name for author in pkg.maintainers
+    ][0]
+    pkg_metadata_xml.longdescription = pkg.description
     pkg_metadata_xml.upstream_bug_url =\
         repo.url.replace("-release", "").replace(".git", "/issues")
     return pkg_metadata_xml
@@ -172,10 +176,20 @@ def _gen_ebuild_for_package(
     except Exception as e:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild
-    pkg_fields = PackageXmlParser(pkg_xml, pkg_name)
-    pkg_ebuild.upstream_license = pkg_fields.upstream_license
-    pkg_ebuild.description = pkg_fields.description.replace('`', '')[:80]
-    pkg_ebuild.homepage = pkg_fields.homepage
+    pkg = parse_package_string(pkg_xml)
+    if len(pkg.licenses) == 1:
+        pkg_ebuild.upstream_license = pkg.licenses[0]
+    else:
+        pkg_ebuild.upstream_license = pkg.licenses
+    pkg_ebuild.description = pkg.description
+    if 'website' in [url.type for url in pkg.urls]:
+        pkg_ebuild.homepage = [
+            url.url for url in pkg.urls if url.type == 'website'
+        ][0]
+    else:
+        pkg_ebuild.homepage = [
+            url.url for url in pkg.urls
+        ][0]
     return pkg_ebuild
 
 
