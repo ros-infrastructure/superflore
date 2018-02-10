@@ -13,8 +13,6 @@
 # limitations under the License.
 
 from catkin_pkg.package import parse_package_string
-from superflore.utils import warn
-import xmltodict
 
 
 class PackageMetadata:
@@ -28,7 +26,7 @@ class PackageMetadata:
         self.upstream_license
         self.description = pkg.description
         if 'website' in [url.type for url in pkg.urls]:
-            pkg_ebuild.homepage = [
+            self.homepage = [
                 url.url for url in pkg.urls if url.type == 'website'
             ][0]
         elif len(pkg.urls):
@@ -40,5 +38,5 @@ class PackageMetadata:
             author.email for author in pkg.maintainers
         ][0]
         self.upstream_name = [
-            author.name for uathor in pkg.maintainers
+            author.name for author in pkg.maintainers
         ][0]

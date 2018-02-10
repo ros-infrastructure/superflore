@@ -15,7 +15,6 @@
 import glob
 import os
 
-from catkin_pkg.package import parse_package_string
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
@@ -24,6 +23,7 @@ from rosinstall_generator.distro import get_package_names
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
+from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
@@ -172,23 +172,10 @@ def _gen_ebuild_for_package(
     except Exception as e:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild
-    pkg = parse_package_string(pkg_xml)
-    if len(pkg.licenses) == 1:
-        pkg_ebuild.upstream_license = pkg.upstream_license
-    else:
-        pkg_ebuild.upstream_license = pkg.licenses
+    pkg = PackageMetadata(pkg_xml)
+    pkg_ebuild.upstream_license = pkg.upstream_license
     pkg_ebuild.description = pkg.description
-    if 'website' in [url.type for url in pkg.urls]:
-        pkg_ebuild.homepage = [
-            url.url for url in pkg.urls if url.type == 'website'
-        ][0]
-    else:
-        if len(pkg.urls):
-            pkg_ebuild.homepage = [
-                url.url for url in pkg.urls
-            ][0]
-        else:
-            pkg_ebuild.homepage = 'https://wiki.ros.org/%s' % pkg_name
+    pkg_ebuild.homepage = pkg.homepage
     return pkg_ebuild
 
 

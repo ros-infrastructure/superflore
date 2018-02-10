@@ -23,7 +23,7 @@ from rosinstall_generator.distro import get_package_names
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
-from superflore.package_xml_parser import PackageXmlParser
+from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
@@ -160,10 +160,10 @@ def _gen_recipe_for_package(
     except Exception as e:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_recipe
-    pkg_fields = PackageXmlParser(pkg_xml, pkg_name)
+    pkg_fields = PackageMetadata(pkg_xml)
     pkg_recipe.pkg_xml = pkg_xml
     pkg_recipe.license = pkg_fields.upstream_license
-    pkg_recipe.description = pkg_fields.description.replace('`', '')[:80]
+    pkg_recipe.description = pkg_fields.description
     pkg_recipe.homepage = pkg_fields.homepage
     return pkg_recipe
 
