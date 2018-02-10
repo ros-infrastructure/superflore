@@ -16,7 +16,7 @@ from catkin_pkg.package import parse_package_string
 
 
 class PackageMetadata:
-    def __init__(self, pkg_xml, pkg_name):
+    def __init__(self, pkg_xml):
         self.upstream_email = None
         self.upstream_name = None
         self.homepage = 'https://wiki.ros.org'
