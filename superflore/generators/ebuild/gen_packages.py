@@ -112,7 +112,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
 
 
 def _gen_metadata_for_package(
-        distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
+    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
 ):
     pkg_metadata_xml = metadata_xml()
     try:
@@ -120,14 +120,10 @@ def _gen_metadata_for_package(
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
-    pkg = parse_package_string(pkg_xml)
-    pkg_metadata_xml.upstream_email = [
-        author.email for author in pkg.maintainers
-    ][0]
-    pkg_metadata_xml.upstream_name = [
-        author.name for author in pkg.maintainers
-    ][0]
-    pkg_metadata_xml.longdescription = pkg.description
+    pkg = PackageMetadata(pkg_xml)
+    pkg_metadata_xml.upstream_email = pkg.upstream_email
+    pkg_metadata_xml.upstream_name = pkg.upstream_name
+    pkg_metadata_xml.longdescription = pkg.longdescription
     pkg_metadata_xml.upstream_bug_url =\
         repo.url.replace("-release", "").replace(".git", "/issues")
     return pkg_metadata_xml
@@ -178,7 +174,7 @@ def _gen_ebuild_for_package(
         return pkg_ebuild
     pkg = parse_package_string(pkg_xml)
     if len(pkg.licenses) == 1:
-        pkg_ebuild.upstream_license = pkg.licenses[0]
+        pkg_ebuild.upstream_license = pkg.upstream_license
     else:
         pkg_ebuild.upstream_license = pkg.licenses
     pkg_ebuild.description = pkg.description
@@ -187,9 +183,12 @@ def _gen_ebuild_for_package(
             url.url for url in pkg.urls if url.type == 'website'
         ][0]
     else:
-        pkg_ebuild.homepage = [
-            url.url for url in pkg.urls
-        ][0]
+        if len(pkg.urls):
+            pkg_ebuild.homepage = [
+                url.url for url in pkg.urls
+            ][0]
+        else:
+            pkg_ebuild.homepage = 'https://wiki.ros.org/%s' % pkg_name
     return pkg_ebuild
 
 
