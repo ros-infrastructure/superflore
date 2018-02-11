@@ -21,9 +21,7 @@ class PackageMetadata:
         self.upstream_name = None
         self.homepage = 'https://wiki.ros.org'
         pkg = parse_package_string(pkg_xml)
-        if len(pkg.licenses) == 1:
-            self.upstream_license = pkg.licenses[0]
-        self.upstream_license
+        self.upstream_license = pkg.licenses
         self.description = pkg.description
         if 'website' in [url.type for url in pkg.urls]:
             self.homepage = [
