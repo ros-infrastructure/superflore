@@ -53,7 +53,7 @@ class Ebuild(object):
         self.description = ""
         self.homepage = "https://wiki.ros.org"
         self.src_uri = None
-        self.upstream_license = "LGPL-2"
+        self.upstream_license = ["LGPL-2"]
         self.keys = list()
         self.rdepends = list()
         self.rdepends_external = list()
