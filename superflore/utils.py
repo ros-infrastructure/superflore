@@ -235,3 +235,25 @@ def _resolve_dep_open_embedded(pkg):
         return 'poco'
     else:
         return pkg.replace('_', '-')
+
+
+def gen_delta_msg(total_changes):
+    delta = "Changes:\n"
+    delta += "========\n"
+    for distro in total_changes:
+        delta += "%s Changes:\n" % distro.title()
+        delta += "---------------\n"
+        for d in sorted(total_changes[distro]):
+            delta += '* {0}\n'.format(d)
+        delta += "\n"
+    return delta
+
+
+def gen_missing_deps_msg(missing_list):
+    missing_deps = None
+    if len(missing_list) > 0:
+        missing_deps = "Missing Dependencies:\n"
+        missing_deps += "=====================\n"
+        for pkg in sorted(missing_list):
+            missing_deps += " * [ ] {0}\n".format(pkg)
+    return missing_deps or 'No missing dependencies.\n'
