@@ -266,5 +266,5 @@ def github_url_to_repo_org(url):
     # check that the upstream_repo is a github repo
     if 'github.com' not in url:
         raise RuntimeError('Non-GitHub repos are not supported!')
-    upstream = url.replace('https://github.com/', '').split('/')
+    url = url.replace('https://github.com/', '').split('/')
     return url[0], url[1]
