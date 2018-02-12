@@ -242,6 +242,8 @@ def gen_delta_msg(total_changes):
     delta = "Changes:\n"
     delta += "========\n"
     for distro in total_changes:
+        if not total_changes[distro]:
+            continue
         delta += "%s Changes:\n" % distro.title()
         delta += "---------------\n"
         for d in sorted(total_changes[distro]):
