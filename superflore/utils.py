@@ -238,6 +238,7 @@ def _resolve_dep_open_embedded(pkg):
 
 
 def gen_delta_msg(total_changes):
+    """Return string of changes for the PR message."""
     delta = "Changes:\n"
     delta += "========\n"
     for distro in total_changes:
@@ -250,6 +251,7 @@ def gen_delta_msg(total_changes):
 
 
 def gen_missing_deps_msg(missing_list):
+    """Return string of missing deps for the PR message."""
     missing_deps = None
     if len(missing_list) > 0:
         missing_deps = "Missing Dependencies:\n"
@@ -257,3 +259,12 @@ def gen_missing_deps_msg(missing_list):
         for pkg in sorted(missing_list):
             missing_deps += " * [ ] {0}\n".format(pkg)
     return missing_deps or 'No missing dependencies.\n'
+
+
+def github_url_to_repo_org(url):
+    """Extract owner and repository from GitHub url."""
+    # check that the upstream_repo is a github repo
+    if 'github.com' not in url:
+        raise RuntimeError('Non-GitHub repos are not supported!')
+    upstream = url.replace('https://github.com/', '').split('/')
+    return url[0], url[1]

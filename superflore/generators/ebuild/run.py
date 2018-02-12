@@ -28,6 +28,7 @@ from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
 from superflore.utils import gen_missing_deps_msg
+from superflore.utils import github_url_to_repo_org
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
@@ -71,13 +72,7 @@ def main():
     repo_org = 'ros'
     repo_name = 'ros-overlay'
     if args.upstream_repo:
-        # check that the upstream_repo is a github repo
-        if 'github.com' not in args.upstream_repo:
-            raise RuntimeError('Non-GitHub repos are not supported!')
-        upstream = args.upstream_repo
-        upstream = upstream.replace('https://github.com/', '').split('/')
-        repo_org = upstream[0]
-        repo_name = upstream[1]
+        repo_org, repo_name = github_url_to_repo_org(args.upstream_repo)
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
