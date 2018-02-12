@@ -14,7 +14,8 @@ install_requires = [
     'requests',
     'docker',
     'pyyaml',
-    'pygithub'
+    'pygithub',
+    'catkin_pkg>=0.4.0'
 ]
 
 setup(
