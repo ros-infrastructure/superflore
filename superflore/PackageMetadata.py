@@ -27,7 +27,7 @@ class PackageMetadata:
             self.homepage = [
                 url.url for url in pkg.urls if url.type == 'website'
             ][0]
-        else:
+        elif len(pkg.urls) > 0:
             self.homepage = [
                 url.url for url in pkg.urls
             ][0]
