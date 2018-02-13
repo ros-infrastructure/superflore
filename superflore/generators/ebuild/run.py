@@ -36,12 +36,15 @@ from superflore.utils import url_to_repo_org
 from superflore.utils import warn
 
 # Modify if a new distro is added
-active_distros = ['indigo', 'kinetic', 'lunar']
+active_distros = ['indigo', 'kinetic', 'lunar', 'ardent']
 
 
 def main():
     overlay = None
     preserve_existing = True
+    # Add ROS2 to rosdistro
+    os.environ['ROSDISTRO_INDEX_URL'] =\
+        'https://raw.githubusercontent.com/ros2/rosdistro/ros2/index.yaml'
     parser = get_parser('Deploy ROS packages into Gentoo Linux')
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
