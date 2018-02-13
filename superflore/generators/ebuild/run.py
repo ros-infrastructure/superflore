@@ -28,11 +28,11 @@ from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
 from superflore.utils import gen_missing_deps_msg
-from superflore.utils import github_url_to_repo_org
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
 from superflore.utils import save_pr
+from superflore.utils import url_to_repo_org
 from superflore.utils import warn
 
 # Modify if a new distro is added
@@ -72,7 +72,7 @@ def main():
     repo_org = 'ros'
     repo_name = 'ros-overlay'
     if args.upstream_repo:
-        repo_org, repo_name = github_url_to_repo_org(args.upstream_repo)
+        repo_org, repo_name = url_to_repo_org(args.upstream_repo)
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
             # give our group write permissions to the temp dir

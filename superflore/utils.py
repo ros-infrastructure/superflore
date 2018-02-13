@@ -263,10 +263,10 @@ def gen_missing_deps_msg(missing_list):
     return missing_deps or 'No missing dependencies.\n'
 
 
-def github_url_to_repo_org(url):
+def url_to_repo_org(url):
     """Extract owner and repository from GitHub url."""
     # check that the upstream_repo is a github repo
     if 'github.com' not in url:
-        raise RuntimeError('Non-GitHub repos are not supported!')
+        raise RuntimeError('Non-GitHub repos are not yet supported!')
     url = url.replace('https://github.com/', '').split('/')
     return url[0], url[1]

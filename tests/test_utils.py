@@ -18,7 +18,7 @@ from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 from superflore.utils import gen_delta_msg
 from superflore.utils import gen_missing_deps_msg
-from superflore.utils import github_url_to_repo_org
+from superflore.utils import url_to_repo_org
 from superflore.utils import get_license
 from superflore.TempfileManager import TempfileManager
 
@@ -125,10 +125,10 @@ class TestUtils(unittest.TestCase):
                  ' * [ ] python3\n'
         self.assertEqual(ret, expect)
 
-    def test_github_url_to_repo_org(self):
+    def test_url_to_repo_org(self):
         """Test the owner/repo extraction from a GitHub url"""
         with self.assertRaises(RuntimeError):
-            owner, repo = github_url_to_repo_org('https://gitlab.com/allenh1/p2os')
-        owner, repo = github_url_to_repo_org('https://github.com/allenh1/p2os')
+            owner, repo = url_to_repo_org('https://gitlab.com/allenh1/p2os')
+        owner, repo = url_to_repo_org('https://github.com/allenh1/p2os')
         self.assertEqual(owner, 'allenh1')
         self.assertEqual(repo, 'p2os')
