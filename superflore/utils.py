@@ -267,6 +267,9 @@ def url_to_repo_org(url):
     """Extract owner and repository from GitHub url."""
     # check that the upstream_repo is a github repo
     if 'github.com' not in url:
-        raise RuntimeError('Non-GitHub repos are not yet supported!')
+        raise RuntimeError(
+            'Extraction of repository and owner info from non-GitHub'
+            'repositories is not yet supported!'
+        )
     url = url.replace('https://github.com/', '').split('/')
     return url[0], url[1]
