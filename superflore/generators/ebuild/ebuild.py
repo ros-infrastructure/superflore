@@ -107,8 +107,8 @@ class Ebuild(object):
         ret += " license\n\n"
         return ret
 
-    def get_eapi(self):
-        return 'EAPI=%d\n' % self.eapi
+    def get_eapi_line(self):
+        return 'EAPI=%s\n' % self.eapi
 
     def get_python_compat(self, python_versions):
         ver_string = ''
@@ -139,19 +139,19 @@ class Ebuild(object):
         and the license text.
         """
         # EAPI=<eapi>
-        ret = get_license_line(distributor, license_text)
-        ret += get_eapi_line()
+        ret = self.get_license_line(distributor, license_text)
+        ret += self.get_eapi_line()
         if self.python_3 and not self.is_ros2:
             # enable python 2.7 and python 3.5
-            ret += get_python_compat(['2_7', '3_5'])
+            ret += self.get_python_compat(['2_7', '3_5'])
         elif self.python3:
             # only use 3.5, 3.6 for ROS 2
-            ret += get_python_compat(['3_5', '3_6'])
+            ret += self.get_python_compat(['3_5', '3_6'])
         else:
             # fallback to python 2.7
-            ret += get_python_compat(['2_7'])
+            ret += self.get_python_compat(['2_7'])
         # inherits
-        ret += get_inherit_line()
+        ret += self.get_inherit_line()
         # description, homepage, src_uri
         self.description =\
             sanitize_string(self.description, self.illegal_desc_chars)

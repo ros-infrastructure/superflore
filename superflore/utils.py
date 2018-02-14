@@ -25,6 +25,10 @@ from superflore.exceptions import UnknownPlatform
 from superflore.rosdep_support import resolve_rosdep_key
 from termcolor import colored
 
+# Modify if a new distro is added
+active_distros = ['indigo', 'kinetic', 'lunar']
+ros2_distros = ['ardent']
+
 
 def warn(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'yellow'))

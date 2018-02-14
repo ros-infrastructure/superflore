@@ -28,6 +28,7 @@ from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
+from superflore.utils import ros2_distros
 from superflore.utils import warn
 
 # TODO(allenh1): This is a blacklist of things that

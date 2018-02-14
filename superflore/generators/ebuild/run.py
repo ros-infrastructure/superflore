@@ -23,6 +23,7 @@ from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
+from superflore.utils import active_distros
 from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
@@ -31,13 +32,10 @@ from superflore.utils import gen_missing_deps_msg
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
+from superflore.utils import ros2_distros
 from superflore.utils import save_pr
 from superflore.utils import url_to_repo_org
 from superflore.utils import warn
-
-# Modify if a new distro is added
-active_distros = ['indigo', 'kinetic', 'lunar']
-ros2_distros = ['ardent']
 
 ros2_index = 'https://raw.githubusercontent.com/ros2/rosdistro/ros2/index.yaml'
 ros1_index = 'https://raw.githubusercontent.com/ros/rosdistro/master/index.yaml'
@@ -55,6 +53,7 @@ def main():
         preserve_existing = False
     elif args.ros_distro:
         selected_targets = [args.ros_distro]
+        set_index_for_distro(args.ros_distro)
         preserve_existing = False
     elif args.dry_run and args.pr_only:
         parser.error('Invalid args! cannot dry-run and file PR')
@@ -141,11 +140,7 @@ def main():
             sys.exit(0)
 
         for distro in selected_targets:
-            if distro in ros2_distros:
-                # Add ROS2 to rosdistro
-                os.environ['ROSDISTRO_INDEX_URL'] = ros2_index
-            else:
-                os.environ['ROSDISTRO_INDEX_URL'] = ros1_index
+            set_index_for_distro(distro)
             distro_installers, distro_broken, distro_changes =\
                 generate_installers(
                     distro_name=distro,
@@ -188,3 +183,11 @@ def main():
 
         clean_up()
         ok('Successfully synchronized repositories!')
+
+
+def set_index_for_distro(distro):
+    if distro in ros2_distros:
+        # Add ROS2 to rosdistro
+        os.environ['ROSDISTRO_INDEX_URL'] = ros2_index
+    else:
+        os.environ['ROSDISTRO_INDEX_URL'] = ros1_index
