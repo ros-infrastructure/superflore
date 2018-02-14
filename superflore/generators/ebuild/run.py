@@ -37,8 +37,10 @@ from superflore.utils import save_pr
 from superflore.utils import url_to_repo_org
 from superflore.utils import warn
 
-ros2_index = 'https://raw.githubusercontent.com/ros2/rosdistro/ros2/index.yaml'
-ros1_index = 'https://raw.githubusercontent.com/ros/rosdistro/master/index.yaml'
+ros2_index =\
+    'https://raw.githubusercontent.com/ros2/rosdistro/ros2/index.yaml'
+ros1_index =\
+    'https://raw.githubusercontent.com/ros/rosdistro/master/index.yaml'
 
 
 def main():
