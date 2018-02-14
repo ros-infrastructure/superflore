@@ -125,7 +125,7 @@ class Ebuild(object):
         elif self.build_type == 'ament_python':
             return 'inherit distutils-r1\n\n'
         elif self.build_type == 'ament_cmake':
-            return 'inherit ros2-cmake\n\n'
+            return 'inherit ament-cmake\n\n'
         else:
             raise UnknownBuildType(self.build_type)
 
