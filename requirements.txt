@@ -12,3 +12,4 @@ pep8
 docker
 pyyaml
 pygithub
+catkin_pkg

@@ -31,6 +31,8 @@ class RepoInstance(object):
         repo_url = 'https://github.com/{0}/{1}'
         self.repo_url = repo_url.format(self.repo_owner, self.repo_name)
         self.repo_dir = repo_dir or self.repo_name
+        # by default, start on master.
+        self.branch = 'master'
         if do_clone:
             self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
         else:

@@ -53,7 +53,7 @@ class Ebuild(object):
         self.description = ""
         self.homepage = "https://wiki.ros.org"
         self.src_uri = None
-        self.upstream_license = "LGPL-2"
+        self.upstream_license = ["LGPL-2"]
         self.keys = list()
         self.rdepends = list()
         self.rdepends_external = list()
@@ -126,8 +126,11 @@ class Ebuild(object):
         ret += "SRC_URI=\"" + self.src_uri
         ret += " -> ${PN}-" + self.distro + "-release-${PV}.tar.gz\"\n\n"
         # license -- only add if valid
-        if isinstance(self.upstream_license, str):
-            split = self.upstream_license.split(',')
+        if len(self.upstream_license) == 1:
+            self.upstream_license = [
+                l.replace(', ', ' ') for l in self.upstream_license
+            ]
+            split = self.upstream_license[0].split(',')
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
                 ret += 'LICENSE="( '
@@ -135,8 +138,8 @@ class Ebuild(object):
                 ret += ' )"\n'
             else:
                 ret += "LICENSE=\""
-                ret += get_license(self.upstream_license) + "\"\n\n"
-        elif isinstance(self.upstream_license, list):
+                ret += get_license(self.upstream_license[0]) + "\"\n\n"
+        else:
             ret += "LICENSE=\"( "
             ret += ' '.join(
                 [get_license(ul) for ul in self.upstream_license]

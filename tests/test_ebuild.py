@@ -207,7 +207,7 @@ class TestEbuildOutput(unittest.TestCase):
     def test_issue_117(self):
         """Test for ros-infrastructure/superflore#117"""
         ebuild = self.get_ebuild()
-        ebuild.upstream_license = 'BSD,LGPL,Apache 2.0'
+        ebuild.upstream_license = ['BSD,LGPL,Apache 2.0']
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         # grab the license line
         license_line = [line for line in got_text.split('\n') if "LICENSE" in line][0]

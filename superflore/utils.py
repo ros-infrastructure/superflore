@@ -235,3 +235,41 @@ def _resolve_dep_open_embedded(pkg):
         return 'poco'
     else:
         return pkg.replace('_', '-')
+
+
+def gen_delta_msg(total_changes):
+    """Return string of changes for the PR message."""
+    delta = "Changes:\n"
+    delta += "========\n"
+    for distro in total_changes:
+        if not total_changes[distro]:
+            continue
+        delta += "%s Changes:\n" % distro.title()
+        delta += "---------------\n"
+        for d in sorted(total_changes[distro]):
+            delta += '* {0}\n'.format(d)
+        delta += "\n"
+    return delta
+
+
+def gen_missing_deps_msg(missing_list):
+    """Return string of missing deps for the PR message."""
+    missing_deps = None
+    if len(missing_list) > 0:
+        missing_deps = "Missing Dependencies:\n"
+        missing_deps += "=====================\n"
+        for pkg in sorted(missing_list):
+            missing_deps += " * [ ] {0}\n".format(pkg)
+    return missing_deps or 'No missing dependencies.\n'
+
+
+def url_to_repo_org(url):
+    """Extract owner and repository from GitHub url."""
+    # check that the upstream_repo is a github repo
+    if 'github.com' not in url:
+        raise RuntimeError(
+            'Extraction of repository and owner info from non-GitHub'
+            'repositories is not yet supported!'
+        )
+    url = url.replace('https://github.com/', '').split('/')
+    return url[0], url[1]

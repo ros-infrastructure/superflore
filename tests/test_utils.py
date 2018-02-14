@@ -16,6 +16,9 @@ from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
+from superflore.utils import gen_delta_msg
+from superflore.utils import gen_missing_deps_msg
+from superflore.utils import url_to_repo_org
 from superflore.utils import get_license
 from superflore.TempfileManager import TempfileManager
 
@@ -91,3 +94,41 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'public_domain')
         ret = get_license('GPL')
         self.assertEqual(ret, 'GPL-1')
+
+    def test_delta_msg(self):
+        """Test the delta message generated for the PR"""
+        total_changes = dict()
+        total_changes['hydro'] = ['foo', 'bar']
+        total_changes['boxturtle'] = ['baz']
+        total_changes['C'] = []
+        expect = 'Changes:\n'\
+                 '========\n'\
+                 'Hydro Changes:\n'\
+                 '---------------\n'\
+                 '* bar\n'\
+                 '* foo\n\n'\
+                 'Boxturtle Changes:\n'\
+                 '---------------\n'\
+                 '* baz\n\n'
+        got = gen_delta_msg(total_changes)
+        self.assertEqual(expect, got)
+
+    def test_missing_deps_msg(self):
+        """Test the missing dependencies list"""
+        self.assertEqual(
+            gen_missing_deps_msg([]), 'No missing dependencies.\n'
+        )
+        ret = gen_missing_deps_msg(['python3', 'cmake'])
+        expect = 'Missing Dependencies:\n'\
+                 '=====================\n'\
+                 ' * [ ] cmake\n'\
+                 ' * [ ] python3\n'
+        self.assertEqual(ret, expect)
+
+    def test_url_to_repo_org(self):
+        """Test the owner/repo extraction from a GitHub url"""
+        with self.assertRaises(RuntimeError):
+            owner, repo = url_to_repo_org('https://gitlab.com/allenh1/p2os')
+        owner, repo = url_to_repo_org('https://github.com/allenh1/p2os')
+        self.assertEqual(owner, 'allenh1')
+        self.assertEqual(repo, 'p2os')

@@ -23,12 +23,12 @@ from rosinstall_generator.distro import get_package_names
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
+from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
-import xmltodict
 
 # TODO(allenh1): This is a blacklist of things that
 # do not yet support Python 3. This will be updated
@@ -111,45 +111,27 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     return current, previous_version
 
 
-def _gen_metadata_for_package(distro, pkg_name, pkg,
-                              repo, ros_pkg, pkg_rosinstall):
+def _gen_metadata_for_package(
+    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
+):
     pkg_metadata_xml = metadata_xml()
     try:
         pkg_xml = ros_pkg.get_package_xml(distro.name)
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
-    pkg_fields = xmltodict.parse(pkg_xml)
-    if 'description' in pkg_fields['package']:
-        # fill longdescription, if available (defaults to "NONE").
-        pkg_metadata_xml.longdescription = pkg_fields['package']['description']
-    if 'maintainer' in pkg_fields['package']:
-        if isinstance(pkg_fields['package']['maintainer'], list):
-            pkg_metadata_xml.upstream_email =\
-                pkg_fields['package']['maintainer'][0]['@email']
-            pkg_metadata_xml.upstream_name =\
-                pkg_fields['package']['maintainer'][0]['#text']
-        elif isinstance(pkg_fields['package']['maintainer']['@email'], list):
-            pkg_metadata_xml.upstream_email =\
-                pkg_fields['package']['maintainer'][0]['@email']
-            pkg_metadata_xml.upstream_name =\
-                pkg_fields['package']['maintainer'][0]['#text']
-        else:
-            pkg_metadata_xml.upstream_email =\
-                pkg_fields['package']['maintainer']['@email']
-            if '#text' in pkg_fields['package']['maintainer']:
-                pkg_metadata_xml.upstream_name =\
-                    pkg_fields['package']['maintainer']['#text']
-            else:
-                pkg_metadata_xml.upstream_name = "UNKNOWN"
-
-        pkg_metadata_xml.upstream_bug_url =\
-            repo.url.replace("-release", "").replace(".git", "/issues")
+    pkg = PackageMetadata(pkg_xml)
+    pkg_metadata_xml.upstream_email = pkg.upstream_email
+    pkg_metadata_xml.upstream_name = pkg.upstream_name
+    pkg_metadata_xml.longdescription = pkg.longdescription
+    pkg_metadata_xml.upstream_bug_url =\
+        repo.url.replace("-release", "").replace(".git", "/issues")
     return pkg_metadata_xml
 
 
-def _gen_ebuild_for_package(distro, pkg_name, pkg,
-                            repo, ros_pkg, pkg_rosinstall):
+def _gen_ebuild_for_package(
+    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
+):
     pkg_ebuild = Ebuild()
 
     pkg_ebuild.distro = distro.name
@@ -190,27 +172,10 @@ def _gen_ebuild_for_package(distro, pkg_name, pkg,
     except Exception as e:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild
-    pkg_fields = xmltodict.parse(pkg_xml)
-
-    pkg_ebuild.upstream_license = pkg_fields['package']['license']
-    pkg_ebuild.description = pkg_fields['package']['description']
-    if isinstance(pkg_ebuild.description, str):
-        pkg_ebuild.description = pkg_ebuild.description.replace('`', "")
-    if len(pkg_ebuild.description) > 80:
-        pkg_ebuild.description = pkg_ebuild.description[:80]
-    try:
-        if 'url' not in pkg_fields['package']:
-            warn("no website field for package {}".format(pkg_name))
-        elif isinstance(pkg_fields['package']['url'], str):
-            pkg_ebuild.homepage = pkg_fields['package']['url']
-        elif '@type' in pkg_fields['package']['url']:
-            if pkg_fields['package']['url']['@type'] == 'website':
-                if '#text' in pkg_fields['package']['url']:
-                    pkg_ebuild.homepage = pkg_fields['package']['url']['#text']
-        else:
-            warn("failed to parse website for package {}".format(pkg_name))
-    except TypeError as e:
-        warn("failed to parse website package {}: {}".format(pkg_name, e))
+    pkg = PackageMetadata(pkg_xml)
+    pkg_ebuild.upstream_license = pkg.upstream_license
+    pkg_ebuild.description = pkg.description
+    pkg_ebuild.homepage = pkg.homepage
     return pkg_ebuild
 
 

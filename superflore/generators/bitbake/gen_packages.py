@@ -14,7 +14,6 @@
 
 import glob
 import os
-import sys
 
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
@@ -24,12 +23,12 @@ from rosinstall_generator.distro import get_package_names
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
+from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import warn
-import xmltodict
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
@@ -161,35 +160,11 @@ def _gen_recipe_for_package(
     except Exception as e:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_recipe
-    pkg_fields = xmltodict.parse(pkg_xml)
-
+    pkg_fields = PackageMetadata(pkg_xml)
     pkg_recipe.pkg_xml = pkg_xml
-    pkg_recipe.license = pkg_fields['package']['license']
-    pkg_recipe.description = pkg_fields['package']['description']
-    if not isinstance(pkg_recipe.description, str):
-        if '#text' in pkg_recipe.description:
-            pkg_recipe.description = pkg_recipe.description['#text']
-        else:
-            pkg_recipe.description = "None"
-    pkg_recipe.description = pkg_recipe.description.replace('`', "")
-    if len(pkg_recipe.description) > 80:
-        pkg_recipe.description = pkg_recipe.description[:80]
-    try:
-        if 'url' not in pkg_fields['package']:
-            warn("no website field for package {}".format(pkg_name))
-        elif sys.version_info <= (3, 0):
-                pkg_recipe.recipe = pkg_fields['package']['url'].decode()
-        elif isinstance(pkg_fields['package']['url'], str):
-            pkg_recipe.homepage = pkg_fields['package']['url']
-        elif '@type' in pkg_fields['package']['url']:
-            if pkg_fields['package']['url']['@type'] == 'website':
-                if '#text' in pkg_fields['package']['url']:
-                    pkg_recipe.homepage =\
-                        pkg_fields['package']['url']['#text']
-        else:
-            warn("failed to parse website for package {}".format(pkg_name))
-    except TypeError as e:
-        warn("failed to parse website package {}: {}".format(pkg_name, e))
+    pkg_recipe.license = pkg_fields.upstream_license
+    pkg_recipe.description = pkg_fields.description
+    pkg_recipe.homepage = pkg_fields.homepage
     return pkg_recipe
 
 

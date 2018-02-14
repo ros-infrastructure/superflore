@@ -26,10 +26,13 @@ from superflore.TempfileManager import TempfileManager
 from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
+from superflore.utils import gen_delta_msg
+from superflore.utils import gen_missing_deps_msg
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
 from superflore.utils import save_pr
+from superflore.utils import url_to_repo_org
 from superflore.utils import warn
 
 # Modify if a new distro is added
@@ -73,13 +76,7 @@ def main():
     repo_org = 'allenh1'
     repo_name = 'meta-ros'
     if args.upstream_repo:
-        # check the repo is GitHub
-        if 'github.com' not in args.upstream_repo:
-            raise RuntimeError('Non-GitHub repos are not supported!')
-        upstream = args.upstream_repo
-        upstream = upstream.replace('https://github.com/', '').split('/')
-        repo_org = upstream[0]
-        repo_name = upstream[1]
+        repo_org, repo_name = url_to_repo_org(args.upstream_repo)
     # open cached tar file if it exists
     with TempfileManager(args.output_repository_path) as _repo:
         if not args.output_repository_path:
@@ -178,43 +175,8 @@ def main():
             sys.exit(0)
 
         # remove duplicates
-        inst_list = total_broken
-
-        delta = "Changes:\n"
-        delta += "========\n"
-
-        if 'indigo' in total_changes and len(total_changes['indigo']) > 0:
-            delta += "Indigo Changes:\n"
-            delta += "---------------\n"
-
-            for d in sorted(total_changes['indigo']):
-                delta += '* {0}\n'.format(d)
-            delta += "\n"
-
-        if 'kinetic' in total_changes and len(total_changes['kinetic']) > 0:
-            delta += "Kinetic Changes:\n"
-            delta += "----------------\n"
-
-            for d in sorted(total_changes['kinetic']):
-                delta += '* {0}\n'.format(d)
-            delta += "\n"
-
-        if 'lunar' in total_changes and len(total_changes['lunar']) > 0:
-            delta += "Lunar Changes:\n"
-            delta += "--------------\n"
-
-            for d in sorted(total_changes['lunar']):
-                delta += '* {0}\n'.format(d)
-            delta += "\n"
-
-        missing_deps = ''
-
-        if len(inst_list) > 0:
-            missing_deps = "Missing Dependencies:\n"
-            missing_deps += "=====================\n"
-            for pkg in sorted(inst_list):
-                missing_deps += " * [ ] {0}\n".format(pkg)
-
+        delta = gen_delta_msg(total_changes)
+        missing_deps = gen_missing_deps_msg(total_broken)
         # Commit changes and file pull request
         overlay.commit_changes(args.ros_distro)
         if args.dry_run:
