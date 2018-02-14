@@ -42,12 +42,14 @@ org_license = "BSD"
 
 
 def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
+    global ros2_distros
     version = get_pkg_version(distro, pkg)
     ebuild_name =\
         '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro.name, pkg, version)
     ebuild_name = overlay.repo.repo_dir + ebuild_name
     patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
+    is_ros2 = distro in ros2_distros
     has_patches = os.path.exists(patch_path)
     pkg_names = get_package_names(distro)[0]
 
@@ -70,6 +72,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     try:
         current = gentoo_installer(distro, pkg, has_patches)
         current.ebuild.name = pkg
+        current.is_ros2 = is_ros2
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
         raise e
@@ -176,6 +179,7 @@ def _gen_ebuild_for_package(
     pkg_ebuild.upstream_license = pkg.upstream_license
     pkg_ebuild.description = pkg.description
     pkg_ebuild.homepage = pkg.homepage
+    pkg_ebuild.build_type = pkg.build_type
     return pkg_ebuild
 
 

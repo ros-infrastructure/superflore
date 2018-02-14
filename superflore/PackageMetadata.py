@@ -38,3 +38,7 @@ class PackageMetadata:
         self.upstream_name = [
             author.name for author in pkg.maintainers
         ][0]
+        self.build_type = [
+            str(e).lstrip('<build_type>').rstrip('</build_type>')
+            for e in pkg.exports
+        ][0] or 'catkin'
