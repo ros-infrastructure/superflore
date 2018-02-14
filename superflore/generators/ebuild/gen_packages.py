@@ -50,7 +50,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     ebuild_name = overlay.repo.repo_dir + ebuild_name
     patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
-    is_ros2 = distro in ros2_distros
+    is_ros2 = distro.name in ros2_distros
     has_patches = os.path.exists(patch_path)
     pkg_names = get_package_names(distro)[0]
 
