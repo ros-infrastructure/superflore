@@ -52,7 +52,11 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     is_ros2 = distro.name in ros2_distros
     has_patches = os.path.exists(patch_path)
     pkg_names = get_package_names(distro)[0]
-
+    patches = None
+    if os.path.exists(patch_path):
+        patches = [
+            f for f in glob.glob('%s/*.patch' % patch_path)
+        ]
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % (pkg))
     # otherwise, remove a (potentially) existing ebuild.
@@ -72,6 +76,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     try:
         current = gentoo_installer(distro, pkg, has_patches)
         current.ebuild.name = pkg
+        current.ebuild.patches = patches
         current.ebuild.is_ros2 = is_ros2
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))

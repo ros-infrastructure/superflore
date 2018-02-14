@@ -71,6 +71,7 @@ class Ebuild(object):
         self.build_type = 'catkin'
         self.is_ros2 = False
         self.python_3 = True
+        self.patches = list()
         self.illegal_desc_chars = '()[]{}|^$\\#\t\n\r\v\f\'\"\`'
 
     def add_build_depend(self, depend, internal=True):
@@ -245,8 +246,18 @@ class Ebuild(object):
             ret += "    ros-cmake_src_prepare\n"
             ret += "}\n"
         elif self.has_patches:
-            # TODO(allenh1): iterate over patches, and include them.
-            ret += '\nPATCHES=( "${FILESDIR}"/*.patch )\n'
+            if len(self.patches) == 1:
+                ret += '\nPATCHES=( "${FILESDIR}"/%s )\n' % (
+                    self.patches[0].split('/')[-1]
+                )
+            else:
+                ret += '\nPATCHES=(\n'
+                formatted = [
+                    '    "${FILESDIR}"' + '/%s\n' % p.split('/')[-1]
+                    for p in self.patches
+                ]
+                ret += ''.join(formatted)
+                ret += ')\n\n'
         # source configuration
         if self.name == 'opencv3':
             ret += "\nsrc_configure() {\n"
