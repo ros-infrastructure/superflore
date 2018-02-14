@@ -125,13 +125,9 @@ class Ebuild(object):
         elif self.build_type == 'ament_python':
             return 'inherit distutils-r1\n\n'
         elif self.build_type == 'ament_cmake':
-            # not sure if this will work, but we'll try (I guess???)
-            return 'inherit ros-cmake\n\n'
+            return 'inherit ros2-cmake\n\n'
         else:
-            raise UnknownBuildType(
-                'Cannot determine how to build for build type '
-                '%s' % self.build_type
-            )
+            raise UnknownBuildType(self.build_type)
 
     def get_ebuild_text(self, distributor, license_text):
         """

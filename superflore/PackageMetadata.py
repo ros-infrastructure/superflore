@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 from catkin_pkg.package import parse_package_string
 
 
@@ -38,7 +40,8 @@ class PackageMetadata:
         self.upstream_name = [
             author.name for author in pkg.maintainers
         ][0]
+        tag_remover = re.compile('<.*?>')
         self.build_type = [
-            str(e).lstrip('<build_type>').rstrip('</build_type>')
+            re.sub(tag_remover, '', str(e))
             for e in pkg.exports
         ][0] or 'catkin'

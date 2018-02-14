@@ -14,6 +14,7 @@
 
 from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
+from superflore.exceptions import UnknownBuildType
 from superflore.exceptions import UnknownLicense
 from superflore.utils import err
 from superflore.utils import get_pkg_version
@@ -74,6 +75,13 @@ def generate_installers(
         except UnknownLicense as ul:
             err("{0}%: Unknown License '{1}'.".format(percent, str(ul)))
             bad_installers.append(pkg)
+            failed = failed + 1
+        except UnknownBuildType as ub:
+            err(
+                "{0}%: Unknown Build type '{1}' for package '{2}'".format(
+                    percent, str(ub), pkg
+                )
+            )
             failed = failed + 1
         except KeyError:
             failed_msg = 'Failed to generate installer'

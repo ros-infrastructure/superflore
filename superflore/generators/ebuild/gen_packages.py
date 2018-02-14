@@ -43,7 +43,6 @@ org_license = "BSD"
 
 
 def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
-    global ros2_distros
     version = get_pkg_version(distro, pkg)
     ebuild_name =\
         '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro.name, pkg, version)
