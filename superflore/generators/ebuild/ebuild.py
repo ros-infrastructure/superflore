@@ -225,11 +225,18 @@ class Ebuild(object):
         # CMAKE_BUILD_TYPE
         if self.name == "catkin":
             ret += "BUILD_BINARY=\"0\"\n"
+
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n"
-
+        # TODO(allenh1): This is gross. No.
+        if self.build_type == 'ament_python':
+            ret += 'DISTUTILS_IN_SOURCE_BUILD="yes"\n'
+            ret += '\nsrc_unpack() {\n'
+            ret += '    default\n'
+            ret += '    mv *${P}* ${P}\n'
+            ret += '}\n'
         # Patch source if needed.
-        if self.has_patches:
+        if self.has_patches and self.build_type != 'ament_python':
             ret += "\nsrc_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
@@ -237,7 +244,9 @@ class Ebuild(object):
             ret += "    EPATCH_FORCE=\"yes\" epatch\n"
             ret += "    ros-cmake_src_prepare\n"
             ret += "}\n"
-
+        elif self.has_patches:
+            # TODO(allenh1): iterate over patches, and include them.
+            ret += '\nPATCHES=( "${FILESDIR}"/*.patch )\n'
         # source configuration
         if self.name == 'opencv3':
             ret += "\nsrc_configure() {\n"
