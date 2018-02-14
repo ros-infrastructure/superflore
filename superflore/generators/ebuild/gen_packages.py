@@ -73,7 +73,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     try:
         current = gentoo_installer(distro, pkg, has_patches)
         current.ebuild.name = pkg
-        current.is_ros2 = is_ros2
+        current.ebuild.is_ros2 = is_ros2
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
         raise e
