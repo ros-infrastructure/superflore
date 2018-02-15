@@ -41,7 +41,10 @@ class PackageMetadata:
             author.name for author in pkg.maintainers
         ][0]
         tag_remover = re.compile('<.*?>')
-        self.build_type = [
+        build_type = [
             re.sub(tag_remover, '', str(e))
-            for e in pkg.exports
-        ][0] or 'catkin'
+            for e in pkg.exports if 'build_type' in str(e)
+        ]
+        self.build_type = 'catkin'
+        if build_type:
+            self.build_type = build_type[0]
