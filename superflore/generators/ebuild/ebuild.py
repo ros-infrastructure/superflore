@@ -229,7 +229,7 @@ class Ebuild(object):
 
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n"
-        # TODO(allenh1): This is gross. No.
+        # TODO(allenh1): consider writing ament-python.eclass
         if self.build_type == 'ament_python':
             ret += 'DISTUTILS_IN_SOURCE_BUILD="yes"\n'
             ret += '\nsrc_unpack() {\n'
