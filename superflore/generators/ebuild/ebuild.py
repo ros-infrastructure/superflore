@@ -124,7 +124,7 @@ class Ebuild(object):
         if self.build_type == 'catkin':
             return 'inherit ros-cmake\n\n'
         elif self.build_type == 'ament_python':
-            return 'inherit distutils-r1\n\n'
+            return 'inherit ament-python\n\n'
         elif self.build_type == 'ament_cmake':
             return 'inherit ament-cmake\n\n'
         else:
@@ -229,35 +229,16 @@ class Ebuild(object):
 
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n"
-        # TODO(allenh1): consider writing ament-python.eclass
-        if self.build_type == 'ament_python':
-            ret += 'DISTUTILS_IN_SOURCE_BUILD="yes"\n'
-            ret += '\nsrc_unpack() {\n'
-            ret += '    default\n'
-            ret += '    mv *${P}* ${P}\n'
-            ret += '}\n'
         # Patch source if needed.
-        if self.has_patches and self.build_type != 'ament_python':
+        if self.has_patches:
             ret += "\nsrc_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += " EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "    EPATCH_FORCE=\"yes\" epatch\n"
-            ret += "    ros-cmake_src_prepare\n"
+            if self.build_type == 'catkin':
+                ret += "    ros-cmake_src_prepare\n"
             ret += "}\n"
-        elif self.has_patches:
-            if len(self.patches) == 1:
-                ret += '\nPATCHES=( "${FILESDIR}"/%s )\n' % (
-                    self.patches[0].split('/')[-1]
-                )
-            else:
-                ret += '\nPATCHES=(\n'
-                formatted = [
-                    '    "${FILESDIR}"' + '/%s\n' % p.split('/')[-1]
-                    for p in self.patches
-                ]
-                ret += ''.join(formatted)
-                ret += ')\n\n'
         # source configuration
         if self.name == 'opencv3':
             ret += "\nsrc_configure() {\n"
