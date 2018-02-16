@@ -98,6 +98,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'public_domain')
         ret = get_license('GPL')
         self.assertEqual(ret, 'GPL-1')
+        ret = get_license('GNU GENERAL PUBLIC LICENSE Version 3')
+        self.assertEqual(ret, 'GPL-3')
 
     def test_delta_msg(self):
         """Test the delta message generated for the PR"""

@@ -148,7 +148,8 @@ def trim_string(string, length=80):
 
 def get_license(l):
     bsd_re = '^(BSD)((.)*([124]))?'
-    gpl_re = '(GPL)((.)*([123]))?'
+    gpl_re = '((([^L])*(GPL)([^0-9]*))|'\
+        '(GNU(.)*GENERAL(.)*PUBLIC(.)*LICENSE([^0-9])*))([0-9])?'
     lgpl_re = '^(LGPL)((.)*([23]|2\\.1))?'
     apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
     cc_re = '^(Creative(.)?Commons)((.)*)'
@@ -177,7 +178,9 @@ def get_license(l):
             return 'LGPL-{0}'.format(version)
         return 'LGPL-2'
     elif re.search(gpl_re, l, f):
-        version = re.search(gpl_re, l, f).group(4)
+        version = re.search(gpl_re, l, f)
+        grp = len(version.groups())
+        version = version.group(grp)
         if version:
             return 'GPL-{0}'.format(version)
         return 'GPL-1'
