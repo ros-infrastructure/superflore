@@ -37,6 +37,7 @@ from superflore.utils import save_pr
 from superflore.utils import url_to_repo_org
 from superflore.utils import warn
 
+# TODO(allenh1): It would be super nice make this a configuration option.
 ros2_index =\
     'https://raw.githubusercontent.com/ros2/rosdistro/ros2/index.yaml'
 ros1_index =\
