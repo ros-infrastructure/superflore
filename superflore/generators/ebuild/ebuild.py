@@ -226,9 +226,9 @@ class Ebuild(object):
         # CMAKE_BUILD_TYPE
         if self.name == "catkin":
             ret += "BUILD_BINARY=\"0\"\n"
-
         ret += "ROS_DISTRO=\"{0}\"\n".format(self.distro)
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n"
+
         # Patch source if needed.
         if self.has_patches:
             # TODO(allenh1): explicitly list patches
@@ -240,6 +240,7 @@ class Ebuild(object):
             if self.build_type in ['catkin', 'cmake']:
                 ret += "    ros-cmake_src_prepare\n"
             ret += "}\n"
+
         # source configuration
         if self.name == 'opencv3':
             ret += "\nsrc_configure() {\n"
