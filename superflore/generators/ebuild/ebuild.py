@@ -121,7 +121,7 @@ class Ebuild(object):
 
     def get_inherit_line(self):
         # if we are using catkin, we just inherit ros-cmake
-        if self.build_type == 'catkin':
+        if self.build_type in ['catkin', 'cmake']:
             return 'inherit ros-cmake\n\n'
         elif self.build_type == 'ament_python':
             return 'inherit ament-python\n\n'
@@ -231,12 +231,13 @@ class Ebuild(object):
         ret += "ROS_PREFIX=\"opt/ros/${ROS_DISTRO}\"\n"
         # Patch source if needed.
         if self.has_patches:
+            # TODO(allenh1): explicitly list patches
             ret += "\nsrc_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += " EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "    EPATCH_FORCE=\"yes\" epatch\n"
-            if self.build_type == 'catkin':
+            if self.build_type in ['catkin', 'cmake']:
                 ret += "    ros-cmake_src_prepare\n"
             ret += "}\n"
         # source configuration
