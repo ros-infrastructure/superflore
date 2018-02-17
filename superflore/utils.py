@@ -210,12 +210,6 @@ def resolve_dep(pkg, os):
     if os == 'oe':
         return _resolve_dep_open_embedded(pkg)
     elif os == 'gentoo':
-        if pkg == 'opensplice':
-            return [['sci-libs/opensplice']]
-        elif pkg == 'pydocstyle':
-            return [['dev-python/pydocstyle']]
-        elif pkg == 'python3-pkg-resources':
-            return [['dev-python/setuptools']]
         return resolve_rosdep_key(pkg, 'gentoo', '2.4.0')
     else:
         msg = "Unknown target platform '{0}'".format(os)
