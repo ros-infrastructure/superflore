@@ -150,7 +150,8 @@ def get_license(l):
     bsd_re = '^(BSD)((.)*([124]))?'
     gpl_re = '((([^L])*(GPL)([^0-9]*))|'\
         '(GNU(.)*GENERAL(.)*PUBLIC(.)*LICENSE([^0-9])*))([0-9])?'
-    lgpl_re = '^(LGPL)((.)*([23]|2\\.1))?'
+    lgpl_re = '(((LGPL)([^0-9]*))|'\
+        '(GNU(.)*Lesser(.)*Public(.)*License([^0-9])*))([0-9]?\\.[0-9])?'
     apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
     cc_re = '^(Creative(.)?Commons)((.)*)'
     cc_nc_nd_re = '^((Creative(.)?Commons)|CC)((.)*)' +\
@@ -173,7 +174,9 @@ def get_license(l):
             return 'BSD-{0}'.format(version)
         return 'BSD'
     elif re.search(lgpl_re, l, f):
-        version = re.search(lgpl_re, l, f).group(4)
+        version = re.search(lgpl_re, l, f)
+        grp = len(version.groups())
+        version = version.group(grp)
         if version:
             return 'LGPL-{0}'.format(version)
         return 'LGPL-2'
