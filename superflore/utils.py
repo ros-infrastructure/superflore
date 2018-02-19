@@ -251,7 +251,7 @@ def gen_delta_msg(total_changes):
     """Return string of changes for the PR message."""
     delta = "Changes:\n"
     delta += "========\n"
-    for distro in total_changes:
+    for distro in sorted(total_changes):
         if not total_changes[distro]:
             continue
         delta += "%s Changes:\n" % distro.title()

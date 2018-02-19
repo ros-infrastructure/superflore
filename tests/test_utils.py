@@ -112,13 +112,13 @@ class TestUtils(unittest.TestCase):
         total_changes['C'] = []
         expect = 'Changes:\n'\
                  '========\n'\
+                 'Boxturtle Changes:\n'\
+                 '---------------\n'\
+                 '* baz\n\n'\
                  'Hydro Changes:\n'\
                  '---------------\n'\
                  '* bar\n'\
-                 '* foo\n\n'\
-                 'Boxturtle Changes:\n'\
-                 '---------------\n'\
-                 '* baz\n\n'
+                 '* foo\n\n'
         got = gen_delta_msg(total_changes)
         self.assertEqual(expect, got)
 
