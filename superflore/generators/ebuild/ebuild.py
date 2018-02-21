@@ -14,6 +14,7 @@
 
 from time import gmtime, strftime
 
+from superflore.exceptions import UnknownBuildType
 from superflore.exceptions import UnresolvedDependency
 from superflore.utils import get_license
 from superflore.utils import resolve_dep
@@ -67,7 +68,10 @@ class Ebuild(object):
         self.unresolved_deps = list()
         self.name = None
         self.has_patches = False
+        self.build_type = 'catkin'
+        self.is_ros2 = False
         self.python_3 = True
+        self.patches = list()
         self.illegal_desc_chars = '()[]{}|^$\\#\t\n\r\v\f\'\"\`'
 
     def add_build_depend(self, depend, internal=True):
@@ -97,25 +101,54 @@ class Ebuild(object):
     def add_keyword(self, keyword, stable=False):
         self.keys.append(ebuild_keyword(keyword, stable))
 
+    def get_license_line(self, distributor, license_text):
+        ret = "# Copyright " + strftime("%Y", gmtime()) + " "
+        ret += distributor + "\n"
+        ret += "# Distributed under the terms of the " + license_text
+        ret += " license\n\n"
+        return ret
+
+    def get_eapi_line(self):
+        return 'EAPI=%s\n' % self.eapi
+
+    def get_python_compat(self, python_versions):
+        ver_string = ''
+        if len(python_versions) > 1:
+            ver_string = '{' + ','.join(python_versions) + '}'
+        else:
+            ver_string = python_versions[0]
+        return 'PYTHON_COMPAT=( python%s )\n\n' % ver_string
+
+    def get_inherit_line(self):
+        # if we are using catkin, we just inherit ros-cmake
+        if self.build_type in ['catkin', 'cmake']:
+            return 'inherit ros-cmake\n\n'
+        elif self.build_type == 'ament_python':
+            return 'inherit ament-python\n\n'
+        elif self.build_type == 'ament_cmake':
+            return 'inherit ament-cmake\n\n'
+        else:
+            raise UnknownBuildType(self.build_type)
+
     def get_ebuild_text(self, distributor, license_text):
         """
         Generate the ebuild in text, given the distributor line
         and the license text.
         """
-        ret = "# Copyright " + strftime("%Y", gmtime()) + " "
-        ret += distributor + "\n"
-        ret += "# Distributed under the terms of the " + license_text
-        ret += " license\n\n"
-
         # EAPI=<eapi>
-        ret += "EAPI=" + self.eapi + "\n"
-        if self.python_3:
-            ret += "PYTHON_COMPAT=( python{2_7,3_5} )\n\n"
+        ret = self.get_license_line(distributor, license_text)
+        ret += self.get_eapi_line()
+        if self.python_3 and not self.is_ros2:
+            # enable python 2.7 and python 3.5
+            ret += self.get_python_compat(['2_7', '3_5'])
+        elif self.python_3:
+            # only use 3.5, 3.6 for ROS 2
+            ret += self.get_python_compat(['3_5', '3_6'])
         else:
-            ret += "PYTHON_COMPAT=( python2_7 )\n\n"
+            # fallback to python 2.7
+            ret += self.get_python_compat(['2_7'])
         # inherits
-        ret += "inherit ros-cmake\n\n"
-
+        ret += self.get_inherit_line()
         # description, homepage, src_uri
         self.description =\
             sanitize_string(self.description, self.illegal_desc_chars)
@@ -198,12 +231,14 @@ class Ebuild(object):
 
         # Patch source if needed.
         if self.has_patches:
+            # TODO(allenh1): explicitly list patches
             ret += "\nsrc_prepare() {\n"
             ret += "    cd ${P}\n"
             ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
             ret += " EPATCH_SUFFIX=\"patch\" \\\n"
             ret += "    EPATCH_FORCE=\"yes\" epatch\n"
-            ret += "    ros-cmake_src_prepare\n"
+            if self.build_type in ['catkin', 'cmake']:
+                ret += "    ros-cmake_src_prepare\n"
             ret += "}\n"
 
         # source configuration

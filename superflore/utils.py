@@ -25,6 +25,10 @@ from superflore.exceptions import UnknownPlatform
 from superflore.rosdep_support import resolve_rosdep_key
 from termcolor import colored
 
+# Modify if a new distro is added
+active_distros = ['indigo', 'kinetic', 'lunar']
+ros2_distros = ['ardent']
+
 
 def warn(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'yellow'))
@@ -144,8 +148,10 @@ def trim_string(string, length=80):
 
 def get_license(l):
     bsd_re = '^(BSD)((.)*([124]))?'
-    gpl_re = '(GPL)((.)*([123]))?'
-    lgpl_re = '^(LGPL)((.)*([23]|2\\.1))?'
+    gpl_re = '((([^L])*(GPL)([^0-9]*))|'\
+        '(GNU(.)*GENERAL(.)*PUBLIC(.)*LICENSE([^0-9])*))([0-9])?'
+    lgpl_re = '(((LGPL)([^0-9]*))|'\
+        '(GNU(.)*Lesser(.)*Public(.)*License([^0-9])*))([0-9]?\\.[0-9])?'
     apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
     cc_re = '^(Creative(.)?Commons)((.)*)'
     cc_nc_nd_re = '^((Creative(.)?Commons)|CC)((.)*)' +\
@@ -168,12 +174,16 @@ def get_license(l):
             return 'BSD-{0}'.format(version)
         return 'BSD'
     elif re.search(lgpl_re, l, f):
-        version = re.search(lgpl_re, l, f).group(4)
+        version = re.search(lgpl_re, l, f)
+        grp = len(version.groups())
+        version = version.group(grp)
         if version:
             return 'LGPL-{0}'.format(version)
         return 'LGPL-2'
     elif re.search(gpl_re, l, f):
-        version = re.search(gpl_re, l, f).group(4)
+        version = re.search(gpl_re, l, f)
+        grp = len(version.groups())
+        version = version.group(grp)
         if version:
             return 'GPL-{0}'.format(version)
         return 'GPL-1'
@@ -241,7 +251,7 @@ def gen_delta_msg(total_changes):
     """Return string of changes for the PR message."""
     delta = "Changes:\n"
     delta += "========\n"
-    for distro in total_changes:
+    for distro in sorted(total_changes):
         if not total_changes[distro]:
             continue
         delta += "%s Changes:\n" % distro.title()

@@ -36,3 +36,9 @@ class NoPkgXml(Exception):
 class NoGitHubAuthToken(Exception):
     def __init__(self, message):
         self.message = message
+
+
+class UnknownBuildType(Exception):
+    """Raised when we don't know what to inherit to build the package"""
+    def __init__(self, msg):
+        self.message = msg

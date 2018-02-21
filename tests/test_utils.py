@@ -28,6 +28,10 @@ import unittest
 
 
 class TestUtils(unittest.TestCase):
+    def set_lang_env(self):
+        os.environ['LANG'] = 'en_US.UTF-8'
+        os.environ['LC_ALL'] = 'en_US.UTF-8'
+
     def test_sanitize(self):
         """Test sanitize string function"""
         # test with an empty string
@@ -94,27 +98,33 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'public_domain')
         ret = get_license('GPL')
         self.assertEqual(ret, 'GPL-1')
+        ret = get_license('GNU GENERAL PUBLIC LICENSE Version 3')
+        self.assertEqual(ret, 'GPL-3')
+        ret = get_license('GNU Lesser Public License 2.1')
+        self.assertEqual(ret, 'LGPL-2.1')
 
     def test_delta_msg(self):
         """Test the delta message generated for the PR"""
+        self.set_lang_env()
         total_changes = dict()
         total_changes['hydro'] = ['foo', 'bar']
         total_changes['boxturtle'] = ['baz']
         total_changes['C'] = []
         expect = 'Changes:\n'\
                  '========\n'\
+                 'Boxturtle Changes:\n'\
+                 '---------------\n'\
+                 '* baz\n\n'\
                  'Hydro Changes:\n'\
                  '---------------\n'\
                  '* bar\n'\
-                 '* foo\n\n'\
-                 'Boxturtle Changes:\n'\
-                 '---------------\n'\
-                 '* baz\n\n'
+                 '* foo\n\n'
         got = gen_delta_msg(total_changes)
         self.assertEqual(expect, got)
 
     def test_missing_deps_msg(self):
         """Test the missing dependencies list"""
+        self.set_lang_env()
         self.assertEqual(
             gen_missing_deps_msg([]), 'No missing dependencies.\n'
         )

@@ -28,6 +28,7 @@ from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
+from superflore.utils import ros2_distros
 from superflore.utils import warn
 
 # TODO(allenh1): This is a blacklist of things that
@@ -48,9 +49,14 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     ebuild_name = overlay.repo.repo_dir + ebuild_name
     patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
+    is_ros2 = distro.name in ros2_distros
     has_patches = os.path.exists(patch_path)
     pkg_names = get_package_names(distro)[0]
-
+    patches = None
+    if os.path.exists(patch_path):
+        patches = [
+            f for f in glob.glob('%s/*.patch' % patch_path)
+        ]
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % (pkg))
     # otherwise, remove a (potentially) existing ebuild.
@@ -70,6 +76,8 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     try:
         current = gentoo_installer(distro, pkg, has_patches)
         current.ebuild.name = pkg
+        current.ebuild.patches = patches
+        current.ebuild.is_ros2 = is_ros2
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
         raise e
@@ -176,6 +184,7 @@ def _gen_ebuild_for_package(
     pkg_ebuild.upstream_license = pkg.upstream_license
     pkg_ebuild.description = pkg.description
     pkg_ebuild.homepage = pkg.homepage
+    pkg_ebuild.build_type = pkg.build_type
     return pkg_ebuild
 
 
