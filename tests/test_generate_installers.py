@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 from superflore.exceptions import UnknownBuildType
 from superflore.exceptions import UnknownLicense
 from superflore.generate_installers import generate_installers
@@ -29,8 +31,8 @@ def _fail_if_p2os(overlay, pkg, distro, preserve_existing, collector):
     """Fail if it's a p2os package"""
     collector.append(pkg)
     if 'p2os' in pkg:
-        return False, pkg
-    return True, pkg
+        return False, True
+    return True, True
 
 
 def _skip_if_p2os(overlay, pkg, distro, preserve_existing, collector):
@@ -39,6 +41,14 @@ def _skip_if_p2os(overlay, pkg, distro, preserve_existing, collector):
     if 'p2os' in pkg:
         return False, False
     return True, pkg
+
+
+def _create_if_p2os(overlay, pkg, distro, preserve_existing, collector):
+    """Don't if the package is p2os"""
+    collector.append(pkg)
+    if 'p2os' in pkg:
+        return True, False
+    return True, True
 
 
 def _raise_exceptions(overlay, pkg, distro, preserve_existing, collector):
@@ -107,3 +117,19 @@ class TestGenerateInstallers(unittest.TestCase):
             self.assertNotIn('k', p)
             self.assertNotIn('l', p)
             self.assertNotIn('b', p)
+
+    def test_changes(self):
+        """Tests changes represented by generate installers"""
+        changes_re = '\*(([a-zA-Z]|\_|[0-9])+)\ [0-9]\.[0-9]\.[0-9]("-r"[0-9])?\*'
+        acc = list()
+        inst, broken, changes = generate_installers(
+            'lunar', None, _create_if_p2os, True, acc
+        )
+        found = False
+        for c in changes:
+            ret = re.search(changes_re, c)
+            if ret:
+                found = True
+                print(ret.groups())
+                self.assertIn('p2os', ret.group(0))
+        self.assertTrue(found)
