@@ -21,7 +21,7 @@ install_requires = [
 setup(
     name='superflore',
     version='0.2.1',
-    packages=find_packages(exclude=['tests', 'test.*']),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     author='Hunter L. Allen',
     author_email='hunter@openrobotics.org',
     url='https://github.com/ros-infrastructure/superflore',
