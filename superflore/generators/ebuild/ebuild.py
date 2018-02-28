@@ -32,6 +32,7 @@ no_optimizations = [
     'rviz',
 ]
 
+
 class ebuild_keyword(object):
     def __init__(self, arch, stable):
         self.arch = arch
