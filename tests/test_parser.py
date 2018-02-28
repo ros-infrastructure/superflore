@@ -21,7 +21,7 @@ class TestParserSetup(unittest.TestCase):
         """Tests the get_parser function"""
         p = get_parser('test parser')
         self.assertEqual(p.prog, 'test parser')
-        ret = p.parse_args()
+        ret = p.parse_args(None)
         self.assertIn('all', ret)
         self.assertIn('dry_run', ret)
         self.assertIn('only', ret)
