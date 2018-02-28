@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 from superflore.parser import get_parser
 import unittest
 
@@ -21,7 +23,8 @@ class TestParserSetup(unittest.TestCase):
         """Tests the get_parser function"""
         p = get_parser('test parser')
         self.assertEqual(p.prog, 'test parser')
-        ret = p.parse_args(None)
+        sys.argv = []
+        ret = p.parse_args()
         self.assertIn('all', ret)
         self.assertIn('dry_run', ret)
         self.assertIn('only', ret)
