@@ -15,16 +15,21 @@
 import os
 
 from superflore.TempfileManager import TempfileManager
+from tempfile import mkdtemp
+import shutil
 import unittest
+
 
 class TestTempfileManager(unittest.TestCase):
     def test_create_specified(self):
         """Test making a directory in a legal location"""
-        with TempfileManager('/tmp/test') as ret:
-            self.assertEqual(ret, '/tmp/test')
+        tmp = mkdtemp()
+        os.chmod(tmp, 17407)
+        with TempfileManager('%s/test' % tmp) as ret:
+            self.assertEqual(ret, '%s/test' % tmp)
         # clean up
-        self.assertTrue(os.path.exists('/tmp/test'))
-        os.rmdir('/tmp/test')
+        self.assertTrue(os.path.exists('%s/test' % tmp))
+        shutil.rmtree('%s' % tmp)
         
     def test_failed_to_create(self):
         """Test making a directory in a bad location"""
