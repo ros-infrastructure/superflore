@@ -142,3 +142,8 @@ class TestUtils(unittest.TestCase):
         owner, repo = url_to_repo_org('https://github.com/allenh1/p2os')
         self.assertEqual(owner, 'allenh1')
         self.assertEqual(repo, 'p2os')
+
+    def test_unknown_platform(self):
+        """Test resolve_dep with bad OS"""
+        with self.assertRaises(UnknownPlatform):
+            ret = rsolve_dep('cmake', 'Windoughs8')
