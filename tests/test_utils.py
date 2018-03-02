@@ -15,6 +15,7 @@
 from superflore.exceptions import UnknownPlatform
 from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
+from superflore.utils import resolve_dep
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 from superflore.utils import gen_delta_msg
