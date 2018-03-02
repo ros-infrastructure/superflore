@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.exceptions import UnknownPlatform
 from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
 from superflore.utils import sanitize_string
@@ -146,4 +147,4 @@ class TestUtils(unittest.TestCase):
     def test_unknown_platform(self):
         """Test resolve_dep with bad OS"""
         with self.assertRaises(UnknownPlatform):
-            ret = rsolve_dep('cmake', 'Windoughs8')
+            ret = resolve_dep('cmake', 'Windoughs8')
