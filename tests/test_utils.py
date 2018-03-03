@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.exceptions import UnknownPlatform
 from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
+from superflore.utils import resolve_dep
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 from superflore.utils import gen_delta_msg
@@ -142,3 +144,8 @@ class TestUtils(unittest.TestCase):
         owner, repo = url_to_repo_org('https://github.com/allenh1/p2os')
         self.assertEqual(owner, 'allenh1')
         self.assertEqual(repo, 'p2os')
+
+    def test_unknown_platform(self):
+        """Test resolve_dep with bad OS"""
+        with self.assertRaises(UnknownPlatform):
+            ret = resolve_dep('cmake', 'Windoughs8')
