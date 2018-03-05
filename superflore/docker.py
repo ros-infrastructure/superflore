@@ -17,6 +17,8 @@ import os
 import sys
 
 import docker
+from superflore.TempfileManager import TempfileManager
+from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
 
@@ -69,26 +71,45 @@ class Docker(object):
     def pull(self, org, repo, tag='latest'):
         self.image = self.client.images.pull('%s/%s:%s' % (org, repo, tag))
 
+    def get_log(self):
+        return self.log
+
+    def get_command(self, logging_dir=None):
+        if logging_dir:
+            cmd = "bash -c '"
+            cmd += (" &>> %s/log.txt && " % logging_dir).join(self.bash_cmds)
+            cmd += (" &>> %s/log.txt'" % logging_dir)
+        else:
+            cmd = "bash -c '" + " && ".join(self.bash_cmds)
+        return cmd
+
     def run(self, rm=True, show_cmd=False, privileged=False):
-        cmd_string = "bash -c '"
-        for i, bash_cmd in enumerate(self.bash_cmds):
-            cmd_string += bash_cmd
-            if i != len(self.bash_cmds) - 1:
-                cmd_string += ' && '
-        cmd_string += "'"
-        if show_cmd:
-            msg = "Running container with command string '%s'..."
-            info(msg % cmd_string)
-
-        self.client.containers.run(
-            image=self.image,
-            remove=rm,
-            command=cmd_string,
-            privileged=privileged,
-            volumes=self.directory_map,
-        )
-        ok("Docker container exited.")
-
+        with TempfileManager(None) as tmp:
+            # change access to the directory
+            os.chmod(tmp, 17407)
+            # map into the container
+            self.map_directory(tmp)
+            cmd_string = self.get_command(tmp)
+            if show_cmd:
+                msg = "Running container with command string '%s'..."
+                info(msg % self.get_command())
+            try:
+                self.client.containers.run(
+                    image=self.image,
+                    remove=rm,
+                    command=cmd_string,
+                    privileged=privileged,
+                    volumes=self.directory_map,
+                )
+                ok("Docker container exited.")
+            except docker.errors.ContainerError:
+                err("Docker container exited with errors.")
+                # save log, then raise.
+                with open('%s/log.txt' % tmp, 'r') as logfile:
+                    self.log = logfile.read()
+                raise
+            with open('%s/log.txt' % tmp, 'r') as logfile:
+                self.log = logfile.read()
 
 class NoDockerfileSupplied(Exception):
     def __init__(self, message):

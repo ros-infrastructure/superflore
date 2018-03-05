@@ -32,7 +32,7 @@ class GentooBuilder:
         # in case we want to test both.
         self.package_list['ros-%s/%s' % (ros_distro, pkg)] = 'unknown'
 
-    def run(self):
+    def run(self, verbose=True):
         # TODO(allenh1): add the ability to check out a non-master
         # branch of the overlay (for CI).
         info('testing gentoo package integrity')
@@ -46,5 +46,7 @@ class GentooBuilder:
             except ContainerError:
                 self.package_list[pkg] = 'failing'
                 err("  '%s': failing" % pkg)
+            if verbose:
+                print(self.container.log)
             self.container.clear_commands()
         return self.package_list
