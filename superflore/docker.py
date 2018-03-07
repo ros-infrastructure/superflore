@@ -111,6 +111,7 @@ class Docker(object):
             with open('%s/log.txt' % tmp, 'r') as logfile:
                 self.log = logfile.read()
 
+
 class NoDockerfileSupplied(Exception):
     def __init__(self, message):
         self.message = message
