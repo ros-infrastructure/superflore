@@ -15,11 +15,9 @@
 import argparse
 import sys
 
+from superflore.utils import active_distros
 from superflore.test_integration.gentoo.build_base import GentooBuilder
 import yaml
-
-
-active_distros = ['indigo', 'kinetic', 'lunar']
 
 
 def main():
