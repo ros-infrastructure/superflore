@@ -15,8 +15,8 @@
 import argparse
 import sys
 
-from superflore.utils import active_distros
 from superflore.test_integration.gentoo.build_base import GentooBuilder
+from superflore.utils import active_distros
 import yaml
 
 
