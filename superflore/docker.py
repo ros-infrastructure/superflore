@@ -80,7 +80,7 @@ class Docker(object):
             cmd += (" &>> %s/log.txt && " % logging_dir).join(self.bash_cmds)
             cmd += (" &>> %s/log.txt'" % logging_dir)
         else:
-            cmd = "bash -c '" + " && ".join(self.bash_cmds)
+            cmd = "bash -c '" + " && ".join(self.bash_cmds) + "'"
         return cmd
 
     def run(self, rm=True, show_cmd=False, privileged=False):
