@@ -45,6 +45,12 @@ def main():
         help='build packages specified by the input file',
         type=str
     )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        help='show output from docker',
+        action="store_true"
+    )
     args = parser.parse_args(sys.argv[1:])
 
     if args.f:
@@ -62,7 +68,7 @@ def main():
     else:
         parser.error('Invalid args! You must supply a package list.')
         sys.exit(1)
-    results = tester.run()
+    results = tester.run(args.verbose)
     failures = 0
     for test_case in results.keys():
         if results[test_case] == 'failing':
