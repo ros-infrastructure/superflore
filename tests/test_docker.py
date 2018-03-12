@@ -83,3 +83,10 @@ class TestDocker(unittest.TestCase):
         expected = "bash -c 'echo Hello, docker &>> /root/log.txt "\
                    "&& echo command two. &>> /root/log.txt'"
         self.assertEqual(expected, ret)
+
+    def test_logger_output(self):
+        """Test the log file output"""
+        docker_instance = Docker()
+        docker_instance.add_bash_command("echo Log Text!")
+        docker_instance.run()
+        self.assertEqual(docker_instance.log, "Log Text!")
