@@ -87,6 +87,7 @@ class TestDocker(unittest.TestCase):
     def test_logger_output(self):
         """Test the log file output"""
         docker_instance = Docker()
+        docker_instance.pull('allenh1', 'ros_gentoo_base')
         docker_instance.add_bash_command("echo Log Text!")
         docker_instance.run()
         self.assertEqual(docker_instance.log, "Log Text!")
