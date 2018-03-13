@@ -102,7 +102,7 @@ class Docker(object):
                 os.chmod(tmp, 17407)
             # map into the container
             self.map_directory(tmp)
-            cmd_string = self.get_command(tmp)
+            cmd_string = self.get_command(tmp, log_name)
             if show_cmd:
                 msg = "Running container with command string '%s'..."
                 info(msg % self.get_command())

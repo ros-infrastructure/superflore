@@ -79,7 +79,7 @@ class TestDocker(unittest.TestCase):
         ret = docker_instance.get_command()
         self.assertEqual(ret, "bash -c 'echo Hello, docker && echo command two.'")
         # get command string with logging directory.
-        ret = docker_instance.get_command('/root')
+        ret = docker_instance.get_command('/root', 'log.txt')
         expected = "bash -c 'echo Hello, docker &>> /root/log.txt "\
                    "&& echo command two. &>> /root/log.txt'"
         self.assertEqual(expected, ret)
