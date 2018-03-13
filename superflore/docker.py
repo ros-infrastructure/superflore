@@ -106,7 +106,7 @@ class Docker(object):
             cmd_string = self.get_command(tmp, log_name)
             if show_cmd:
                 msg = "Running container with command string '%s'..."
-                info(msg % self.get_command())
+                info(msg % cmd_string)
             try:
                 self.client.containers.run(
                     image=self.image,
