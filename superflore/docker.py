@@ -97,6 +97,7 @@ class Docker(object):
             log_path = None
             log_name = 'log.txt'
         with TempfileManager(log_path) as tmp:
+            tmp = tmp.rstrip('/')
             if log_file:
                 # change access to the directory so docker can read it
                 os.chmod(tmp, 17407)
