@@ -52,7 +52,7 @@ def main():
     parser.add_argument(
         '--log-file',
         help='location to store the log file',
-        type='str'
+        type=str
     )
     args = parser.parse_args(sys.argv[1:])
 
