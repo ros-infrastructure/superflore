@@ -74,19 +74,32 @@ class Docker(object):
     def get_log(self):
         return self.log
 
-    def get_command(self, logging_dir=None):
+    def get_command(self, logging_dir=None, logging_file=None):
         if logging_dir:
             cmd = "bash -c '"
-            cmd += (" &>> %s/log.txt && " % logging_dir).join(self.bash_cmds)
-            cmd += (" &>> %s/log.txt'" % logging_dir)
+            cmd += (
+                " &>> %s/%s && " % (
+                    logging_dir, logging_file
+                )
+            ).join(self.bash_cmds)
+            cmd += (" &>> %s/%s'" % (logging_dir, logging_file))
         else:
             cmd = "bash -c '" + " && ".join(self.bash_cmds) + "'"
         return cmd
 
-    def run(self, rm=True, show_cmd=False, privileged=False):
-        with TempfileManager(None) as tmp:
-            # change access to the directory
-            os.chmod(tmp, 17407)
+    def run(self, rm=True, show_cmd=False, privileged=False, log_file=None):
+        if log_file:
+            # get the location to store the log
+            log_path = os.path.dirname(log_file)
+            # get the file name
+            log_name = log_file.replace(log_path, '')
+        else:
+            log_path = None
+            log_name = 'log.txt'
+        with TempfileManager(log_path) as tmp:
+            if log_file:
+                # change access to the directory so docker can read it
+                os.chmod(tmp, 17407)
             # map into the container
             self.map_directory(tmp)
             cmd_string = self.get_command(tmp)
@@ -102,13 +115,17 @@ class Docker(object):
                     volumes=self.directory_map,
                 )
                 ok("Docker container exited.")
+                if log_file:
+                    info("Log file: '%s/%s'" % (tmp, log_name))
             except docker.errors.ContainerError:
                 err("Docker container exited with errors.")
+                if log_file:
+                    info("Log file: '%s/%s'" % (tmp, log_name))
                 # save log, then raise.
-                with open('%s/log.txt' % tmp, 'r') as logfile:
+                with open('%s/%s' % (tmp, log_name), 'r') as logfile:
                     self.log = logfile.read()
                 raise
-            with open('%s/log.txt' % tmp, 'r') as logfile:
+            with open('%s/%s' % (tmp, log_name), 'r') as logfile:
                 self.log = logfile.read()
 
 

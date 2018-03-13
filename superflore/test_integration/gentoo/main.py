@@ -49,6 +49,11 @@ def main():
         help='show output from docker',
         action="store_true"
     )
+    parser.add_argument(
+        '--log-file',
+        help='location to store the log file',
+        type='str'
+    )
     args = parser.parse_args(sys.argv[1:])
 
     if args.f:
@@ -66,7 +71,7 @@ def main():
     else:
         parser.error('Invalid args! You must supply a package list.')
         sys.exit(1)
-    results = tester.run(args.verbose)
+    results = tester.run(args.verbose, args.log_file)
     failures = 0
     for test_case in results.keys():
         if results[test_case] == 'failing':
