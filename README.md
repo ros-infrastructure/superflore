@@ -60,7 +60,8 @@ $ superflore-check-ebuilds -h
 usage: Check if ROS packages are building for Gentoo Linux [-h]
                                                            [--ros-distro ROS_DISTRO [ROS_DISTRO ...]]
                                                            [--pkgs PKGS [PKGS ...]]
-                                                           [-f F]
+                                                           [-f F] [-v]
+                                                           [--log-file LOG_FILE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -69,6 +70,8 @@ optional arguments:
   --pkgs PKGS [PKGS ...]
                         packages to build
   -f F                  build packages specified by the input file
+  -v, --verbose         show output from docker
+  --log-file LOG_FILE   location to store the log file
 ```
 
 If a file is to be passed as input, it is expected to be in proper yaml format, such as the below.
