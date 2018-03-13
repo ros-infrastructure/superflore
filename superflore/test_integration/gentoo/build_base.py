@@ -32,7 +32,7 @@ class GentooBuilder:
         # in case we want to test both.
         self.package_list['ros-%s/%s' % (ros_distro, pkg)] = 'unknown'
 
-    def run(self):
+    def run(self, verbose=True, log_file=None):
         # TODO(allenh1): add the ability to check out a non-master
         # branch of the overlay (for CI).
         info('testing gentoo package integrity')
@@ -40,11 +40,15 @@ class GentooBuilder:
             self.container.add_bash_command('emaint sync -r ros-overlay')
             self.container.add_bash_command('emerge %s' % pkg)
             try:
-                self.container.run(rm=True, show_cmd=True, privileged=True)
+                self.container.run(
+                    rm=True, show_cmd=True, privileged=True, log_file=log_file
+                )
                 self.package_list[pkg] = 'building'
                 ok("  '%s': building" % pkg)
             except ContainerError:
                 self.package_list[pkg] = 'failing'
                 err("  '%s': failing" % pkg)
+            if verbose:
+                print(self.container.log)
             self.container.clear_commands()
         return self.package_list

@@ -69,3 +69,25 @@ class TestDocker(unittest.TestCase):
         docker_instance.pull('allenh1', 'ros_gentoo_base')
         docker_instance.add_bash_command("echo Hello, Gentoo")
         docker_instance.run()
+
+    def test_get_command(self):
+        """Test the get_comamnd function"""
+        docker_instance = Docker()
+        docker_instance.add_bash_command("echo Hello, docker")
+        docker_instance.add_bash_command("echo command two.")
+        # get command string
+        ret = docker_instance.get_command()
+        self.assertEqual(ret, "bash -c 'echo Hello, docker && echo command two.'")
+        # get command string with logging directory.
+        ret = docker_instance.get_command('/root', 'log.txt')
+        expected = "bash -c 'echo Hello, docker &>> /root/log.txt "\
+                   "&& echo command two. &>> /root/log.txt'"
+        self.assertEqual(expected, ret)
+
+    def test_logger_output(self):
+        """Test the log file output"""
+        docker_instance = Docker()
+        docker_instance.pull('gentoo', 'stage3-amd64')
+        docker_instance.add_bash_command("echo Log Text!")
+        docker_instance.run()
+        self.assertEqual(docker_instance.log, "Log Text!\n")

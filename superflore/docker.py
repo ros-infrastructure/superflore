@@ -17,6 +17,8 @@ import os
 import sys
 
 import docker
+from superflore.TempfileManager import TempfileManager
+from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
 
@@ -69,25 +71,62 @@ class Docker(object):
     def pull(self, org, repo, tag='latest'):
         self.image = self.client.images.pull('%s/%s:%s' % (org, repo, tag))
 
-    def run(self, rm=True, show_cmd=False, privileged=False):
-        cmd_string = "bash -c '"
-        for i, bash_cmd in enumerate(self.bash_cmds):
-            cmd_string += bash_cmd
-            if i != len(self.bash_cmds) - 1:
-                cmd_string += ' && '
-        cmd_string += "'"
-        if show_cmd:
-            msg = "Running container with command string '%s'..."
-            info(msg % cmd_string)
+    def get_log(self):
+        return self.log
 
-        self.client.containers.run(
-            image=self.image,
-            remove=rm,
-            command=cmd_string,
-            privileged=privileged,
-            volumes=self.directory_map,
-        )
-        ok("Docker container exited.")
+    def get_command(self, logging_dir=None, logging_file=None):
+        if logging_dir:
+            cmd = "bash -c '"
+            cmd += (
+                " &>> %s/%s && " % (
+                    logging_dir, logging_file
+                )
+            ).join(self.bash_cmds)
+            cmd += (" &>> %s/%s'" % (logging_dir, logging_file))
+        else:
+            cmd = "bash -c '" + " && ".join(self.bash_cmds) + "'"
+        return cmd
+
+    def run(self, rm=True, show_cmd=False, privileged=False, log_file=None):
+        if log_file:
+            # get the location to store the log
+            log_path = os.path.dirname(log_file)
+            # get the file name
+            log_name = log_file.replace(log_path, '').lstrip('/')
+        else:
+            log_path = None
+            log_name = 'log.txt'
+        with TempfileManager(log_path) as tmp:
+            if log_file:
+                # change access to the directory so docker can read it
+                os.chmod(tmp, 17407)
+            # map into the container
+            self.map_directory(tmp)
+            cmd_string = self.get_command(tmp, log_name)
+            if show_cmd:
+                msg = "Running container with command string '%s'..."
+                info(msg % cmd_string)
+            try:
+                self.client.containers.run(
+                    image=self.image,
+                    remove=rm,
+                    command=cmd_string,
+                    privileged=privileged,
+                    volumes=self.directory_map,
+                )
+                ok("Docker container exited.")
+                if log_file:
+                    info("Log file: '%s/%s'" % (tmp, log_name))
+            except docker.errors.ContainerError:
+                err("Docker container exited with errors.")
+                if log_file:
+                    info("Log file: '%s/%s'" % (tmp, log_name))
+                # save log, then raise.
+                with open('%s/%s' % (tmp, log_name), 'r') as logfile:
+                    self.log = logfile.read()
+                raise
+            with open('%s/%s' % (tmp, log_name), 'r') as logfile:
+                self.log = logfile.read()
 
 
 class NoDockerfileSupplied(Exception):

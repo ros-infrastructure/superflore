@@ -19,5 +19,5 @@ install:
 script:
   - sudo rosdep init
   - rosdep update
-  - python -m 'nose' --exclude test_pull --exclude test_run
+  - python -m 'nose' --exclude test_pull --exclude test_run --exclude test_logger_output
   - python -m 'flake8' superflore --import-order-style=google
