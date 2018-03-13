@@ -92,12 +92,11 @@ class Docker(object):
             # get the location to store the log
             log_path = os.path.dirname(log_file)
             # get the file name
-            log_name = log_file.replace(log_path, '')
+            log_name = log_file.replace(log_path, '').lstrip('/')
         else:
             log_path = None
             log_name = 'log.txt'
         with TempfileManager(log_path) as tmp:
-            tmp = tmp.rstrip('/')
             if log_file:
                 # change access to the directory so docker can read it
                 os.chmod(tmp, 17407)
