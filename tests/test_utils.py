@@ -18,6 +18,7 @@ import sys
 
 from superflore.exceptions import UnknownPlatform
 from superflore.TempfileManager import TempfileManager
+from superflore.utils import clean_up
 from superflore.utils import gen_delta_msg
 from superflore.utils import get_license
 from superflore.utils import gen_missing_deps_msg
@@ -163,3 +164,17 @@ class TestUtils(unittest.TestCase):
         # test with an argument
         expected = 'sample\n'
         self.assertEqual(expected, get_pr_text('sample'))
+
+    def test_cleanup(self):
+        # should pass
+        clean_up()
+        # should remove files
+        with TempfileManager(None) as tempdir:
+            with open('%s/.pr-message.tmp' % tempdir, 'w') as msg_file:
+                msg_file.write("message")
+            with open('%s/.pr-title.tmp' % tempdir, 'w') as title_file:
+                title_file.write("title")
+            os.chdir(tempdir)
+            clean_up()
+            self.assertFalse(os.path.exists('%s/.pr-message.tmp' % tempdir))
+            self.assertFalse(os.path.exists('%s/.pr-title.tmp' % tempdir))
