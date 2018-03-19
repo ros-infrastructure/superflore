@@ -179,6 +179,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(expected, get_pr_text('sample'))
 
     def test_cleanup(self):
+        """Test PR dry run cleanup"""
         # should pass
         clean_up()
         # should remove files
@@ -191,3 +192,9 @@ class TestUtils(unittest.TestCase):
             clean_up()
             self.assertFalse(os.path.exists('%s/.pr-message.tmp' % tempdir))
             self.assertFalse(os.path.exists('%s/.pr-title.tmp' % tempdir))
+
+    def test_resolve_dep_oe(self):
+        """Test resolve dependency with Open Embedded"""
+        # Note(allenh1): we're not going to test the hard-coded resolutions.
+        self.assertEqual(resolve_dep('tinyxml2', 'oe'), 'libtinyxml2')
+        self.assertEqual(resolve_dep('p2os_msgs', 'oe'), 'p2os-msgs')
