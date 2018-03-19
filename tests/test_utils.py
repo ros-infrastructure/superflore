@@ -12,20 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import string
+import sys
+
 from superflore.exceptions import UnknownPlatform
+from superflore.TempfileManager import TempfileManager
+from superflore.utils import gen_delta_msg
+from superflore.utils import get_license
+from superflore.utils import gen_missing_deps_msg
+from superflore.utils import get_pr_text
 from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
 from superflore.utils import resolve_dep
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
-from superflore.utils import gen_delta_msg
-from superflore.utils import gen_missing_deps_msg
 from superflore.utils import url_to_repo_org
-from superflore.utils import get_license
-from superflore.TempfileManager import TempfileManager
 
-import os
-import string
 import unittest
 
 
@@ -149,3 +152,14 @@ class TestUtils(unittest.TestCase):
         """Test resolve_dep with bad OS"""
         with self.assertRaises(UnknownPlatform):
             ret = resolve_dep('cmake', 'Windoughs8')
+
+    def test_get_pr_text(self):
+        """Test get PR text"""
+        tmp = sys.argv
+        sys.argv = ['a', 'b', 'c', 'd']
+        expected = 'To reproduce this PR, run the following command.\n\n'\
+                   '```\na b c d\n```\n'
+        self.assertEqual(expected, get_pr_text())
+        # test with an argument
+        expected = 'sample\n'
+        self.assertEqual(expected, get_pr_text('sample'))
