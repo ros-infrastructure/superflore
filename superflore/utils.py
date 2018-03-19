@@ -50,10 +50,12 @@ def get_pr_text(comment=None):
     msg = ''
     if comment:
         msg += '%s\n' % comment
+        return msg
     msg += 'To reproduce this PR, run the following command.\n\n'
     args = sys.argv
     args[0] = args[0].split('/')[-1]
-    msg += '```\n%s\n```' % ' '.join(args)
+    msg += '```\n%s\n```' % ' '.join(args) + '\n'
+    return msg
 
 
 def save_pr(overlay, delta, missing_deps, comment):
