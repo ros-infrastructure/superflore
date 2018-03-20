@@ -12,20 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import string
+import sys
+
+from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
+from superflore.TempfileManager import TempfileManager
+from superflore.utils import clean_up
+from superflore.utils import gen_delta_msg
+from superflore.utils import get_license
+from superflore.utils import gen_missing_deps_msg
+from superflore.utils import get_pr_text
 from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
 from superflore.utils import resolve_dep
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
-from superflore.utils import gen_delta_msg
-from superflore.utils import gen_missing_deps_msg
 from superflore.utils import url_to_repo_org
-from superflore.utils import get_license
-from superflore.TempfileManager import TempfileManager
 
-import os
-import string
 import unittest
 
 
@@ -104,6 +109,18 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'GPL-3')
         ret = get_license('GNU Lesser Public License 2.1')
         self.assertEqual(ret, 'LGPL-2.1')
+        ret = get_license('Mozilla Public License Version 1.1')
+        self.assertEqual(ret, 'MPL-1.1')
+        ret = get_license('Mozilla Public License')
+        self.assertEqual(ret, 'MPL-2.0')
+        ret = get_license('BSD License 2.0')
+        self.assertEqual(ret, 'BSD-2')
+        ret = get_license('MIT')
+        self.assertEqual(ret, 'MIT')
+        ret = get_license('Creative Commons')
+        self.assertEqual(ret, 'CC-BY-SA-3.0')
+        with self.assertRaises(UnknownLicense):
+            ret = get_license('TODO')
 
     def test_delta_msg(self):
         """Test the delta message generated for the PR"""
@@ -149,3 +166,35 @@ class TestUtils(unittest.TestCase):
         """Test resolve_dep with bad OS"""
         with self.assertRaises(UnknownPlatform):
             ret = resolve_dep('cmake', 'Windoughs8')
+
+    def test_get_pr_text(self):
+        """Test get PR text"""
+        tmp = sys.argv
+        sys.argv = ['a', 'b', 'c', 'd']
+        expected = 'To reproduce this PR, run the following command.\n\n'\
+                   '```\na b c d\n```\n'
+        self.assertEqual(expected, get_pr_text())
+        # test with an argument
+        expected = 'sample\n'
+        self.assertEqual(expected, get_pr_text('sample'))
+
+    def test_cleanup(self):
+        """Test PR dry run cleanup"""
+        # should pass
+        clean_up()
+        # should remove files
+        with TempfileManager(None) as tempdir:
+            with open('%s/.pr-message.tmp' % tempdir, 'w') as msg_file:
+                msg_file.write("message")
+            with open('%s/.pr-title.tmp' % tempdir, 'w') as title_file:
+                title_file.write("title")
+            os.chdir(tempdir)
+            clean_up()
+            self.assertFalse(os.path.exists('%s/.pr-message.tmp' % tempdir))
+            self.assertFalse(os.path.exists('%s/.pr-title.tmp' % tempdir))
+
+    def test_resolve_dep_oe(self):
+        """Test resolve dependency with Open Embedded"""
+        # Note(allenh1): we're not going to test the hard-coded resolutions.
+        self.assertEqual(resolve_dep('tinyxml2', 'oe'), 'libtinyxml2')
+        self.assertEqual(resolve_dep('p2os_msgs', 'oe'), 'p2os-msgs')
