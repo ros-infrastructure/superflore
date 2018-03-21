@@ -15,6 +15,7 @@
 import os
 import time
 
+import docker
 from superflore.docker import Docker
 from superflore.repo_instance import RepoInstance
 from superflore.utils import info
@@ -40,6 +41,7 @@ class RosOverlay(object):
             'lunar': 'regenerate ros-lunar, ',
             'indigo': 'regenerate ros-indigo, ',
             'kinetic': 'regenerate ros-kinetic, ',
+            'melodic': 'regenerate ros-melodic, ',
             'ardent': 'regenerate ros2-ardent, ',
         }[distro or 'update'] + time.ctime()
         self.repo.git.commit(m='{0}'.format(commit_msg))
@@ -66,7 +68,11 @@ class RosOverlay(object):
                 pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(key, pkg)
                 dock.add_bash_command('cd {0}'.format(pkg_dir))
                 dock.add_bash_command('repoman manifest')
-        dock.run(show_cmd=True)
+        try:
+            dock.run(show_cmd=True)
+        except docker.errors.ContainerError:
+            print(dock.log)
+            raise
 
     def pull_request(self, message, overlay=None):
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
