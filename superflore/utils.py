@@ -26,7 +26,7 @@ from superflore.rosdep_support import resolve_rosdep_key
 from termcolor import colored
 
 # Modify if a new distro is added
-active_distros = ['indigo', 'kinetic', 'lunar']
+active_distros = ['indigo', 'kinetic', 'lunar', 'melodic']
 ros2_distros = ['ardent']
 
 
