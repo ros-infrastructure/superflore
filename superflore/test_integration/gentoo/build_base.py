@@ -26,18 +26,35 @@ class GentooBuilder:
         self.container = Docker()
         self.container.pull(image_owner, image_name)
         self.package_list = dict()
+        self.default_upstream = True
 
     def add_target(self, ros_distro, pkg):
         # TODO(allenh1): it might be nice to add a Python3 target
         # in case we want to test both.
         self.package_list['ros-%s/%s' % (ros_distro, pkg)] = 'unknown'
 
+    def set_upstream(self, upstream_url, branch_name='master'):
+        # check out the requested repo for testing
+        self.container.add_bash_command('cd /usr/local/portage')
+        self.container.add_bash_command(
+            'git remote add upstream %s' % upstream_url
+        )
+        self.container.add_bash_command('git fetch upstream')
+        self.container.add_bash_command(
+            'git checkout upstream/%s' % branch_name
+        )
+        self.container.add_bash_command(
+            'git reset --hard upstream/%s' % branch_name
+        )
+        self.default_upstream = False
+
     def run(self, verbose=True, log_file=None):
         # TODO(allenh1): add the ability to check out a non-master
         # branch of the overlay (for CI).
         info('testing gentoo package integrity')
         for pkg in sorted(self.package_list.keys()):
-            self.container.add_bash_command('emaint sync -r ros-overlay')
+            if self.default_upstream:
+                self.container.add_bash_command('emaint sync -r ros-overlay')
             self.container.add_bash_command('emerge %s' % pkg)
             try:
                 self.container.run(

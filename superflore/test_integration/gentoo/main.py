@@ -54,6 +54,16 @@ def main():
         help='location to store the log file',
         type=str
     )
+    parser.add_argument(
+        '--set-upstream',
+        help='URL for the overlay to test',
+        type=str
+    )
+    parser.add_argument(
+        '--branch',
+        help='Branch to test',
+        type=str
+    )
     args = parser.parse_args(sys.argv[1:])
 
     if args.f:
@@ -71,6 +81,8 @@ def main():
     else:
         parser.error('Invalid args! You must supply a package list.')
         sys.exit(1)
+    if args.set_upstream:
+        tester.set_upstream(args.set_upstream, args.branch or 'master')
     results = tester.run(args.verbose, args.log_file)
     failures = 0
     for test_case in results.keys():
