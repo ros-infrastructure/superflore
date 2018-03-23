@@ -175,7 +175,9 @@ class TestUtils(unittest.TestCase):
                    '```\na b c d\n```\n'
         self.assertEqual(expected, get_pr_text())
         # test with an argument
-        expected = 'sample\n'
+        expected = 'sample\n'\
+                   'To reproduce this PR, run the following command.\n\n'\
+                   '```\na b c d\n```\n'
         self.assertEqual(expected, get_pr_text('sample'))
 
     def test_cleanup(self):
