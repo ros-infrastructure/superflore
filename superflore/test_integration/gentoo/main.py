@@ -13,10 +13,14 @@
 # limitations under the License.
 
 import argparse
+import os
 import sys
 
+from superflore.generators.ebuild.overlay_instance import RosOverlay
+from superflore.TempfileManager import TempfileManager
 from superflore.test_integration.gentoo.build_base import GentooBuilder
 from superflore.utils import active_distros
+from superflore.utils import url_to_repo_org
 import yaml
 
 
@@ -64,8 +68,14 @@ def main():
         help='Branch to test',
         type=str
     )
+    parser.add_argument(
+        '--ci-mode',
+        help='build packages from latest git commit',
+        action="store_true"
+    )
     args = parser.parse_args(sys.argv[1:])
-
+    repo_org = 'ros'
+    repo_name = 'ros-overlay'
     if args.f:
         # load the yaml file holding the test files
         with open(args.f, 'r') as test_file:
@@ -78,11 +88,21 @@ def main():
         for distro in args.ros_distro:
             for pkg in args.pkgs:
                 tester.add_target(distro, pkg)
-    else:
+    elif not args.ci_mode:
         parser.error('Invalid args! You must supply a package list.')
         sys.exit(1)
     if args.set_upstream:
         tester.set_upstream(args.set_upstream, args.branch or 'master')
+        repo_org, repo_name = url_to_repo_org(args.set_upstream)
+    if args.ci_mode:
+        # temporarily clone the repo and retrieve list
+        build_list = list()
+        with TempfileManager(None) as _repo:
+            os.chmod(_repo, 17407)
+            overlay = RosOverlay(_repo, True, org=repo_org, repo=repo_name)
+            build_list = overlay.get_last_modified()
+        for p in build_list:
+            tester.package_list[p] = 'unknown'
     results = tester.run(args.verbose, args.log_file)
     failures = 0
     for test_case in results.keys():
