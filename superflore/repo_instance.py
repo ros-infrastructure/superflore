@@ -121,3 +121,9 @@ class RepoInstance(object):
 
     def get_last_hash(self):
         return self.repo.head.object.hexsha
+
+    def get_files_changed_by_commit(self, commit):
+        # get a list of files changed by the given commit
+        return self.repo.git.diff_tree(
+            '--no-commit-id', '--name-only', '-r', commit
+        ).split('\n')
