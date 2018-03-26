@@ -23,13 +23,16 @@ from superflore.utils import rand_ascii_str
 
 
 class RosOverlay(object):
-    def __init__(self, repo_dir, do_clone, org='ros', repo='ros-overlay'):
+    def __init__(
+        self, repo_dir, do_clone, org='ros', repo='ros-overlay', mkbranch=True
+    ):
         self.repo = RepoInstance(
             org, repo, repo_dir=repo_dir, do_clone=do_clone
         )
-        self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
-        info('Creating new branch {0}...'.format(self.branch_name))
-        self.repo.create_branch(self.branch_name)
+        if mkbranch:
+            self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
+            info('Creating new branch {0}...'.format(self.branch_name))
+            self.repo.create_branch(self.branch_name)
 
     def commit_changes(self, distro):
         info('Adding changes...')
@@ -77,3 +80,11 @@ class RosOverlay(object):
     def pull_request(self, message, overlay=None):
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
         self.repo.pull_request(message, pr_title)
+
+    def get_last_modified(self):
+        files_changed = self.repo.get_files_changed_by_commit(
+            self.repo.get_last_hash()
+        )
+        # trim the end directory and make unique
+        ret = list(set(['/'.join(f.split('/')[:2]) for f in files_changed]))
+        return ret
