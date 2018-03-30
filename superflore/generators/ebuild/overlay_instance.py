@@ -81,7 +81,8 @@ class RosOverlay(object):
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
         self.repo.pull_request(message, pr_title)
 
-    def get_last_modified(self):
+    def get_last_modified(self, branch='master'):
+        self.git.change_branch(branch)
         files_changed = self.repo.get_files_changed_by_commit(
             self.repo.get_last_hash()
         )
