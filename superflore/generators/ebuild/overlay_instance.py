@@ -83,7 +83,7 @@ class RosOverlay(object):
 
     def get_last_modified(self, branch='master'):
         self.repo.change_branch(branch)
-        return get_changes_from_commit(self.repo.get_last_hash())
+        return self.get_changes_from_commit(self.repo.get_last_hash())
 
     def get_changes_from_commit(self, commit):
         files_changed = self.repo.get_files_changed_by_commit(commit)
