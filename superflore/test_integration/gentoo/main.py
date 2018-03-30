@@ -69,6 +69,11 @@ def main():
         type=str
     )
     parser.add_argument(
+        '--from-commit',
+        help='test changes from a specific commit',
+        type=str
+    )
+    parser.add_argument(
         '--ci-mode',
         help='build packages from latest git commit',
         action="store_true"
@@ -100,7 +105,11 @@ def main():
         with TempfileManager(None) as _repo:
             os.chmod(_repo, 17407)
             overlay = RosOverlay(_repo, True, org=repo_org, repo=repo_name)
-            build_list = overlay.get_last_modified(args.branch or 'master')
+            build_list = []
+            if args.from_commit:
+                build_list = overlay.get_changes_from_commit(args.from_commit)
+            else:
+                build_list = overlay.get_last_modified(args.branch or 'master')
         for p in build_list:
             tester.package_list[p] = 'unknown'
     results = tester.run(args.verbose, args.log_file)

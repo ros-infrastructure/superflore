@@ -82,10 +82,10 @@ class RosOverlay(object):
         self.repo.pull_request(message, pr_title)
 
     def get_last_modified(self, branch='master'):
-        self.git.change_branch(branch)
-        files_changed = self.repo.get_files_changed_by_commit(
-            self.repo.get_last_hash()
-        )
+        self.repo.change_branch(branch)
+        return get_changes_from_commit(self.repo.get_last_hash())
+
+    def get_changes_from_commit(self, commit):
+        files_changed = self.repo.get_files_changed_by_commit(commit)
         # trim the end directory and make unique
-        ret = list(set(['/'.join(f.split('/')[:2]) for f in files_changed]))
-        return ret
+        return list(set(['/'.join(f.split('/')[:2]) for f in files_changed]))
