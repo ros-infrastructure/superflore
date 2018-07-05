@@ -153,7 +153,7 @@ class TestEbuildOutput(unittest.TestCase):
         """Test That Python2/3 Is the Default"""
         ebuild = self.get_ebuild()
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
-        self.assertTrue('PYTHON_COMPAT=( python{2_7,3_5} )' in got_text)
+        self.assertTrue('PYTHON_COMPAT=( python{2_7,3_5,3_6} )' in got_text)
 
     def test_has_patches(self):
         """Test Patch Code Generation"""
