@@ -2,7 +2,7 @@
 # Distributed under the terms of the BSD license
 
 EAPI=6
-PYTHON_COMPAT=( python{2_7,3_5} )
+PYTHON_COMPAT=( python{2_7,3_5,3_6} )
 
 inherit ros-cmake
 
