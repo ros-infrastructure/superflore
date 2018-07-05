@@ -140,7 +140,7 @@ class Ebuild(object):
         ret += self.get_eapi_line()
         if self.python_3 and not self.is_ros2:
             # enable python 2.7 and python 3.5
-            ret += self.get_python_compat(['2_7', '3_5'])
+            ret += self.get_python_compat(['2_7', '3_5', '3_6'])
         elif self.python_3:
             # only use 3.5, 3.6 for ROS 2
             ret += self.get_python_compat(['3_5', '3_6'])
