@@ -28,6 +28,10 @@ depend_only_pkgs = [
     'virtual/pkgconfig'
 ]
 
+no_optimizations = [
+    'rviz',
+]
+
 
 class ebuild_keyword(object):
     def __init__(self, arch, stable):
@@ -259,7 +263,13 @@ class Ebuild(object):
             ret += "    filter-flags '-std=*'\n"
             ret += "    ros-cmake_src_configure\n"
             ret += "}\n"
-
+        elif self.name in no_optimizations:
+            ret += "\nsrc_configure() {\n"
+            ret += "    filter-flags '-O*'\n"
+            ret += "    append-cflags '-O0'\n"
+            ret += "    append-cxxflags '-O0'\n"
+            ret += "    ros-cmake_src_configure\n"
+            ret += "}\n"
         if len(self.unresolved_deps) > 0:
             raise UnresolvedDependency("failed to satisfy dependencies!")
 
