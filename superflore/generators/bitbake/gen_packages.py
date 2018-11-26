@@ -157,7 +157,7 @@ def _gen_recipe_for_package(
     # parse throught package xml
     try:
         pkg_xml = ros_pkg.get_package_xml(distro.name)
-    except Exception as e:
+    except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_recipe
     pkg_fields = PackageMetadata(pkg_xml)
