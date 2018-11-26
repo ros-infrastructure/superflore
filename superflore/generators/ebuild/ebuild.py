@@ -72,7 +72,7 @@ class Ebuild(object):
         self.is_ros2 = False
         self.python_3 = True
         self.patches = list()
-        self.illegal_desc_chars = '()[]{}|^$\\#\t\n\r\v\f\'\"\`'
+        self.illegal_desc_chars = '()[]{}|^$\\#\t\n\r\v\f\'"`'
 
     def add_build_depend(self, depend, internal=True):
         if depend in self.rdepends:
