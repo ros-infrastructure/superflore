@@ -27,7 +27,7 @@ from termcolor import colored
 
 # Modify if a new distro is added
 active_distros = ['indigo', 'kinetic', 'lunar', 'melodic']
-ros2_distros = ['ardent', 'bouncy']
+ros2_distros = ['ardent', 'bouncy', 'crystal']
 
 
 def warn(string):  # pragma: no cover
