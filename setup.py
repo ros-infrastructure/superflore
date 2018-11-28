@@ -3,6 +3,9 @@
 import sys
 from setuptools import find_packages, setup
 
+if sys.version_info < (3, 0):
+    sys.exit('Sorry, Python < 3.0 is not supported')
+
 install_requires = [
     'xmltodict',
     'termcolor',
@@ -27,6 +30,7 @@ setup(
     url='https://github.com/ros-infrastructure/superflore',
     keywords=['ROS'],
     install_requires=install_requires,
+    python_requires='>=3',
     classifiers=['Programming Language :: Python',
                  'License :: OSI Approved :: Apache Software License'],
     description='Super Bloom',
