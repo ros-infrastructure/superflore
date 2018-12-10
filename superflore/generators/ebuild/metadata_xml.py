@@ -15,7 +15,7 @@
 
 class metadata_xml(object):
     def __init__(self):
-        self.email = "hunter@openrobotics.org"
+        self.email = "hallen@kns.com"
         self.name = "Hunter L. Allen"
         self.upstream_name = None
         self.upstream_email = None
