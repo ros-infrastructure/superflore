@@ -148,7 +148,7 @@ def trim_string(string, length=80):
 
 
 def get_license(l):
-    bsd_re = '^(BSD)((.)*([124]))?|([1234])(.)?Clause(.)*(BSD)'
+    bsd_re = '^(BSD)((.)*([124]))?|([124])(.)?Clause(.)*(BSD)'
     gpl_re = '((([^L])*(GPL)([^0-9]*))|'\
         '(GNU(.)*GENERAL(.)*PUBLIC(.)*LICENSE([^0-9])*))([0-9])?'
     lgpl_re = '(((LGPL)([^0-9]*))|'\
