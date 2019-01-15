@@ -175,7 +175,7 @@ def get_license(l):
         if not version:
             version = matches.group(5)
         if version:
-            return 'BSD-{0}'.format(version) 
+            return 'BSD-{0}'.format(version)
         return 'BSD'
     elif re.search(lgpl_re, l, f):
         version = re.search(lgpl_re, l, f)
