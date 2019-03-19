@@ -80,7 +80,6 @@ def load_pr():
         )
         raise
     return msg, title
-    clean_up()
 
 
 def file_pr(overlay, delta, missing_deps, comment, distro=None):

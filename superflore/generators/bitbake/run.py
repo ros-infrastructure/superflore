@@ -82,7 +82,7 @@ def main():
         if not args.output_repository_path:
             # give our group write permissions to the temp dir
             os.chmod(_repo, 17407)
-        # clone if args.output-repository_path is None
+        # clone if args.output_repository_path is None
         overlay = RosMeta(
             _repo,
             not args.output_repository_path,
@@ -92,7 +92,7 @@ def main():
         if not args.only:
             pr_comment = pr_comment or (
                 'Superflore yocto generator began regeneration of all '
-                'packages form ROS distribution(s) %s on Meta-ROS from '
+                'packages from ROS distribution(s) %s on Meta-ROS from '
                 'commit %s.' % (
                     selected_targets,
                     overlay.repo.get_last_hash()
@@ -100,8 +100,9 @@ def main():
             )
         else:
             pr_comment = pr_comment or (
-                'Superflore yocto generator began regeneration of package(s)'
-                ' %s from ROS distro %s from Meta-ROS from commit %s.' % (
+                'Superflore yocto generator began regeneration of '
+                'package(s) %s from ROS distribution(s) %s on Meta-ROS from '
+                'commit %s.' % (
                     args.only,
                     args.ros_distro,
                     overlay.repo.get_last_hash()

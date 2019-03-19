@@ -71,7 +71,7 @@ def regenerate_installer(
             for f in glob.glob('%s*.patch' % patch_path)
         ]
     if preserve_existing and existing:
-        ok("recipe for package '%s' up to date, skpping..." % pkg)
+        ok("recipe for package '%s' up to date, skipping..." % pkg)
         return None, []
     elif existing:
         overlay.repo.remove_file(existing[0])
