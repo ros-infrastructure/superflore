@@ -43,6 +43,8 @@ class RosOverlay(object):
             'kinetic': 'regenerate ros-kinetic, ',
             'melodic': 'regenerate ros-melodic, ',
             'ardent': 'regenerate ros2-ardent, ',
+            'bouncy': 'regenerate ros2-bouncy, ',
+            'crystal': 'regenerate ros2-crystal, ',
         }[distro or 'update'] + time.ctime()
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
