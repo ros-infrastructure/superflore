@@ -142,7 +142,7 @@ def main():
                 regen_dict[args.ros_distro] = args.only
                 overlay.commit_changes(args.ros_distro)
                 if args.dry_run:
-                    save_pr(overlay, args.only, pr_comment)
+                    save_pr(overlay, args.only, '', pr_comment)
                     sys.exit(0)
                 delta = "Regenerated: '%s'\n" % args.only
                 file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro)
