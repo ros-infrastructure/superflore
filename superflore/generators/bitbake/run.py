@@ -20,6 +20,7 @@ from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_pkg
 from superflore.generators.bitbake.ros_meta import RosMeta
+from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
@@ -38,6 +39,7 @@ from superflore.utils import warn
 
 
 def main():
+    os.environ["ROS_OS_OVERRIDE"] = "openembedded"
     overlay = None
     preserve_existing = True
     parser = get_parser('Deploy ROS packages into Yocto Linux')
@@ -140,11 +142,13 @@ def main():
                             preserve_existing,
                             tar_dir,
                             md5_cache,
-                            sha256_cache
+                            sha256_cache,
+                            args.skip_keys,
                         )
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
                         sys.exit(1)
+                yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro)
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
@@ -175,6 +179,7 @@ def main():
                         total_broken.add(pkg)
                 total_changes[distro] = distro_changes
                 total_installers[distro] = distro_installers
+                yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro)
 
         num_changes = 0
         for distro_name in total_changes:

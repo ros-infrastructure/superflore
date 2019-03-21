@@ -18,7 +18,8 @@ install_requires = [
     'docker',
     'pyyaml',
     'pygithub',
-    'catkin_pkg >= 0.4.0'
+    'catkin_pkg >= 0.4.0',
+    'bs4'
 ]
 
 setup(

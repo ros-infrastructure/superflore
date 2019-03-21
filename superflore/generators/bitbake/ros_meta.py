@@ -31,15 +31,18 @@ class RosMeta(object):
 
     def clean_ros_recipe_dirs(self, distro=None):
         if distro:
-            info('Cleaning up recipes-ros-{0} directory...'.format(distro))
-            self.repo.git.rm('-rf', 'recipes-ros-{0}'.format(distro))
+            info('Cleaning up generated-recipes-{0} directory...'.format(distro))
+            self.repo.git.rm('-rf', 'generated-recipes-{0}'.format(distro))
         else:
-            info('Cleaning up recipes-ros-* directories...')
-            self.repo.git.rm('-rf', 'recipes-ros-*')
+            info('Cleaning up generated-recipes-* directories...')
+            self.repo.git.rm('-rf', 'generated-recipes-*')
 
     def commit_changes(self, distro):
         info('Adding changes...')
         if distro == 'all':
+            self.repo.git.add('generated-recipes-*')
+        else:
+            self.repo.git.add('recipes-ros-{0}'.format(distro))
             commit_msg = 'regenerate all distros, {0}'
             self.repo.git.add('recipes-ros-*')
         else:
