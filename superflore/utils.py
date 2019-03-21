@@ -204,8 +204,8 @@ def get_license(l):
 
 
 def resolve_dep(pkg, os, distro=None):
-    if os == 'oe':
-        return _resolve_dep_open_embedded(pkg)
+    if os == 'openembedded':
+        return resolve_rosdep_key(pkg, 'openembedded', '', distro)
     elif os == 'gentoo':
         return resolve_rosdep_key(pkg, 'gentoo', '2.4.0')
     else:
@@ -221,34 +221,6 @@ def get_distros():
 def get_distros_by_status(status='active'):
     return [t[0] for t in get_distros().items()
             if t[1].get('distribution_status') == status]
-
-
-def _resolve_dep_open_embedded(pkg):
-    """
-    TODO(allenh1): integrate rosdep
-    """
-    if pkg == 'python-yaml':
-        return 'python-pyyaml'
-    elif pkg == 'tinyxml2':
-        return 'libtinyxml2'
-    elif pkg == 'tinyxml':
-        return 'libtinyxml'
-    elif pkg == 'pkg-config':
-        return 'pkgconfig'
-    elif pkg == 'libconsole-bridge':
-        return 'console-bridge'
-    elif pkg == 'libconsole-bridge-dev':
-        return 'console-bridge'
-    elif pkg == 'python-empy':
-        return 'python-empy-native'
-    elif pkg == 'catkin':
-        return 'catkin-native catkin'
-    elif pkg == 'python-catkin-pkg':
-        return 'python-catkin-pkg-native'
-    elif pkg == 'libpoco-dev':
-        return 'poco'
-    else:
-        return pkg.replace('_', '-')
 
 
 def gen_delta_msg(total_changes):
