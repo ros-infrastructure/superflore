@@ -76,7 +76,7 @@ def main():
         parser.error('Invalid args! --only requires specifying --ros-distro')
     if not selected_targets:
         selected_targets = get_distros_by_status('active')
-    repo_org = 'allenh1'
+    repo_org = 'ros'
     repo_name = 'meta-ros'
     if args.upstream_repo:
         repo_org, repo_name = url_to_repo_org(args.upstream_repo)
