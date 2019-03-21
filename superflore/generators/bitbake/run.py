@@ -168,6 +168,7 @@ def main():
                         md5_cache,
                         sha256_cache,
                         skip_keys=skip_keys,
+                        is_oe=True,
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:

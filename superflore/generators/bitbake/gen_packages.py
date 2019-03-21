@@ -38,7 +38,7 @@ def regenerate_pkg(
     overlay, pkg, distro, preserve_existing, tar_dir, md5_cache, sha256_cache
 ):
     make_dir("{0}/recipes-ros-{1}".format(overlay.repo.repo_dir, distro.name))
-    version = get_pkg_version(distro, pkg)
+    version = get_pkg_version(distro, pkg, is_oe=True)
     pkg_names = get_package_names(distro)[0]
 
     if pkg not in pkg_names:

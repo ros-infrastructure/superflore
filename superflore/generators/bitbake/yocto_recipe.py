@@ -43,7 +43,7 @@ class yoctoRecipe(object):
     ):
         self.name = name
         self.distro = distro.name
-        self.version = get_pkg_version(distro, name)
+        self.version = get_pkg_version(distro, name, is_oe=True)
         self.description = ''
         self.src_uri = src_uri
         self.pkg_xml = None
