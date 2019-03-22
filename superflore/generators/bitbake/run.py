@@ -48,6 +48,7 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
+    skip_keys = args.skip_keys or []
     selected_targets = None
     if args.pr_only:
         if args.dry_run:
@@ -136,7 +137,7 @@ def main():
                             tar_dir,
                             md5_cache,
                             sha256_cache,
-                            args.skip_keys,
+                            skip_keys,
                         )
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
@@ -163,7 +164,7 @@ def main():
                         tar_dir,
                         md5_cache,
                         sha256_cache,
-                        args.skip_keys,
+                        skip_keys,
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:
