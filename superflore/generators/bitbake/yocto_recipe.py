@@ -73,8 +73,12 @@ class yoctoRecipe(object):
             self.author = "OSRF"
         self.depends = set()
         self.depends_external = set()
-        self.buildtooldepends = set()
-        self.buildtooldepends_external = set()
+        self.buildtool_depends = set()
+        self.buildtool_depends_external = set()
+        self.export_depends = set()
+        self.export_depends_external = set()
+        self.buildtool_export_depends = set()
+        self.buildtool_export_depends_external = set()
         self.rdepends = set()
         self.rdepends_external = set()
         self.tdepends = set()
@@ -141,11 +145,29 @@ class yoctoRecipe(object):
     def add_buildtool_depend(self, btdepend, internal=True):
         if btdepend not in self.skip_keys:
             if internal:
-                if btdepend not in self.buildtooldepends_external:
-                    self.buildtooldepends.add(btdepend)
+                if btdepend not in self.buildtool_depends_external:
+                    self.buildtool_depends.add(btdepend)
             else:
-                if btdepend not in self.buildtooldepends:
-                    self.buildtooldepends_external.add(btdepend)
+                if btdepend not in self.buildtool_depends:
+                    self.buildtool_depends_external.add(btdepend)
+
+    def add_export_depend(self, edepend, internal=True):
+        if edepend not in self.skip_keys:
+            if internal:
+                if edepend not in self.export_depends_external:
+                    self.export_depends.add(edepend)
+            else:
+                if edepend not in self.export_depends:
+                    self.export_depends_external.add(edepend)
+
+    def add_buildtool_export_depend(self, btedepend, internal=True):
+        if btedepend not in self.skip_keys:
+            if internal:
+                if btedepend not in self.buildtool_export_depends_external:
+                    self.buildtool_export_depends.add(btedepend)
+            else:
+                if btedepend not in self.buildtool_export_depends:
+                    self.buildtool_export_depends_external.add(btedepend)
 
     def add_run_depend(self, rdepend, internal=True):
         if rdepend not in self.skip_keys:
@@ -284,10 +306,17 @@ class yoctoRecipe(object):
         ret += self.get_depends_line('ROS_BUILD_DEPENDS',
                                      self.depends, self.depends_external)
         ret += 'DEPENDS = "${ROS_BUILD_DEPENDS}"' + '\n\n'
-
-        ret += self.get_depends_line('ROS_BUILDTOOL_DEPENDS', self.buildtooldepends,
-                                     self.buildtooldepends_external, is_native=True)
+        ret += self.get_depends_line('ROS_BUILDTOOL_DEPENDS', self.buildtool_depends,
+                                     self.buildtool_depends_external, is_native=True)
         ret += 'DEPENDS += "${ROS_BUILDTOOL_DEPENDS}"' + '\n\n'
+        ret += '# Bitbake doesn\'t support the "export" concept, so build them as if we needed them to build this package (even though we actually\n'
+        ret += '# don\'t) so that they\'re guaranteed to have been staged should this package appear in another\'s DEPENDS.\n'
+        ret += self.get_depends_line('ROS_EXPORT_DEPENDS',
+                                     self.export_depends, self.export_depends_external)
+        ret += 'DEPENDS += "${ROS_EXPORT_DEPENDS}"' + '\n\n'
+        ret += self.get_depends_line('ROS_BUILDTOOL_EXPORT_DEPENDS',
+                                     self.buildtool_export_depends, self.buildtool_export_depends_external, is_native=True)
+        ret += 'DEPENDS += "${ROS_BUILDTOOL_EXPORT_DEPENDS}"' + '\n\n'
         ret += self.get_depends_line('RDEPENDS_${PN}',
                                      self.rdepends, self.rdepends_external, plus_equal=True) + '\n'
         ret += '# Currently informational only -- see http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'

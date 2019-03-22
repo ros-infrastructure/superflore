@@ -106,6 +106,8 @@ def _gen_recipe_for_package(
     pkg_dep_walker = DependencyWalker(distro)
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
+    pkg_build_export_deps = pkg_dep_walker.get_depends(pkg_name, "build_export")
+    pkg_buildtool_export_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool_export")
     pkg_exec_deps = pkg_dep_walker.get_depends(pkg_name, "exec")
     pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, "test")
     src_uri = pkg_rosinstall[0]['tar']['uri']
@@ -135,6 +137,14 @@ def _gen_recipe_for_package(
     # add build tool dependencies
     for btdep in pkg_buildtool_deps:
         pkg_recipe.add_buildtool_depend(btdep, btdep in pkg_names[0])
+
+    # add export dependencies
+    for edep in pkg_build_export_deps:
+        pkg_recipe.add_export_depend(edep, edep in pkg_names[0])
+
+    # add buildtool export dependencies
+    for btedep in pkg_buildtool_export_deps:
+        pkg_recipe.add_buildtool_export_depend(btedep, btedep in pkg_names[0])
 
     # add exec dependencies
     for xdep in pkg_exec_deps:
