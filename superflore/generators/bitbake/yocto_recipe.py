@@ -206,7 +206,7 @@ class yoctoRecipe(object):
     def get_inherit_line(self):
         return 'inherit ros_${ROSDISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
 
-    def get_depends_line(self, var, internal_depends, external_depends, is_native=False, plus_equal=False):
+    def get_depends_line(self, var, internal_depends, external_depends, is_native=False):
         def get_spacing_prefix():
             return '\n' + ' ' * 4
 
@@ -215,7 +215,7 @@ class yoctoRecipe(object):
                 return '-native \\'
             return ' \\'
 
-        ret = '{0} {1} " \\'.format(var, '+=' if plus_equal else '=')
+        ret = '{0} = " \\'.format(var)
         has_int_depends = False
         has_ext_depends = False
         for dep in sorted(internal_depends | external_depends):
@@ -317,8 +317,9 @@ class yoctoRecipe(object):
         ret += self.get_depends_line('ROS_BUILDTOOL_EXPORT_DEPENDS',
                                      self.buildtool_export_depends, self.buildtool_export_depends_external, is_native=True)
         ret += 'DEPENDS += "${ROS_BUILDTOOL_EXPORT_DEPENDS}"' + '\n\n'
-        ret += self.get_depends_line('RDEPENDS_${PN}',
-                                     self.rdepends, self.rdepends_external, plus_equal=True) + '\n'
+        ret += self.get_depends_line('ROS_EXEC_DEPENDS',
+                                     self.rdepends, self.rdepends_external)
+        ret += 'RDEPENDS_${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
         ret += '# Currently informational only -- see http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'
         ret += self.get_depends_line('ROS_TEST_DEPENDS',
                                      self.tdepends, self.tdepends_external) + '\n'
