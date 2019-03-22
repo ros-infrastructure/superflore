@@ -215,10 +215,14 @@ class yoctoRecipe(object):
                 return '-native \\'
             return ' \\'
 
-        ret = '{0} = " \\'.format(var)
+        ret = '{0} = "'.format(var)
+        union_deps = internal_depends | external_depends
+        if len(union_deps) <= 0:
+            return ret + '"\n'
+        ret += ' \\'
         has_int_depends = False
         has_ext_depends = False
-        for dep in sorted(internal_depends | external_depends):
+        for dep in sorted(union_deps):
             if dep in internal_depends:
                 has_int_depends = True
                 ret += get_spacing_prefix() + self.convert_to_oe_name(dep) + \
