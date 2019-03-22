@@ -74,7 +74,7 @@ def regenerate_installer(
         ok("recipe for package '%s' up to date, skipping..." % pkg)
         return None, []
     elif existing:
-        overlay.repo.remove_file(existing[0])
+        overlay.repo.remove_file(existing[0], True)
     try:
         current = oe_installer(
             distro, pkg, tar_dir, md5_cache, sha256_cache, patches, inc_files

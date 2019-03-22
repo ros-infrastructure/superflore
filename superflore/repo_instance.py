@@ -71,7 +71,7 @@ class RepoInstance(object):
             if ignore_fail:
                 return
             fail_msg = 'Failed to remove file {0}'.format(filename)
-            fail_msg += 'from source control.'
+            fail_msg += ' from source control.'
             err(fail_msg)
             err(' Exception: {0}'.format(g))
 
