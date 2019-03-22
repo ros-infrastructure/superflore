@@ -43,9 +43,8 @@ def regenerate_pkg(
 
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % pkg)
-
-    # check for an existing recipe
     component = distro.release_packages[pkg].repository_name.replace('_', '-')
+    # check for an existing recipe
     glob_pattern = '{0}/generated-recipes-{1}/{2}/{3}*.bb'.format(
         overlay.repo.repo_dir,
         distro.name,
@@ -107,7 +106,7 @@ def _gen_recipe_for_package(
     pkg_dep_walker = DependencyWalker(distro)
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
-    pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
+    pkg_exec_deps = pkg_dep_walker.get_depends(pkg_name, "exec")
     pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, "test")
     src_uri = pkg_rosinstall[0]['tar']['uri']
 
@@ -137,9 +136,9 @@ def _gen_recipe_for_package(
     for btdep in pkg_buildtool_deps:
         pkg_recipe.add_buildtool_depend(btdep, btdep in pkg_names[0])
 
-    # add run dependencies
-    for rdep in pkg_run_deps:
-        pkg_recipe.add_run_depend(rdep, rdep in pkg_names[0])
+    # add exec dependencies
+    for xdep in pkg_exec_deps:
+        pkg_recipe.add_run_depend(xdep, xdep in pkg_names[0])
 
     # add test dependencies
     for tdep in pkg_test_deps:
