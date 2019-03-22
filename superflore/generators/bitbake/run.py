@@ -143,7 +143,7 @@ def main():
                             tar_dir,
                             md5_cache,
                             sha256_cache,
-                            args.skip_keys,
+                            skip_keys=skip_keys,
                         )
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
