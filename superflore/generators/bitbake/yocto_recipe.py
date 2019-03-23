@@ -204,7 +204,7 @@ class yoctoRecipe(object):
         return dep.replace('_', '-')
 
     def get_inherit_line(self):
-        return 'inherit ros_${ROSDISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
+        return 'inherit ros_${ROS_DISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
 
     def get_depends_line(self, var, internal_depends, external_depends, is_native=False):
         def get_spacing_prefix():
