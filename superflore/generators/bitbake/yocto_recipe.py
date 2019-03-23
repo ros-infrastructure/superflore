@@ -218,7 +218,7 @@ class yoctoRecipe(object):
         ret = '{0} = "'.format(var)
         union_deps = internal_depends | external_depends
         if len(union_deps) <= 0:
-            return ret + '"\n'
+            return ret + '"\n\n'
         ret += ' \\'
         has_int_depends = False
         has_ext_depends = False
@@ -267,7 +267,7 @@ class yoctoRecipe(object):
         elif not has_ext_depends:
             info(self.name + ' has no ' + var + ' external dependencies!')
 
-        return ret.rstrip() + '\n"\n'
+        return ret.rstrip() + '\n"\n\n'
 
     def get_recipe_text(self, distributor, license_text):
         """
@@ -309,24 +309,22 @@ class yoctoRecipe(object):
         # depends
         ret += self.get_depends_line('ROS_BUILD_DEPENDS',
                                      self.depends, self.depends_external)
-        ret += 'DEPENDS = "${ROS_BUILD_DEPENDS}"' + '\n\n'
         ret += self.get_depends_line('ROS_BUILDTOOL_DEPENDS', self.buildtool_depends,
                                      self.buildtool_depends_external, is_native=True)
-        ret += 'DEPENDS += "${ROS_BUILDTOOL_DEPENDS}"' + '\n\n'
-        ret += '# Bitbake doesn\'t support the "export" concept, so build them as if we needed them to build this package (even though we actually\n'
-        ret += '# don\'t) so that they\'re guaranteed to have been staged should this package appear in another\'s DEPENDS.\n'
         ret += self.get_depends_line('ROS_EXPORT_DEPENDS',
                                      self.export_depends, self.export_depends_external)
-        ret += 'DEPENDS += "${ROS_EXPORT_DEPENDS}"' + '\n\n'
         ret += self.get_depends_line('ROS_BUILDTOOL_EXPORT_DEPENDS',
                                      self.buildtool_export_depends, self.buildtool_export_depends_external, is_native=True)
-        ret += 'DEPENDS += "${ROS_BUILDTOOL_EXPORT_DEPENDS}"' + '\n\n'
         ret += self.get_depends_line('ROS_EXEC_DEPENDS',
                                      self.rdepends, self.rdepends_external)
-        ret += 'RDEPENDS_${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
         ret += '# Currently informational only -- see http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'
         ret += self.get_depends_line('ROS_TEST_DEPENDS',
-                                     self.tdepends, self.tdepends_external) + '\n'
+                                     self.tdepends, self.tdepends_external)
+        ret += 'DEPENDS = "${ROS_BUILD_DEPENDS} ${ROS_BUILDTOOL_DEPENDS}"' + '\n'
+        ret += '# Bitbake doesn\'t support the "export" concept, so build them as if we needed them to build this package (even though we actually\n'
+        ret += '# don\'t) so that they\'re guaranteed to have been staged should this package appear in another\'s DEPENDS.\n'
+        ret += 'DEPENDS += "${ROS_EXPORT_DEPENDS} ${ROS_BUILDTOOL_EXPORT_DEPENDS}"' + '\n\n'
+        ret += 'RDEPENDS_${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
         # SRC_URI
         ret += 'SRC_URI = "' + self.src_uri + ';'
         ret += 'downloadfilename=${ROS_SP}.tar.gz"\n'
