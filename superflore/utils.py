@@ -74,8 +74,8 @@ def load_pr():
         err('Failed to open PR title/message file!')
         err(
             'Please supply the %s and %s files' % (
-                '.pr_message.tmp',
-                '.pr_title.tmp'
+                '.pr-message.tmp',
+                '.pr-title.tmp'
             )
         )
         raise
