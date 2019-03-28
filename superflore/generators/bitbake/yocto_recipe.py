@@ -359,7 +359,7 @@ class yoctoRecipe(object):
             ret += path_prefix + '/${BPN}.inc\n'
             ret += path_prefix + '/${BPN}-${PV}.inc\n'
         # Inherits
-        ret += '\n' + self.get_inherit_line() + '\n'
+        ret += '\n' + self.get_inherit_line()
         return ret
 
     @staticmethod
