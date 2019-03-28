@@ -51,7 +51,7 @@ class yoctoRecipe(object):
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri, tar_dir,
         md5_cache, sha256_cache, skip_keys
     ):
-        self.component = self.convert_to_oe_name(component_name)
+        self.component_name = yoctoRecipe.convert_to_oe_name(component_name)
         self.num_pkgs = num_pkgs
         self.name = pkg_name
         self.distro = distro.name
@@ -200,16 +200,21 @@ class yoctoRecipe(object):
                                             dirs[4], dirs[5],
                                             dirs[6]).replace('.tar.gz', '')
 
-    def convert_to_oe_name(self, dep):
+    @staticmethod
+    def convert_to_oe_name(dep):
+        # Discard meta-layer information past '@'
+        dep = dep.split('@')[0]
+        if dep.endswith('_native'):
+            dep = dep[:-len('_native')] + '-rosnative'
         return dep.replace('_', '-')
 
+    @staticmethod
+    def get_spacing_prefix():
+        return '\n' + ' ' * 4
     def get_inherit_line(self):
         return 'inherit ros_${ROS_DISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
 
     def get_depends_line(self, var, internal_depends, external_depends, is_native=False):
-        def get_spacing_prefix():
-            return '\n' + ' ' * 4
-
         def get_spacing_suffix(is_native):
             if is_native:
                 return '-native \\'
@@ -225,38 +230,38 @@ class yoctoRecipe(object):
         for dep in sorted(union_deps):
             if dep in internal_depends:
                 has_int_depends = True
-                ret += get_spacing_prefix() + self.convert_to_oe_name(dep) + \
+                ret += yoctoRecipe.get_spacing_prefix() + yoctoRecipe.convert_to_oe_name(dep) + \
                     get_spacing_suffix(is_native)
                 info('Internal dependency add: ' +
-                      self.convert_to_oe_name(dep))
+                      yoctoRecipe.convert_to_oe_name(dep))
             else:
                 has_ext_depends = True
                 try:
                     for res in resolve_dep(dep, 'openembedded', self.distro)[0]:
-                        ret += get_spacing_prefix() + self.convert_to_oe_name(res) + \
+                        ret += yoctoRecipe.get_spacing_prefix() + yoctoRecipe.convert_to_oe_name(res) + \
                             get_spacing_suffix(is_native)
                         info('External dependency add: ' +
-                              self.convert_to_oe_name(res))
+                              yoctoRecipe.convert_to_oe_name(res))
                 except UnresolvedDependency:
-                    dep = self.convert_to_oe_name(dep)
+                    dep = yoctoRecipe.convert_to_oe_name(dep)
                     info('Unresolved dependency: ' + dep)
                     if dep in yoctoRecipe.unresolved_deps_cache:
-                        ret += get_spacing_prefix() + dep + get_spacing_suffix(is_native)
+                        ret += yoctoRecipe.get_spacing_prefix() + dep + get_spacing_suffix(is_native)
                         warn('Failed to resolve (cached): ' + dep)
                         continue
                     if dep in yoctoRecipe.resolved_deps_cache:
-                        ret += get_spacing_prefix() + dep + get_spacing_suffix(is_native)
+                        ret += yoctoRecipe.get_spacing_prefix() + dep + get_spacing_suffix(is_native)
                         info('Resolved in OE (cached): ' + dep)
                         continue
                     oe_query = OpenEmbeddedLayersDB()
                     oe_query.query_recipe(dep)
                     if oe_query.exists():
-                        ret += get_spacing_prefix() + oe_query.name + get_spacing_suffix(is_native)
+                        ret += yoctoRecipe.get_spacing_prefix() + oe_query.name + get_spacing_suffix(is_native)
                         yoctoRecipe.resolved_deps_cache.add(dep)
                         info('Resolved in OE: ' + dep + ' as ' +
                               oe_query.name + ' in ' + oe_query.layer)
                     else:
-                        ret += get_spacing_prefix() + dep + get_spacing_suffix(is_native)
+                        ret += yoctoRecipe.get_spacing_prefix() + dep + get_spacing_suffix(is_native)
                         yoctoRecipe.unresolved_deps_cache.add(dep)
                         warn('Failed to resolve: ' + dep)
 
@@ -338,7 +343,7 @@ class yoctoRecipe(object):
         # include
         ret += '# Allow the above settings to be overridden.\n'
         inc_prefix = 'include ${ROS_LAYERDIR}/'
-        component_path = '/' + self.component + '/' + self.component
+        component_path = '/' + self.component_name + '/' + self.component_name
         inc_suffix = '_common.inc\n'
         ret += inc_prefix + 'recipes-ros' + component_path + inc_suffix
         ret += inc_prefix + 'recipes-ros2' + component_path + inc_suffix
@@ -346,7 +351,8 @@ class yoctoRecipe(object):
             component_path + '-${PV}' + inc_suffix
         if self.num_pkgs > 1:
             # Generated if component generates more than one package
-            path_prefix = inc_prefix + '${ROS_RECIPES_TREE}/' + self.component
+            path_prefix = inc_prefix + \
+                '${ROS_RECIPES_TREE}/' + self.component_name
             ret += path_prefix + '/${BPN}.inc\n'
             ret += path_prefix + '/${BPN}-${PV}.inc\n'
         # Inherits

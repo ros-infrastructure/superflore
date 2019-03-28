@@ -43,13 +43,14 @@ def regenerate_pkg(
 
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % pkg)
-    component = distro.release_packages[pkg].repository_name.replace('_', '-')
+    component_name = yoctoRecipe.convert_to_oe_name(distro.release_packages[pkg].repository_name)
+    recipe_name = yoctoRecipe.convert_to_oe_name(pkg)
     # check for an existing recipe
     glob_pattern = '{0}/generated-recipes-{1}/{2}/{3}*.bb'.format(
         overlay.repo.repo_dir,
         distro.name,
-        component,
-        pkg.replace('_', '-')
+        component_name,
+        recipe_name
     )
     existing = glob.glob(glob_pattern)
     if preserve_existing and existing:
@@ -76,7 +77,7 @@ def regenerate_pkg(
         "{0}/generated-recipes-{1}/{2}".format(
             overlay.repo.repo_dir,
             distro.name,
-            component
+            component_name
         )
     )
     success_msg = 'Successfully generated installer for package'
@@ -84,8 +85,8 @@ def regenerate_pkg(
     recipe_file_name = '{0}/generated-recipes-{1}/{2}/{3}_{4}.bb'.format(
         overlay.repo.repo_dir,
         distro.name,
-        component,
-        pkg.replace('_', '-'),
+        component_name,
+        recipe_name,
         version
     )
     try:
