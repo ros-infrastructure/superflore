@@ -206,16 +206,20 @@ class yoctoRecipe(object):
         return 'inherit ros_superflore_generated\ninherit ros_${ROS_DISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
 
     @staticmethod
-    def convert_to_oe_name(dep):
-        # Discard meta-layer information past '@'
-        dep = dep.split('@')[0]
-        if dep.endswith('_native'):
-            dep = dep[:-len('_native')] + '-rosnative'
-        return dep.replace('_', '-')
+    def get_native_suffix(is_native=False):
+        return '-native' if is_native else ''
 
     @staticmethod
     def get_spacing_prefix():
         return '\n' + ' ' * 4
+
+    @classmethod
+    def convert_to_oe_name(cls, dep, is_native=False):
+        # Discard meta-layer information past '@'
+        dep = dep.split('@')[0]
+        if dep.endswith('_native'):
+            dep = dep[:-len('_native')] + '-rosnative'
+        return dep.replace('_', '-') + cls.get_native_suffix(is_native)
 
     @classmethod
     def generate_multiline_variable(cls, var, container, sort=False):
@@ -229,65 +233,52 @@ class yoctoRecipe(object):
                 [item + ' \\' for item in container]) + '\n"\n'
         return assignment + expression
 
-    def get_depends_line(self, var, internal_depends, external_depends, is_native=False):
-        def get_spacing_suffix(is_native):
-            if is_native:
-                return '-native \\'
-            return ' \\'
-
-        ret = '{0} = "'.format(var)
+    def get_dependencies(self, internal_depends, external_depends, is_native=False):
         union_deps = internal_depends | external_depends
         if len(union_deps) <= 0:
-            return ret + '"\n\n'
-        ret += ' \\'
-        has_int_depends = False
-        has_ext_depends = False
+            return []
+
+        dependencies = []
         for dep in sorted(union_deps):
             if dep in internal_depends:
-                has_int_depends = True
-                ret += yoctoRecipe.get_spacing_prefix() + yoctoRecipe.convert_to_oe_name(dep) + \
-                    get_spacing_suffix(is_native)
-                info('Internal dependency add: ' +
-                      yoctoRecipe.convert_to_oe_name(dep))
-            else:
-                has_ext_depends = True
-                try:
-                    for res in resolve_dep(dep, 'openembedded', self.distro)[0]:
-                        ret += yoctoRecipe.get_spacing_prefix() + yoctoRecipe.convert_to_oe_name(res) + \
-                            get_spacing_suffix(is_native)
-                        info('External dependency add: ' +
-                              yoctoRecipe.convert_to_oe_name(res))
-                except UnresolvedDependency:
-                    dep = yoctoRecipe.convert_to_oe_name(dep)
-                    info('Unresolved dependency: ' + dep)
-                    if dep in yoctoRecipe.unresolved_deps_cache:
-                        ret += yoctoRecipe.get_spacing_prefix() + dep + get_spacing_suffix(is_native)
-                        warn('Failed to resolve (cached): ' + dep)
-                        continue
-                    if dep in yoctoRecipe.resolved_deps_cache:
-                        ret += yoctoRecipe.get_spacing_prefix() + dep + get_spacing_suffix(is_native)
-                        info('Resolved in OE (cached): ' + dep)
-                        continue
-                    oe_query = OpenEmbeddedLayersDB()
-                    oe_query.query_recipe(dep)
-                    if oe_query.exists():
-                        ret += yoctoRecipe.get_spacing_prefix() + oe_query.name + get_spacing_suffix(is_native)
-                        yoctoRecipe.resolved_deps_cache.add(dep)
-                        info('Resolved in OE: ' + dep + ' as ' +
-                              oe_query.name + ' in ' + oe_query.layer)
-                    else:
-                        ret += yoctoRecipe.get_spacing_prefix() + dep + get_spacing_suffix(is_native)
-                        yoctoRecipe.unresolved_deps_cache.add(dep)
-                        warn('Failed to resolve: ' + dep)
+                recipe = yoctoRecipe.convert_to_oe_name(dep, is_native)
+                dependencies.append(recipe)
+                info('Internal dependency add: ' + recipe)
+                continue
+            try:
+                for resolved in resolve_dep(dep, 'openembedded', self.distro)[0]:
+                    recipe = yoctoRecipe.convert_to_oe_name(
+                        resolved, is_native)
+                    dependencies.append(recipe)
+                    info('External dependency add: ' + recipe)
+            except UnresolvedDependency:
+                dep = yoctoRecipe.convert_to_oe_name(dep)
+                info('Unresolved dependency: ' + dep)
+                recipe = dep + yoctoRecipe.get_native_suffix(is_native)
+                if dep in yoctoRecipe.unresolved_deps_cache:
+                    dependencies.append(recipe)
+                    warn('Failed to resolve (cached): ' + dep)
+                    continue
+                if dep in yoctoRecipe.resolved_deps_cache:
+                    dependencies.append(recipe)
+                    info('Resolved in OE (cached): ' + dep)
+                    continue
+                oe_query = OpenEmbeddedLayersDB()
+                oe_query.query_recipe(dep)
+                if oe_query.exists():
+                    recipe = oe_query.name + \
+                        yoctoRecipe.get_native_suffix(is_native)
+                    dependencies.append(recipe)
+                    yoctoRecipe.resolved_deps_cache.add(dep)
+                    info('Resolved in OE: ' + dep + ' as ' + oe_query.name +
+                         ' in ' + oe_query.layer + ' as recipe ' + recipe)
+                else:
+                    dependencies.append(
+                        dep + yoctoRecipe.get_native_suffix(is_native))
+                    yoctoRecipe.unresolved_deps_cache.add(dep)
+                    warn('Failed to resolve: ' + dep)
 
-        if not has_int_depends and not has_ext_depends:
-            info(self.name + ' has no ' + var + ' dependencies!')
-        elif not has_int_depends:
-            info(self.name + ' has no ' + var + ' internal dependencies!')
-        elif not has_ext_depends:
-            info(self.name + ' has no ' + var + ' external dependencies!')
-
-        return ret.rstrip() + '\n"\n\n'
+        return dependencies
 
     def get_recipe_text(self, distributor, license_text):
         """
@@ -327,19 +318,19 @@ class yoctoRecipe(object):
         ret += str(self.license_md5)
         ret += '"\n\n'
         # depends
-        ret += self.get_depends_line('ROS_BUILD_DEPENDS',
-                                     self.depends, self.depends_external)
-        ret += self.get_depends_line('ROS_BUILDTOOL_DEPENDS', self.buildtool_depends,
-                                     self.buildtool_depends_external, is_native=True)
-        ret += self.get_depends_line('ROS_EXPORT_DEPENDS',
-                                     self.export_depends, self.export_depends_external)
-        ret += self.get_depends_line('ROS_BUILDTOOL_EXPORT_DEPENDS',
-                                     self.buildtool_export_depends, self.buildtool_export_depends_external, is_native=True)
-        ret += self.get_depends_line('ROS_EXEC_DEPENDS',
-                                     self.rdepends, self.rdepends_external)
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_BUILD_DEPENDS', self.get_dependencies(self.depends, self.depends_external)) + '\n'
+        ret += yoctoRecipe.generate_multiline_variable('ROS_BUILDTOOL_DEPENDS', self.get_dependencies(
+            self.buildtool_depends, self.buildtool_depends_external, is_native=True)) + '\n'
+        ret += yoctoRecipe.generate_multiline_variable('ROS_EXPORT_DEPENDS', self.get_dependencies(
+            self.export_depends, self.export_depends_external)) + '\n'
+        ret += yoctoRecipe.generate_multiline_variable('ROS_BUILDTOOL_EXPORT_DEPENDS', self.get_dependencies(
+            self.buildtool_export_depends, self.buildtool_export_depends_external, is_native=True)) + '\n'
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_EXEC_DEPENDS', self.get_dependencies(self.rdepends, self.rdepends_external)) + '\n'
         ret += '# Currently informational only -- see http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'
-        ret += self.get_depends_line('ROS_TEST_DEPENDS',
-                                     self.tdepends, self.tdepends_external)
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_TEST_DEPENDS', self.get_dependencies(self.tdepends, self.tdepends_external)) + '\n'
         ret += 'DEPENDS = "${ROS_BUILD_DEPENDS} ${ROS_BUILDTOOL_DEPENDS}"' + '\n'
         ret += '# Bitbake doesn\'t support the "export" concept, so build them as if we needed them to build this package (even though we actually\n'
         ret += '# don\'t) so that they\'re guaranteed to have been staged should this package appear in another\'s DEPENDS.\n'
