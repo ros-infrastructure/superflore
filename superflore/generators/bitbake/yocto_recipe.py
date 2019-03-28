@@ -26,6 +26,7 @@
 import hashlib
 import os.path
 import tarfile
+from datetime import datetime
 from time import gmtime, strftime
 from urllib.request import urlretrieve
 
@@ -361,7 +362,7 @@ class yoctoRecipe(object):
         return ret
 
     @staticmethod
-    def generate_rosdistro_conf(basepath, distro):
+    def generate_rosdistro_conf(basepath, distro, skip_keys=[]):
         conf_dir = '{0}/conf/'.format(basepath)
         conf_path = '{0}generated-{1}.conf'.format(conf_dir, distro)
         try:
@@ -373,7 +374,15 @@ class yoctoRecipe(object):
                     '# Copyright 2019 Open Source Robotics Foundation\n')
                 conf_file.write(
                     '# Distributed under the terms of the BSD license\n')
-                conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n\n')
+                conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
+                conf_file.write('# When superflore was started, in UTC:\n')
+                conf_file.write('ROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+                conf_file.write('ROS_SUPERFLORE_GENERATION_SKIP_LIST = "')
+                skip_keys_str = '"\n\n'
+                if skip_keys:
+                    skip_keys_str = ' \\' + yoctoRecipe.get_spacing_prefix()
+                    skip_keys_str += yoctoRecipe.get_spacing_prefix().join([key + ' \\' for key in skip_keys]) + '\n"\n'
+                conf_file.write(skip_keys_str)
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))

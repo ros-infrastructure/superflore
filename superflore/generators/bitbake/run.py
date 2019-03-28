@@ -148,7 +148,7 @@ def main():
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
                         sys.exit(1)
-                yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro)
+                yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro, skip_keys)
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
@@ -179,7 +179,7 @@ def main():
                         total_broken.add(pkg)
                 total_changes[distro] = distro_changes
                 total_installers[distro] = distro_installers
-                yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro)
+                yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro, skip_keys)
 
         num_changes = 0
         for distro_name in total_changes:
