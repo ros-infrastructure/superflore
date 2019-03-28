@@ -389,7 +389,8 @@ class yoctoRecipe(object):
                     '# Distributed under the terms of the BSD license\n')
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
                 conf_file.write('# When superflore was started, in UTC:\n')
-                conf_file.write('ROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+                conf_file.write('ROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n'.format(
+                    datetime.utcnow().strftime('%Y%m%d%H%M%S')))
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys))
                 ok('Wrote {0}'.format(conf_path))
@@ -411,7 +412,8 @@ class yoctoRecipe(object):
                     '# Copyright 2019 Open Source Robotics Foundation\n')
                 pkggrp_file.write(
                     '# Distributed under the terms of the BSD license\n')
-                pkggrp_file.write('\nDESCRIPTION = "${ROS_EDITION} world package group"\n')
+                pkggrp_file.write(
+                    '\nDESCRIPTION = "${ROS_EDITION} world package group"\n')
                 pkggrp_file.write('LICENSE = "MIT"\n\n')
                 pkggrp_file.write('inherit packagegroup\n\n')
                 pkggrp_file.write('PACKAGES = "${PN}"\n\n')
