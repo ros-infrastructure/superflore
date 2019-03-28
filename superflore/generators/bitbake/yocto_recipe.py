@@ -217,6 +217,18 @@ class yoctoRecipe(object):
     def get_spacing_prefix():
         return '\n' + ' ' * 4
 
+    @classmethod
+    def generate_multiline_variable(cls, var, container, sort=False):
+        if sort:
+            container = sorted(container)
+        assignment = '{0} = "'.format(var)
+        expression = '"\n'
+        if container:
+            expression = ' \\' + cls.get_spacing_prefix()
+            expression += cls.get_spacing_prefix().join(
+                [item + ' \\' for item in container]) + '\n"\n'
+        return assignment + expression
+
     def get_depends_line(self, var, internal_depends, external_depends, is_native=False):
         def get_spacing_suffix(is_native):
             if is_native:
@@ -378,12 +390,8 @@ class yoctoRecipe(object):
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
                 conf_file.write('# When superflore was started, in UTC:\n')
                 conf_file.write('ROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
-                conf_file.write('ROS_SUPERFLORE_GENERATION_SKIP_LIST = "')
-                skip_keys_str = '"\n\n'
-                if skip_keys:
-                    skip_keys_str = ' \\' + yoctoRecipe.get_spacing_prefix()
-                    skip_keys_str += yoctoRecipe.get_spacing_prefix().join([key + ' \\' for key in skip_keys]) + '\n"\n'
-                conf_file.write(skip_keys_str)
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys))
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))
@@ -407,13 +415,8 @@ class yoctoRecipe(object):
                 pkggrp_file.write('LICENSE = "MIT"\n\n')
                 pkggrp_file.write('inherit packagegroup\n\n')
                 pkggrp_file.write('PACKAGES = "${PN}"\n\n')
-                pkggrp_file.write('RDEPENDS_${PN} = "')
-                generated_recipes_str = '"\n\n'
-                if yoctoRecipe.generated_recipes:
-                    yoctoRecipe.generated_recipes = sorted(yoctoRecipe.generated_recipes)
-                    generated_recipes_str = ' \\' + yoctoRecipe.get_spacing_prefix()
-                    generated_recipes_str += yoctoRecipe.get_spacing_prefix().join([recipe + ' \\' for recipe in yoctoRecipe.generated_recipes]) + '\n"\n'
-                pkggrp_file.write(generated_recipes_str)
+                pkggrp_file.write(yoctoRecipe.generate_multiline_variable(
+                    'RDEPENDS_${PN}', yoctoRecipe.generated_recipes, sort=True))
                 ok('Wrote {0}'.format(pkggrp_path))
         except OSError as e:
             err('Failed to write packagegroup {} to disk! {}'.format(
