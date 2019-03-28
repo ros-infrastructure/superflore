@@ -200,6 +200,9 @@ class yoctoRecipe(object):
                                             dirs[4], dirs[5],
                                             dirs[6]).replace('.tar.gz', '')
 
+    def get_inherit_line(self):
+        return 'inherit ros_superflore_generated\ninherit ros_${ROS_DISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
+
     @staticmethod
     def convert_to_oe_name(dep):
         # Discard meta-layer information past '@'
@@ -211,8 +214,6 @@ class yoctoRecipe(object):
     @staticmethod
     def get_spacing_prefix():
         return '\n' + ' ' * 4
-    def get_inherit_line(self):
-        return 'inherit ros_${ROS_DISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
 
     def get_depends_line(self, var, internal_depends, external_depends, is_native=False):
         def get_spacing_suffix(is_native):
