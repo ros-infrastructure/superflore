@@ -47,6 +47,7 @@ from superflore.utils import warn
 class yoctoRecipe(object):
     resolved_deps_cache = set()
     unresolved_deps_cache = set()
+    generated_recipes = set()
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri, tar_dir,
@@ -417,4 +418,49 @@ class yoctoRecipe(object):
         except OSError as e:
             err('Failed to write packagegroup {} to disk! {}'.format(
                 pkggrp_path, e))
+            raise e
+
+    @staticmethod
+    def generate_distro_cache(basepath, distro, skip_keys=[]):
+        distro_cache_dir = '{0}/files/'.format(basepath)
+        distro_cache_path = '{0}{1}-cache.yaml'.format(
+            distro_cache_dir, distro)
+        try:
+            make_dir(distro_cache_dir)
+            from rosdistro import get_index, get_index_url, _get_dist_file_data
+            import gzip
+            try:
+                from urllib.request import urlopen
+            except ImportError:
+                from urllib2 import urlopen
+            try:
+                from cStringIO import StringIO
+            except ImportError:
+                from io import BytesIO as StringIO
+            index_url = get_index_url()
+            index = get_index(index_url)
+            dist = index.distributions.get(distro, None)
+            if not dist:
+                raise RuntimeError(
+                    'Unknown distribution {0} when looking at {1}'.format(distro, index_url))
+            cache_url = dist.get('distribution_cache', None)
+            if not cache_url:
+                raise RuntimeError(
+                    'Distribution {0} has no cache'.format(distro))
+            raw_data = urlopen(cache_url, timeout=10).read()
+            if cache_url.endswith('.yaml.gz'):
+                yaml_gz_stream = StringIO(raw_data)
+                f = gzip.GzipFile(fileobj=yaml_gz_stream, mode='rb')
+                yaml_str = f.read()
+                f.close()
+                if not isinstance(yaml_str, str):
+                    yaml_str = yaml_str.decode('utf-8')
+            else:
+                yaml_str = raw_data.decode('utf-8')
+            with open(distro_cache_path, 'w') as distro_cache_file:
+                distro_cache_file.write(yaml_str)
+                ok('Wrote {0}'.format(distro_cache_path))
+        except OSError as e:
+            err('Failed to write distro cache {} to disk! {}'.format(
+                distro_cache_path, e))
             raise e

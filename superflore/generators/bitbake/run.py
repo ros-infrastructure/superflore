@@ -150,6 +150,7 @@ def main():
                         sys.exit(1)
                 yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro, skip_keys)
                 yoctoRecipe.generate_packagegroup_ros_world(_repo, args.ros_distro)
+                yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
@@ -182,6 +183,7 @@ def main():
                 total_installers[distro] = distro_installers
                 yoctoRecipe.generate_rosdistro_conf(_repo, args.ros_distro, skip_keys)
                 yoctoRecipe.generate_packagegroup_ros_world(_repo, args.ros_distro)
+                yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
 
         num_changes = 0
         for distro_name in total_changes:
