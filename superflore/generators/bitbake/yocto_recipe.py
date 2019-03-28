@@ -409,9 +409,10 @@ class yoctoRecipe(object):
                 pkggrp_file.write(
                     '# Distributed under the terms of the BSD license\n')
                 pkggrp_file.write(
-                    '\nDESCRIPTION = "${ROS_EDITION} world package group"\n')
+                    '\nDESCRIPTION = "All packages listed in ${ROS_DISTRO}-cache.yaml"\n')
                 pkggrp_file.write('LICENSE = "MIT"\n\n')
-                pkggrp_file.write('inherit packagegroup\n\n')
+                pkggrp_file.write(
+                    'inherit ros_superflore_generated\ninherit ros_${ROS_DISTRO}\ninherit packagegroup\n\n')
                 pkggrp_file.write('PACKAGES = "${PN}"\n\n')
                 pkggrp_file.write(yoctoRecipe.generate_multiline_variable(
                     'RDEPENDS_${PN}', yoctoRecipe.generated_recipes, sort=True))
