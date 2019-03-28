@@ -23,10 +23,12 @@ from superflore.utils import rand_ascii_str
 
 
 class RosOverlay(object):
-    def __init__(self, repo_dir, do_clone, org='ros', repo='ros-overlay'):
+    def __init__(
+        self, repo_dir, do_clone, org='ros', repo='ros-overlay', from_branch=''
+    ):
         self.repo = RepoInstance(
-            org, repo, repo_dir=repo_dir, do_clone=do_clone
-        )
+            org, repo, repo_dir=repo_dir, do_clone=do_clone,
+            from_branch=from_branch)
         self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
         info('Creating new branch {0}...'.format(self.branch_name))
         self.repo.create_branch(self.branch_name)
