@@ -48,6 +48,7 @@ class yoctoRecipe(object):
     resolved_deps_cache = set()
     unresolved_deps_cache = set()
     generated_recipes = set()
+    generated_components = set()
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri, tar_dir,
@@ -379,11 +380,15 @@ class yoctoRecipe(object):
                 conf_file.write(
                     '# Distributed under the terms of the BSD license\n')
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
-                conf_file.write('# When superflore was started, in UTC:\n')
-                conf_file.write('ROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n'.format(
+                conf_file.write('\n# When superflore was started, in UTC:')
+                conf_file.write('\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
                     datetime.utcnow().strftime('%Y%m%d%H%M%S')))
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys))
+                conf_file.write(
+                    '\n# See generated-recipes-<ROS_DISTRO>/packagegroups/packagegroup-ros-world.bb for a list of the generated recipes.\n')
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS', yoctoRecipe.generated_components, sort=True))
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))
