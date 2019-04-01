@@ -7,6 +7,7 @@ Supported Platforms:
 --------------------
  * Gentoo
  * OpenEmbedded
+ * Nix
 
 Installation:
 =============
