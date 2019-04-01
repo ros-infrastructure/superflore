@@ -20,6 +20,7 @@ import re
 import string
 import sys
 import time
+from typing import Dict
 
 from pkg_resources import DistributionNotFound, get_distribution
 from superflore.exceptions import UnknownPlatform
@@ -700,6 +701,8 @@ def resolve_dep(pkg, os, distro=None):
         return resolve_rosdep_key(pkg, 'openembedded', '', distro)
     elif os == 'gentoo':
         return resolve_rosdep_key(pkg, 'gentoo', '2.4.0')
+    elif os == 'nix':
+        return resolve_rosdep_key(pkg, 'nixos', '')
     else:
         msg = "Unknown target platform '{0}'".format(os)
         raise UnknownPlatform(msg)
@@ -713,6 +716,27 @@ def get_distros():
 def get_distros_by_status(status='active'):
     return [t[0] for t in get_distros().items()
             if t[1].get('distribution_status') == status]
+
+
+def get_distro_condition_context(distro_name: str) -> Dict[str, str]:
+    """
+    Get the condition context for a particular ROS distro. This context is used
+    to evaluate conditions in package.xml format 3.
+
+    This allows superflore to support packages that are designed to work with
+    both ROS 1 and 2, which have conditional dependencies on catkin and ament.
+
+    :param distro_name: name of the ROS distro
+    :return: dictionary containing context keys and their values
+    """
+    index = get_cached_index()
+    distro = index.distributions[distro_name]
+    context = {'ROS_DISTRO': distro_name}
+    if distro['distribution_type'] == 'ros1':
+        context['ROS_VERSION'] = '1'
+    elif distro['distribution_type'] == 'ros2':
+        context['ROS_VERSION'] = '2'
+    return context
 
 
 def gen_delta_msg(total_changes, markup='*'):
