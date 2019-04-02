@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import bs4
+from collections import OrderedDict
 import urllib
 
-from collections import OrderedDict
+import bs4
 
 
 class OpenEmbeddedLayersDB(object):
@@ -23,9 +23,11 @@ class OpenEmbeddedLayersDB(object):
         # Tells if we could read recipe information
         self._exists = False
         # Valid layers in priority order to filter when searching for a recipe
-        self._prio_valid_layers = OrderedDict.fromkeys(['openembedded-core', 'meta-oe', 'meta-python', 'meta-multimedia',
-                                                        'meta-ros', 'meta-intel-realsense', 'meta-qt5', 'meta-clang', 'meta-sca', 'meta-openstack', 'meta-virtualization'])
-        # All fields below come straight from OpenEmbedded Layer query table results
+        self._prio_valid_layers = OrderedDict.fromkeys(
+            ['openembedded-core', 'meta-oe', 'meta-python', 'meta-multimedia',
+             'meta-ros', 'meta-intel-realsense', 'meta-qt5', 'meta-clang',
+             'meta-sca', 'meta-openstack', 'meta-virtualization'])
+        # All fields below come straight from OE Layer query table results
         self.name = ''
         self.version = ''
         self.summary = ''
@@ -42,7 +44,8 @@ class OpenEmbeddedLayersDB(object):
     def __str__(self):
         if not self._exists:
             return ''
-        return '\n'.join([getattr(self, i) for i in vars(self) if not i.startswith('_')])
+        return '\n'.join(
+            [getattr(self, i) for i in vars(self) if not i.startswith('_')])
 
     def _fill_field(self, key, value):
         if key:
@@ -62,7 +65,8 @@ class OpenEmbeddedLayersDB(object):
                 self.layer = ''
 
             def __str__(self):
-                return '\n'.join([self.recipe_name, self.link, self.version, self.description, self.layer])
+                return '\n'.join([self.recipe_name, self.link, self.version,
+                                  self.description, self.layer])
 
         if bs.table.find('th', text='Recipe name'):
             tr = bs.table.find('tr')
@@ -77,7 +81,9 @@ class OpenEmbeddedLayersDB(object):
                         a = td.find('a')
                         if a:
                             setattr(qr, 'link', str(
-                                "https://layers.openembedded.org" + a.get('href', '')))
+                                "https://layers.openembedded.org"
+                                + a.get('href', ''))
+                            )
                     setattr(qr, f, str(td.text))
                     td = td.find_next_sibling()
                     if not td:
@@ -117,7 +123,8 @@ class OpenEmbeddedLayersDB(object):
 
     def query_recipe(self, recipe):
         if recipe:
-            url_prefix = 'https://layers.openembedded.org/layerindex/branch/master/recipes/?q={}'
+            url_base = 'https://layers.openembedded.org/'
+            url_prefix = url_base + 'layerindex/branch/master/recipes/?q={}'
             for layer in self._prio_valid_layers:
                 query_url = url_prefix.format(
                     recipe + urllib.parse.quote(' layer:') + layer)
@@ -127,7 +134,9 @@ class OpenEmbeddedLayersDB(object):
 
 
 def main():
-    for recipe in ['', 'clang', 'ament_cmake_core', 'ament-cmake-core', 'libxml2', 'bullet', 'sdl', 'sdl-image', 'qtbase']:
+    for recipe in [
+        '', 'clang', 'ament_cmake_core', 'ament-cmake-core', 'libxml2',
+            'bullet', 'sdl', 'sdl-image', 'qtbase']:
         print('Checking ' + recipe + '...')
         oe_query = OpenEmbeddedLayersDB()
         oe_query.query_recipe(recipe)

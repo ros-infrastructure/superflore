@@ -31,8 +31,9 @@ class RosMeta(object):
 
     def clean_ros_recipe_dirs(self, distro=None):
         if distro:
-            info('Cleaning up generated-recipes-{0} directory...'.format(distro))
-            self.repo.git.rm('-rf', 'generated-recipes-{0}'.format(distro))
+            info(
+                'Cleaning up generated-recipes-{} directory...'.format(distro))
+            self.repo.git.rm('-rf', 'generated-recipes-{}'.format(distro))
         else:
             info('Cleaning up generated-recipes-* directories...')
             self.repo.git.rm('-rf', 'generated-recipes-*')

@@ -23,10 +23,10 @@
 # IN THE SOFTWARE.
 #
 
+from datetime import datetime
 import hashlib
 import os.path
 import tarfile
-from datetime import datetime
 from time import gmtime, strftime
 from urllib.request import urlretrieve
 
@@ -51,8 +51,8 @@ class yoctoRecipe(object):
     generated_components = set()
 
     def __init__(
-        self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri, tar_dir,
-        md5_cache, sha256_cache, skip_keys
+        self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
+        tar_dir, md5_cache, sha256_cache, skip_keys
     ):
         self.component_name = yoctoRecipe.convert_to_oe_name(component_name)
         self.num_pkgs = num_pkgs
@@ -63,7 +63,9 @@ class yoctoRecipe(object):
         self.pkg_xml = pkg_xml
         if self.pkg_xml:
             pkg_fields = PackageMetadata(pkg_xml)
-            self.author = pkg_fields.upstream_name + ' <' + pkg_fields.upstream_email + '>'
+            author_name = pkg_fields.upstream_name
+            author_email = pkg_fields.upstream_email
+            self.author = author_name + ' <' + author_email + '>'
             self.license = pkg_fields.upstream_license
             self.description = pkg_fields.description
             self.homepage = pkg_fields.homepage
@@ -94,9 +96,9 @@ class yoctoRecipe(object):
            self.getArchiveName() not in sha256_cache:
             self.downloadArchive()
             md5_cache[self.getArchiveName()] = hashlib.md5(
-              open(self.getArchiveName(), 'rb').read()).hexdigest()
+                open(self.getArchiveName(), 'rb').read()).hexdigest()
             sha256_cache[self.getArchiveName()] = hashlib.sha256(
-              open(self.getArchiveName(), 'rb').read()).hexdigest()
+                open(self.getArchiveName(), 'rb').read()).hexdigest()
         self.src_sha256 = sha256_cache[self.getArchiveName()]
         self.src_md5 = md5_cache[self.getArchiveName()]
         self.skip_keys = skip_keys
@@ -204,7 +206,10 @@ class yoctoRecipe(object):
                                             dirs[6]).replace('.tar.gz', '')
 
     def get_inherit_line(self):
-        return 'inherit ros_superflore_generated\ninherit ros_${ROS_DISTRO}\ninherit ros_${ROS_BUILD_TYPE}\n'
+        ret = 'inherit ros_superflore_generated\n'
+        ret += 'inherit ros_${ROS_DISTRO}\n'
+        ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
+        return ret
 
     @staticmethod
     def get_native_suffix(is_native=False):
@@ -234,7 +239,8 @@ class yoctoRecipe(object):
                 [item + ' \\' for item in container]) + '\n"\n'
         return assignment + expression
 
-    def get_dependencies(self, internal_depends, external_depends, is_native=False):
+    def get_dependencies(
+            self, internal_depends, external_depends, is_native=False):
         union_deps = internal_depends | external_depends
         if len(union_deps) <= 0:
             return []
@@ -247,9 +253,9 @@ class yoctoRecipe(object):
                 info('Internal dependency add: ' + recipe)
                 continue
             try:
-                for resolved in resolve_dep(dep, 'openembedded', self.distro)[0]:
+                for res in resolve_dep(dep, 'openembedded', self.distro)[0]:
                     recipe = yoctoRecipe.convert_to_oe_name(
-                        resolved, is_native)
+                        res, is_native)
                     dependencies.append(recipe)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
@@ -320,22 +326,37 @@ class yoctoRecipe(object):
         ret += '"\n\n'
         # depends
         ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_BUILD_DEPENDS', self.get_dependencies(self.depends, self.depends_external)) + '\n'
-        ret += yoctoRecipe.generate_multiline_variable('ROS_BUILDTOOL_DEPENDS', self.get_dependencies(
-            self.buildtool_depends, self.buildtool_depends_external, is_native=True)) + '\n'
-        ret += yoctoRecipe.generate_multiline_variable('ROS_EXPORT_DEPENDS', self.get_dependencies(
-            self.export_depends, self.export_depends_external)) + '\n'
-        ret += yoctoRecipe.generate_multiline_variable('ROS_BUILDTOOL_EXPORT_DEPENDS', self.get_dependencies(
-            self.buildtool_export_depends, self.buildtool_export_depends_external, is_native=True)) + '\n'
+            'ROS_BUILD_DEPENDS', self.get_dependencies(
+                self.depends, self.depends_external)) + '\n'
         ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_EXEC_DEPENDS', self.get_dependencies(self.rdepends, self.rdepends_external)) + '\n'
-        ret += '# Currently informational only -- see http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'
+            'ROS_BUILDTOOL_DEPENDS', self.get_dependencies(
+                self.buildtool_depends, self.buildtool_depends_external,
+                is_native=True)) + '\n'
         ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_TEST_DEPENDS', self.get_dependencies(self.tdepends, self.tdepends_external)) + '\n'
-        ret += 'DEPENDS = "${ROS_BUILD_DEPENDS} ${ROS_BUILDTOOL_DEPENDS}"' + '\n'
-        ret += '# Bitbake doesn\'t support the "export" concept, so build them as if we needed them to build this package (even though we actually\n'
-        ret += '# don\'t) so that they\'re guaranteed to have been staged should this package appear in another\'s DEPENDS.\n'
-        ret += 'DEPENDS += "${ROS_EXPORT_DEPENDS} ${ROS_BUILDTOOL_EXPORT_DEPENDS}"' + '\n\n'
+            'ROS_EXPORT_DEPENDS', self.get_dependencies(
+                self.export_depends, self.export_depends_external)) + '\n'
+        export_depends = self.get_dependencies(
+            self.buildtool_export_depends,
+            self.buildtool_export_depends_external,
+            is_native=True
+        )
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_BUILDTOOL_EXPORT_DEPENDS', export_depends) + '\n'
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_EXEC_DEPENDS', self.get_dependencies(
+                self.rdepends, self.rdepends_external)) + '\n'
+        ret += '# Currently informational only -- see '
+        ret += 'http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_TEST_DEPENDS', self.get_dependencies(
+                self.tdepends, self.tdepends_external)) + '\n'
+        ret += 'DEPENDS = "${ROS_BUILD_DEPENDS} ${ROS_BUILDTOOL_DEPENDS}"\n'
+        ret += '# Bitbake doesn\'t support the "export" concept, so build them'
+        ret += ' as if we needed them to build this package (even though we'
+        ret += ' actually\n# don\'t) so that they\'re guaranteed to have been'
+        ret += ' staged should this package appear in another\'s DEPENDS.\n'
+        ret += 'DEPENDS += "${ROS_EXPORT_DEPENDS} '
+        ret += '${ROS_BUILDTOOL_EXPORT_DEPENDS}"\n\n'
         ret += 'RDEPENDS_${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
         # SRC_URI
         ret += 'SRC_URI = "' + self.src_uri + ';'
@@ -381,14 +402,19 @@ class yoctoRecipe(object):
                     '# Distributed under the terms of the BSD license\n')
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
                 conf_file.write('\n# When superflore was started, in UTC:')
-                conf_file.write('\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
-                    datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+                conf_file.write(
+                    '\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
+                        datetime.utcnow().strftime('%Y%m%d%H%M%S')))
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys))
                 conf_file.write(
-                    '\n# See generated-recipes-<ROS_DISTRO>/packagegroups/packagegroup-ros-world.bb for a list of the generated recipes.\n')
-                conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS', yoctoRecipe.generated_components, sort=True))
+                    '\n# See generated-recipes-<ROS_DISTRO>/packagegroups/')
+                conf_file.write('packagegroup-ros-world.bb ')
+                conf_file.write('for a list of the generated recipes.\n')
+                conf_file.write(
+                    yoctoRecipe.generate_multiline_variable(
+                        'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS',
+                        yoctoRecipe.generated_components, True))
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))
@@ -408,14 +434,15 @@ class yoctoRecipe(object):
                     '# Copyright 2019 Open Source Robotics Foundation\n')
                 pkggrp_file.write(
                     '# Distributed under the terms of the BSD license\n')
-                pkggrp_file.write(
-                    '\nDESCRIPTION = "All packages listed in ${ROS_DISTRO}-cache.yaml"\n')
+                pkggrp_file.write('\nDESCRIPTION = "All packages listed in ')
+                pkggrp_file.write('${ROS_DISTRO}-cache.yaml"\n')
                 pkggrp_file.write('LICENSE = "MIT"\n\n')
-                pkggrp_file.write(
-                    'inherit ros_superflore_generated\ninherit ros_${ROS_DISTRO}\ninherit packagegroup\n\n')
+                pkggrp_file.write('inherit ros_superflore_generated\n')
+                pkggrp_file.write('inherit ros_${ROS_DISTRO}\n')
+                pkggrp_file.write('inherit packagegroup\n\n')
                 pkggrp_file.write('PACKAGES = "${PN}"\n\n')
                 pkggrp_file.write(yoctoRecipe.generate_multiline_variable(
-                    'RDEPENDS_${PN}', yoctoRecipe.generated_recipes, sort=True))
+                    'RDEPENDS_${PN}', yoctoRecipe.generated_recipes, True))
                 ok('Wrote {0}'.format(pkggrp_path))
         except OSError as e:
             err('Failed to write packagegroup {} to disk! {}'.format(
@@ -428,7 +455,8 @@ class yoctoRecipe(object):
         distro_cache_path = '{0}{1}-cache.yaml'.format(
             distro_cache_dir, distro)
         try:
-            from rosdistro import get_index, get_index_url, get_distribution_cache_string
+            from rosdistro import get_index, get_index_url
+            from rosdistro import get_distribution_cache_string
             index_url = get_index_url()
             index = get_index(index_url)
             yaml_str = get_distribution_cache_string(index, distro)
