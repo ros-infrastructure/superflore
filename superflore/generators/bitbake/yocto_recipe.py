@@ -49,6 +49,7 @@ class yoctoRecipe(object):
     unresolved_deps_cache = set()
     generated_recipes = set()
     generated_components = set()
+    generated_native_recipes = set()
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
@@ -228,7 +229,7 @@ class yoctoRecipe(object):
         return dep.replace('_', '-') + cls.get_native_suffix(is_native)
 
     @classmethod
-    def generate_multiline_variable(cls, var, container, sort=False):
+    def generate_multiline_variable(cls, var, container, sort=True):
         if sort:
             container = sorted(container)
         assignment = '{0} = "'.format(var)
@@ -241,33 +242,33 @@ class yoctoRecipe(object):
 
     def get_dependencies(
             self, internal_depends, external_depends, is_native=False):
+        dependencies = set()
         union_deps = internal_depends | external_depends
         if len(union_deps) <= 0:
-            return []
+            return dependencies
 
-        dependencies = []
-        for dep in sorted(union_deps):
+        for dep in union_deps:
             if dep in internal_depends:
                 recipe = yoctoRecipe.convert_to_oe_name(dep, is_native)
-                dependencies.append(recipe)
+                dependencies.add(recipe)
                 info('Internal dependency add: ' + recipe)
                 continue
             try:
                 for res in resolve_dep(dep, 'openembedded', self.distro)[0]:
                     recipe = yoctoRecipe.convert_to_oe_name(
                         res, is_native)
-                    dependencies.append(recipe)
+                    dependencies.add(recipe)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
                 dep = yoctoRecipe.convert_to_oe_name(dep)
                 info('Unresolved dependency: ' + dep)
                 recipe = dep + yoctoRecipe.get_native_suffix(is_native)
                 if dep in yoctoRecipe.unresolved_deps_cache:
-                    dependencies.append(recipe)
+                    dependencies.add(recipe)
                     warn('Failed to resolve (cached): ' + dep)
                     continue
                 if dep in yoctoRecipe.resolved_deps_cache:
-                    dependencies.append(recipe)
+                    dependencies.add(recipe)
                     info('Resolved in OE (cached): ' + dep)
                     continue
                 oe_query = OpenEmbeddedLayersDB()
@@ -275,13 +276,13 @@ class yoctoRecipe(object):
                 if oe_query.exists():
                     recipe = oe_query.name + \
                         yoctoRecipe.get_native_suffix(is_native)
-                    dependencies.append(recipe)
+                    dependencies.add(recipe)
                     yoctoRecipe.resolved_deps_cache.add(dep)
                     info('Resolved in OE: ' + dep + ' as ' + oe_query.name +
                          ' in ' + oe_query.layer + ' as recipe ' + recipe)
                 else:
-                    dependencies.append(
-                        dep + yoctoRecipe.get_native_suffix(is_native))
+                    recipe = dep + yoctoRecipe.get_native_suffix(is_native)
+                    dependencies.add(recipe)
                     yoctoRecipe.unresolved_deps_cache.add(dep)
                     warn('Failed to resolve: ' + dep)
 
@@ -328,20 +329,25 @@ class yoctoRecipe(object):
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_BUILD_DEPENDS', self.get_dependencies(
                 self.depends, self.depends_external)) + '\n'
+        native_deps = self.get_dependencies(
+            self.buildtool_depends,
+            self.buildtool_depends_external,
+            is_native=True
+        )
+        yoctoRecipe.generated_native_recipes |= native_deps
         ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_BUILDTOOL_DEPENDS', self.get_dependencies(
-                self.buildtool_depends, self.buildtool_depends_external,
-                is_native=True)) + '\n'
+            'ROS_BUILDTOOL_DEPENDS', native_deps) + '\n'
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_EXPORT_DEPENDS', self.get_dependencies(
                 self.export_depends, self.export_depends_external)) + '\n'
-        export_depends = self.get_dependencies(
+        native_deps = self.get_dependencies(
             self.buildtool_export_depends,
             self.buildtool_export_depends_external,
             is_native=True
         )
+        yoctoRecipe.generated_native_recipes |= native_deps
         ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_BUILDTOOL_EXPORT_DEPENDS', export_depends) + '\n'
+            'ROS_BUILDTOOL_EXPORT_DEPENDS', native_deps) + '\n'
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_EXEC_DEPENDS', self.get_dependencies(
                 self.rdepends, self.rdepends_external)) + '\n'
@@ -402,8 +408,12 @@ class yoctoRecipe(object):
                 conf_file.write(
                     '\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
                         datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+                conf_file.write('# ROS 2 distros only (can\'t set in '
+                                + 'ros2.bbclass because not all recipes'
+                                + ' are generated).\n')
+                conf_file.write('ROS_USE_PYTHON3 = "yes"\n\n')
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys, True))
+                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys))
                 conf_file.write(
                     '\n# See generated-recipes-<ROS_DISTRO>/packagegroups/')
                 conf_file.write('packagegroup-ros-world.bb ')
@@ -411,7 +421,14 @@ class yoctoRecipe(object):
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS',
-                        yoctoRecipe.generated_components, True))
+                        yoctoRecipe.generated_components))
+                conf_file.write('\n# Packages found in the <buildtool_depend>'
+                                + ' and <buildtool_export_depend> items, ie,'
+                                + ' ones for which a -native is built.\n')
+                conf_file.write(
+                    yoctoRecipe.generate_multiline_variable(
+                        'ROS_SUPERFLORE_GENERATED_BUILDTOOLS',
+                        yoctoRecipe.generated_native_recipes))
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))
@@ -434,12 +451,18 @@ class yoctoRecipe(object):
                 pkggrp_file.write('\nDESCRIPTION = "All packages listed in ')
                 pkggrp_file.write('${ROS_DISTRO}-cache.yaml"\n')
                 pkggrp_file.write('LICENSE = "MIT"\n\n')
-                pkggrp_file.write('inherit ros_superflore_generated\n')
-                pkggrp_file.write('inherit ros_${ROS_DISTRO}\n')
                 pkggrp_file.write('inherit packagegroup\n\n')
                 pkggrp_file.write('PACKAGES = "${PN}"\n\n')
                 pkggrp_file.write(yoctoRecipe.generate_multiline_variable(
-                    'RDEPENDS_${PN}', yoctoRecipe.generated_recipes, True))
+                    'RDEPENDS_${PN}', yoctoRecipe.generated_recipes
+                    - yoctoRecipe.generated_native_recipes))
+                pkggrp_file.write('\n# Allow the above settings to be'
+                                  + ' overridden.\n')
+                pkggrp_file.write('include ${ROS_LAYERDIR}/recipes-ros/'
+                                  + 'packagegroups/packagegroup-ros-world-'
+                                  + '${ROS_DISTRO}.inc\n\n')
+                pkggrp_file.write('inherit ros_superflore_generated\n')
+                pkggrp_file.write('inherit ros_${ROS_DISTRO}\n')
                 ok('Wrote {0}'.format(pkggrp_path))
         except OSError as e:
             err('Failed to write packagegroup {} to disk! {}'.format(
