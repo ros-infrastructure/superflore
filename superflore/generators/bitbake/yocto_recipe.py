@@ -377,12 +377,9 @@ class yoctoRecipe(object):
         ret += inc_prefix + 'recipes-ros2' + component_path + inc_suffix
         ret += inc_prefix + '${ROS_RECIPES_TREE}' + \
             component_path + '-${PV}' + inc_suffix
-        if self.num_pkgs > 1:
-            # Generated if component generates more than one package
-            path_prefix = inc_prefix + \
-                '${ROS_RECIPES_TREE}/' + self.component_name
-            ret += path_prefix + '/${BPN}.inc\n'
-            ret += path_prefix + '/${BPN}-${PV}.inc\n'
+        path_prefix = inc_prefix + '${ROS_RECIPES_TREE}/' + self.component_name
+        ret += path_prefix + '/${BPN}.inc\n'
+        ret += path_prefix + '/${BPN}-${PV}.inc\n'
         # Inherits
         ret += '\n' + self.get_inherit_line()
         return ret
