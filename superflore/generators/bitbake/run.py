@@ -50,7 +50,7 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
-    skip_keys = args.skip_keys or []
+    skip_keys = set(args.skip_keys) if args.skip_keys else set()
     selected_targets = None
     if args.pr_only:
         if args.dry_run:

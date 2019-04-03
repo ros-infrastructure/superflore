@@ -406,7 +406,7 @@ class yoctoRecipe(object):
                     '\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
                         datetime.utcnow().strftime('%Y%m%d%H%M%S')))
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys))
+                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys, True))
                 conf_file.write(
                     '\n# See generated-recipes-<ROS_DISTRO>/packagegroups/')
                 conf_file.write('packagegroup-ros-world.bb ')
