@@ -58,16 +58,13 @@ class yoctoRecipe(object):
         self.tar_dir = tar_dir
         if self.getArchiveName() not in md5_cache or \
            self.getArchiveName() not in sha256_cache:
-                self.downloadArchive()
-                md5_cache[self.getArchiveName()] = hashlib.md5(
-                    open(self.getArchiveName(), 'rb').read()).hexdigest()
-                sha256_cache[self.getArchiveName()] = hashlib.sha256(
-                    open(self.getArchiveName(), 'rb').read()).hexdigest()
+            self.downloadArchive()
+            md5_cache[self.getArchiveName()] = hashlib.md5(
+              open(self.getArchiveName(), 'rb').read()).hexdigest()
+            sha256_cache[self.getArchiveName()] = hashlib.sha256(
+              open(self.getArchiveName(), 'rb').read()).hexdigest()
         self.src_sha256 = sha256_cache[self.getArchiveName()]
         self.src_md5 = md5_cache[self.getArchiveName()]
-
-    def getFolderName(self):
-        return self.name.replace("-", "_") + "-" + str(self.version)
 
     def getArchiveName(self):
         if not self.archive_name:

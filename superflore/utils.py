@@ -74,13 +74,12 @@ def load_pr():
         err('Failed to open PR title/message file!')
         err(
             'Please supply the %s and %s files' % (
-                '.pr_message.tmp',
-                '.pr_title.tmp'
+                '.pr-message.tmp',
+                '.pr-title.tmp'
             )
         )
         raise
     return msg, title
-    clean_up()
 
 
 def file_pr(overlay, delta, missing_deps, comment, distro=None):
@@ -109,9 +108,7 @@ def make_dir(dirname):
     try:
         os.makedirs(dirname)
     except OSError as e:
-        if e.errno == errno.EEXIST and os.path.isdir(dirname):
-            pass
-        else:
+        if e.errno != errno.EEXIST or not os.path.isdir(dirname):
             raise e
 
 

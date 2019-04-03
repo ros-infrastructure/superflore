@@ -174,7 +174,7 @@ def _gen_ebuild_for_package(
     for key in pkg_keywords:
         pkg_ebuild.add_keyword(key)
 
-    # parse throught package xml
+    # parse through package xml
     try:
         pkg_xml = ros_pkg.get_package_xml(distro.name)
     except Exception:

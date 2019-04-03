@@ -44,17 +44,11 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     selected_targets = None
-    if args.all:
-        warn('"All" mode detected... This may take a while!')
-        preserve_existing = False
-    elif args.ros_distro:
-        selected_targets = [args.ros_distro]
-        preserve_existing = False
-    elif args.dry_run and args.pr_only:
-        parser.error('Invalid args! cannot dry-run and file PR')
-    elif args.pr_only and not args.output_repository_path:
-        parser.error('Invalid args! no repository specified')
-    elif args.pr_only:
+    if args.pr_only:
+        if args.dry_run:
+            parser.error('Invalid args! cannot dry-run and file PR')
+        if not args.output_repository_path:
+            parser.error('Invalid args! no repository specified')
         try:
             prev_overlay = RepoInstance(args.output_repository_path, False)
             msg, title = load_pr()
@@ -65,6 +59,13 @@ def main():
             err('Failed to file PR!')
             err('reason: {0}'.format(e))
             sys.exit(1)
+    elif args.all:
+        warn('"All" mode detected... This may take a while!')
+        preserve_existing = False
+    elif args.ros_distro:
+        warn('"{0}" distro detected...'.format(args.ros_distro))
+        selected_targets = [args.ros_distro]
+        preserve_existing = False
     if not selected_targets:
         selected_targets = active_distros + ros2_distros
     repo_org = 'ros'

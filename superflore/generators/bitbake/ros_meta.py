@@ -46,6 +46,10 @@ class RosMeta(object):
             'lunar': 'regenerate ros-lunar, {0}',
             'indigo': 'regenerate ros-indigo, {0}',
             'kinetic': 'regenerate ros-kinetic, {0}',
+            'melodic': 'regenerate ros-melodic, {0}',
+            'ardent': 'regenerate ros2-ardent, {0}',
+            'bouncy': 'regenerate ros2-bouncy, {0}',
+            'crystal': 'regenerate ros2-crystal, {0}',
         }[distro].format(time.ctime())
         info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))

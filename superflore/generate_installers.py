@@ -28,7 +28,7 @@ def generate_installers(
     overlay,                 # repo instance
     gen_pkg_func,            # function to call for generating
     preserve_existing=True,  # don't regenerate if installer exists
-    *args                    # any aditional args for gen_pkg_func
+    *args                    # any additional args for gen_pkg_func
 ):
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
