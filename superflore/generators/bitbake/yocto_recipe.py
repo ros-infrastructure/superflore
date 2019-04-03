@@ -412,8 +412,12 @@ class yoctoRecipe(object):
                                 + 'ros2.bbclass because not all recipes'
                                 + ' are generated).\n')
                 conf_file.write('ROS_USE_PYTHON3 = "yes"\n\n')
+                oe_skip_keys = map(
+                    lambda skip_key: yoctoRecipe.convert_to_oe_name(skip_key),
+                    skip_keys
+                )
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', skip_keys))
+                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', oe_skip_keys))
                 conf_file.write(
                     '\n# See generated-recipes-<ROS_DISTRO>/packagegroups/')
                 conf_file.write('packagegroup-ros-world.bb ')
