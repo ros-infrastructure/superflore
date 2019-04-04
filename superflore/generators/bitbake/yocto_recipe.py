@@ -71,12 +71,14 @@ class yoctoRecipe(object):
             self.description = pkg_fields.description
             self.homepage = pkg_fields.homepage
             self.build_type = pkg_fields.build_type
+            self.member_of_groups = pkg_fields.member_of_groups
         else:
             self.description = ''
             self.license = None
             self.homepage = None
             self.build_type = 'catkin'
             self.author = "OSRF"
+            self.member_of_groups = []
         self.depends = set()
         self.depends_external = set()
         self.buildtool_depends = set()
@@ -210,6 +212,9 @@ class yoctoRecipe(object):
         ret = 'inherit ros_superflore_generated\n'
         ret += 'inherit ros_${ROS_DISTRO}\n'
         ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
+
+        for group in self.member_of_groups:
+           ret += 'inherit ros_{0}'.format(group.replace('_packages',''))
         return ret
 
     @staticmethod

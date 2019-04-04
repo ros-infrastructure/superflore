@@ -40,6 +40,9 @@ class PackageMetadata:
         self.upstream_name = [
             author.name for author in pkg.maintainers
         ][0]
+        self.member_of_groups = [
+            group.name for group in pkg.member_of_groups
+        ]
         tag_remover = re.compile('<.*?>')
         build_type = [
             re.sub(tag_remover, '', str(e))
