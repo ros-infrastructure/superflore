@@ -199,8 +199,8 @@ class TestUtils(unittest.TestCase):
     def test_resolve_dep_oe(self):
         """Test resolve dependency with Open Embedded"""
         # Note(allenh1): we're not going to test the hard-coded resolutions.
-        self.assertEqual(resolve_dep('tinyxml2', 'openembedded'), 'libtinyxml2')
-        self.assertEqual(resolve_dep('p2os_msgs', 'openembedded'), 'p2os-msgs')
+        self.assertEqual(resolve_dep('tinyxml2', 'openembedded')[0], ['libtinyxml2@meta-oe'])
+        self.assertEqual(resolve_dep('libdw-dev', 'openembedded')[0], ['elfutils@openembedded-core'])
 
     def test_retry_on_exception(self):
         """Test retry on exception"""
