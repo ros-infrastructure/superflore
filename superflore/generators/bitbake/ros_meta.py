@@ -40,17 +40,13 @@ class RosMeta(object):
             self.repo.git.add('recipes-ros-*')
         else:
             self.repo.git.add('recipes-ros-{0}'.format(distro))
-        commit_msg = {
-            'update': 'rosdistro sync, {0}',
-            'all': 'regenerate all distros, {0}',
-            'lunar': 'regenerate ros-lunar, {0}',
-            'indigo': 'regenerate ros-indigo, {0}',
-            'kinetic': 'regenerate ros-kinetic, {0}',
-            'melodic': 'regenerate ros-melodic, {0}',
-            'ardent': 'regenerate ros2-ardent, {0}',
-            'bouncy': 'regenerate ros2-bouncy, {0}',
-            'crystal': 'regenerate ros2-crystal, {0}',
-        }[distro].format(time.ctime())
+        if distro == 'update':
+            commit_msg = 'rosdistro sync, {0}'
+        elif distro == 'all':
+            commit_msg = 'regenerate all distros, {0}'
+        else:
+            commit_msg = 'regenerate ros-{1}, {0}'
+        commit_msg = commit_msg.format(time.ctime(), distro)
         info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
