@@ -33,10 +33,15 @@
 from rosdep2 import create_default_installer_context
 from rosdep2.catkin_support import get_catkin_view
 from rosdep2.lookup import ResolutionError
+from rosdep2.rosdistrohelper import get_index
 from superflore.exceptions import UnresolvedDependency
 
 DEFAULT_ROS_DISTRO = 'indigo'
 view_cache = {}
+
+
+def get_cached_index():
+    return get_index()
 
 
 def get_view(os_name, os_version, ros_distro):
