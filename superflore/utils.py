@@ -26,6 +26,8 @@ from superflore.rosdep_support import resolve_rosdep_key
 from termcolor import colored
 
 # Modify if a new distro is added
+# TODO(nuclearsandwich) use the index v4 to query for active ROS and ROS 2
+# distributions.
 active_distros = ['indigo', 'kinetic', 'lunar', 'melodic']
 ros2_distros = ['ardent', 'bouncy', 'crystal']
 
