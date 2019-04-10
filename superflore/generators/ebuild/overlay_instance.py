@@ -35,17 +35,13 @@ class RosOverlay(object):
         info('Adding changes...')
         self.repo.git.add(self.repo.repo_dir)
         info('Committing to branch {0}...'.format(self.branch_name))
-        commit_msg = {
-            'update': 'rosdistro sync, ',
-            'all': 'regenerate all distros, ',
-            'lunar': 'regenerate ros-lunar, ',
-            'indigo': 'regenerate ros-indigo, ',
-            'kinetic': 'regenerate ros-kinetic, ',
-            'melodic': 'regenerate ros-melodic, ',
-            'ardent': 'regenerate ros2-ardent, ',
-            'bouncy': 'regenerate ros2-bouncy, ',
-            'crystal': 'regenerate ros2-crystal, ',
-        }[distro or 'update'] + time.ctime()
+        if distro == 'update':
+            commit_msg = 'rosdistro sync, {0}'
+        elif distro == 'all':
+            commit_msg = 'regenerate all distros, {0}'
+        else:
+            commit_msg = 'regenerate ros-{1}, {0}'
+        commit_msg = commit_msg.format(time.ctime(), distro)
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(
