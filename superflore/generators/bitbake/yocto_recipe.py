@@ -343,9 +343,19 @@ class yoctoRecipe(object):
         )
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_BUILDTOOL_DEPENDS', native_deps) + '\n'
-        ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_EXPORT_DEPENDS', self.get_dependencies(
-                self.export_depends, self.export_depends_external)) + '\n'
+        external_deps = self.get_dependencies(
+            self.export_depends, self.export_depends_external)
+        if self.name == 'ament_cmake':
+            ret += yoctoRecipe.generate_multiline_variable(
+                'ROS_EXPORT_DEPENDS', '') + '\n'
+            native_deps |= self.get_dependencies(
+                self.export_depends,
+                self.export_depends_external,
+                is_native=True
+            )
+        else:
+            ret += yoctoRecipe.generate_multiline_variable(
+                'ROS_EXPORT_DEPENDS', external_deps) + '\n'
         native_deps |= self.get_dependencies(
             self.buildtool_export_depends,
             self.buildtool_export_depends_external,
