@@ -193,7 +193,7 @@ class Ebuild(object):
             ret += "    " + "test? ( ros-" + self.distro + "/" + tdep + " )\n"
         for rdep in sorted(self.rdepends_external):
             try:
-                for res in resolve_dep(rdep, 'gentoo')[0]:
+                for res in resolve_dep(rdep, 'gentoo', self.distro)[0]:
                     if res in depend_only_pkgs:
                         self.depends_external.append(rdep)
                         break
@@ -204,7 +204,7 @@ class Ebuild(object):
         # external test dependencies
         for tdep in sorted(self.tdepends_external):
             try:
-                for res in resolve_dep(tdep, 'gentoo')[0]:
+                for res in resolve_dep(tdep, 'gentoo', self.distro)[0]:
                     ret += "    test? ( " + res + " )\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(tdep)
@@ -215,7 +215,7 @@ class Ebuild(object):
             ret += "    " + 'ros-{0}/{1}\n'.format(self.distro, bdep)
         for bdep in sorted(self.depends_external):
             try:
-                for res in resolve_dep(bdep, 'gentoo')[0]:
+                for res in resolve_dep(bdep, 'gentoo', self.distro)[0]:
                     ret += "    " + res + "\n"
             except UnresolvedDependency:
                 self.unresolved_deps.append(bdep)

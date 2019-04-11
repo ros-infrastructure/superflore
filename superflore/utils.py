@@ -209,7 +209,7 @@ def get_license(l):
         raise UnknownLicense('bad license')
 
 
-def resolve_dep(pkg, os):
+def resolve_dep(pkg, os, distro=None):
     if os == 'oe':
         return _resolve_dep_open_embedded(pkg)
     elif os == 'gentoo':
