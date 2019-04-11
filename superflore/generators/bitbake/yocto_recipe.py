@@ -216,7 +216,7 @@ class yoctoRecipe(object):
         ret += 'inherit ros_distro_${ROS_DISTRO}\n'
         ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
         ret += "inherit ${@ros_superflore_generated_prefix_all("
-        ret += "'ROS_DEPENDENCY_GROUPS', 'ros_dgrp_', d)}"
+        ret += "'ROS_DEPENDENCY_GROUPS', 'ros_depgrp_', d)}\n"
         return ret
 
     @staticmethod
@@ -456,7 +456,7 @@ class yoctoRecipe(object):
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS',
                         yoctoRecipe.generated_components))
-                conf_file.write('\n# A ros_dgrp_<dependency-group>.bbclass'
+                conf_file.write('\n# A ros_depgrp_<dependency-group>.bbclass'
                                 + ' must be created for each of these:\n')
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
