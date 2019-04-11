@@ -43,11 +43,14 @@ class RosMeta(object):
         if distro == 'all':
             commit_msg = 'regenerate all distros, {0}'
             self.repo.git.add('generated-recipes-*')
-            self.repo.git.add('conf/generated-*')
+            self.repo.git.add('conf/*')
+            self.repo.git.add('files/*-cache.yaml')
         else:
             commit_msg = 'regenerate ros-{1}, {0}'
             self.repo.git.add('generated-recipes-{0}'.format(distro))
-            self.repo.git.add('conf/generated-{0}.conf'.format(distro))
+            self.repo.git.add(
+                'conf/{0}/generated-ros-distro.conf'.format(distro))
+            self.repo.git.add('files/{0}-cache.yaml'.format(distro))
         commit_msg = commit_msg.format(time.ctime(), distro)
         info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))
