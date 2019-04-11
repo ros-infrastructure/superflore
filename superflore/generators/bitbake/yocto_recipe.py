@@ -50,6 +50,9 @@ class yoctoRecipe(object):
     generated_recipes = set()
     generated_components = set()
     generated_native_recipes = set()
+    generated_test_deps = set()
+    generated_non_test_deps = set()
+    dependency_groups = set()
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
@@ -71,14 +74,14 @@ class yoctoRecipe(object):
             self.description = pkg_fields.description
             self.homepage = pkg_fields.homepage
             self.build_type = pkg_fields.build_type
-            self.member_of_groups = pkg_fields.member_of_groups
+            self.member_of_groups = set(pkg_fields.member_of_groups)
         else:
             self.description = ''
             self.license = None
             self.homepage = None
             self.build_type = 'catkin'
             self.author = "OSRF"
-            self.member_of_groups = []
+            self.member_of_groups = set()
         self.depends = set()
         self.depends_external = set()
         self.buildtool_depends = set()
@@ -210,11 +213,10 @@ class yoctoRecipe(object):
 
     def get_inherit_line(self):
         ret = 'inherit ros_superflore_generated\n'
-        ret += 'inherit ros_${ROS_DISTRO}\n'
+        ret += 'inherit ros_distro_${ROS_DISTRO}\n'
         ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
-
-        for group in self.member_of_groups:
-           ret += 'inherit ros_{0}'.format(group.replace('_packages',''))
+        ret += "inherit ${@ros_superflore_generated_prefix_all("
+        ret += "'ROS_DEPENDENCY_GROUPS', 'ros_dgrp_', d)}"
         return ret
 
     @staticmethod
@@ -339,13 +341,12 @@ class yoctoRecipe(object):
             self.buildtool_depends_external,
             is_native=True
         )
-        yoctoRecipe.generated_native_recipes |= native_deps
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_BUILDTOOL_DEPENDS', native_deps) + '\n'
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_EXPORT_DEPENDS', self.get_dependencies(
                 self.export_depends, self.export_depends_external)) + '\n'
-        native_deps = self.get_dependencies(
+        native_deps |= self.get_dependencies(
             self.buildtool_export_depends,
             self.buildtool_export_depends_external,
             is_native=True
@@ -353,11 +354,18 @@ class yoctoRecipe(object):
         yoctoRecipe.generated_native_recipes |= native_deps
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_BUILDTOOL_EXPORT_DEPENDS', native_deps) + '\n'
+        exec_deps = self.get_dependencies(
+            self.rdepends, self.rdepends_external)
         ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_EXEC_DEPENDS', self.get_dependencies(
-                self.rdepends, self.rdepends_external)) + '\n'
+            'ROS_EXEC_DEPENDS', exec_deps) + '\n'
         ret += '# Currently informational only -- see '
         ret += 'http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'
+        yoctoRecipe.generated_non_test_deps |= self.depends | \
+            self.depends_external | self.export_depends | \
+            self.export_depends_external | native_deps | \
+            exec_deps
+        yoctoRecipe.generated_test_deps |= self.tdepends | \
+            self.tdepends_external
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_TEST_DEPENDS', self.get_dependencies(
                 self.tdepends, self.tdepends_external)) + '\n'
@@ -378,7 +386,10 @@ class yoctoRecipe(object):
         ret += self.get_src_location() + '"\n\n'
 
         ret += 'ROS_BUILD_TYPE = "' + self.build_type + '"\n'
-        ret += 'ROS_RECIPES_TREE = "recipes-ros2"\n\n'
+        ret += 'ROS_RECIPES_TREE = "recipes-ros2"\n'
+        yoctoRecipe.dependency_groups |= self.member_of_groups
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_DEPENDENCY_GROUPS', self.member_of_groups) + '\n'
         # include
         ret += '# Allow the above settings to be overridden.\n'
         inc_prefix = 'include ${ROS_LAYERDIR}/'
@@ -422,15 +433,11 @@ class yoctoRecipe(object):
                     skip_keys
                 )
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', oe_skip_keys))
-                conf_file.write(
-                    '\n# See generated-recipes-<ROS_DISTRO>/packagegroups/')
-                conf_file.write('packagegroup-ros-world.bb ')
-                conf_file.write('for a list of the generated recipes.\n')
-                conf_file.write(
-                    yoctoRecipe.generate_multiline_variable(
-                        'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS',
-                        yoctoRecipe.generated_components))
+                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', oe_skip_keys)
+                    + '\n')
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATED_RECIPES',
+                    yoctoRecipe.generated_recipes))
                 conf_file.write('\n# Packages found in the <buildtool_depend>'
                                 + ' and <buildtool_export_depend> items, ie,'
                                 + ' ones for which a -native is built.\n')
@@ -438,6 +445,23 @@ class yoctoRecipe(object):
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_BUILDTOOLS',
                         yoctoRecipe.generated_native_recipes))
+                conf_file.write('\n# Packages found only in <test_depend>'
+                                + ' items.\n')
+                conf_file.write(
+                    yoctoRecipe.generate_multiline_variable(
+                        'ROS_SUPERFLORE_GENERATED_TESTS',
+                        yoctoRecipe.generated_test_deps
+                        - yoctoRecipe.generated_non_test_deps) + '\n')
+                conf_file.write(
+                    yoctoRecipe.generate_multiline_variable(
+                        'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS',
+                        yoctoRecipe.generated_components))
+                conf_file.write('\n# A ros_dgrp_<dependency-group>.bbclass'
+                                + ' must be created for each of these:\n')
+                conf_file.write(
+                    yoctoRecipe.generate_multiline_variable(
+                        'ROS_SUPERFLORE_GENERATED_DEPENDENCY_GROUPS',
+                        yoctoRecipe.dependency_groups))
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))
