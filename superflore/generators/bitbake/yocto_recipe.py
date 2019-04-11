@@ -495,7 +495,7 @@ class yoctoRecipe(object):
                                   + 'packagegroups/packagegroup-ros-world-'
                                   + '${ROS_DISTRO}.inc\n\n')
                 pkggrp_file.write('inherit ros_superflore_generated\n')
-                pkggrp_file.write('inherit ros_${ROS_DISTRO}\n')
+                pkggrp_file.write('inherit ros_distro_${ROS_DISTRO}\n')
                 ok('Wrote {0}'.format(pkggrp_path))
         except OSError as e:
             err('Failed to write packagegroup {} to disk! {}'.format(
