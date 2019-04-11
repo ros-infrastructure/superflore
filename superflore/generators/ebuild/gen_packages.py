@@ -25,10 +25,10 @@ from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
 from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
+from superflore.utils import get_distros
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
-from superflore.utils import ros2_distros
 from superflore.utils import warn
 
 # TODO(allenh1): This is a blacklist of things that
@@ -49,7 +49,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     ebuild_name = overlay.repo.repo_dir + ebuild_name
     patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
-    is_ros2 = distro.name in ros2_distros
+    is_ros2 = get_distros()[distro.name].distribution_type == 'ros2'
     has_patches = os.path.exists(patch_path)
     pkg_names = get_package_names(distro)[0]
     patches = None

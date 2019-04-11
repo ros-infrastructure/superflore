@@ -22,14 +22,8 @@ import time
 
 from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
-from superflore.rosdep_support import resolve_rosdep_key
+from superflore.rosdep_support import get_cached_index, resolve_rosdep_key
 from termcolor import colored
-
-# Modify if a new distro is added
-# TODO(nuclearsandwich) use the index v4 to query for active ROS and ROS 2
-# distributions.
-active_distros = ['indigo', 'kinetic', 'lunar', 'melodic']
-ros2_distros = ['ardent', 'bouncy', 'crystal', 'dashing']
 
 
 def warn(string):  # pragma: no cover
@@ -217,6 +211,16 @@ def resolve_dep(pkg, os, distro=None):
     else:
         msg = "Unknown target platform '{0}'".format(os)
         raise UnknownPlatform(msg)
+
+
+def get_distros():
+    index = get_cached_index()
+    return index.distributions
+
+
+def get_distros_by_status(status='active'):
+    return [t[0] for t in get_distros().items()
+            if t[1].get('distribution_status') == status]
 
 
 def _resolve_dep_open_embedded(pkg):

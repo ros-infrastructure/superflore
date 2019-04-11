@@ -22,16 +22,15 @@ from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
-from superflore.utils import active_distros
 from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
 from superflore.utils import gen_missing_deps_msg
+from superflore.utils import get_distros_by_status
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
-from superflore.utils import ros2_distros
 from superflore.utils import save_pr
 from superflore.utils import url_to_repo_org
 from superflore.utils import warn
@@ -67,7 +66,7 @@ def main():
         selected_targets = [args.ros_distro]
         preserve_existing = False
     if not selected_targets:
-        selected_targets = active_distros + ros2_distros
+        selected_targets = get_distros_by_status('active')
     repo_org = 'ros'
     repo_name = 'ros-overlay'
     if args.upstream_repo:
