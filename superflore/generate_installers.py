@@ -28,7 +28,8 @@ def generate_installers(
     overlay,                 # repo instance
     gen_pkg_func,            # function to call for generating
     preserve_existing=True,  # don't regenerate if installer exists
-    *args                    # any additional args for gen_pkg_func
+    *args,                   # any additional args for gen_pkg_func
+    **kwargs                 # any additional keyword arguments
 ):
     distro = get_distro(distro_name)
     pkg_names = get_package_names(distro)
@@ -42,6 +43,9 @@ def generate_installers(
 
     info("Generating installers for distro '%s'" % distro_name)
     for i, pkg in enumerate(sorted(pkg_names[0])):
+        if 'skip_keys' in kwargs and pkg in kwargs['skip_keys']:
+            warn("Package '%s' is in skip-keys list, skipping..." % pkg)
+            continue
         version = get_pkg_version(distro, pkg)
         percent = '%.1f' % (100 * (float(i) / total))
         try:

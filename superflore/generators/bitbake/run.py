@@ -123,6 +123,9 @@ def main():
             CacheManager(md5_filename) as md5_cache:  # noqa
             if args.only:
                 for pkg in args.only:
+                    if pkg in skip_keys:
+                        warn("Package '%s' is in skip-keys list, skipping..." % pkg)
+                        continue
                     info("Regenerating package '%s'..." % pkg)
                     try:
                         regenerate_installer(
@@ -132,7 +135,8 @@ def main():
                             preserve_existing,
                             tar_dir,
                             md5_cache,
-                            sha256_cache
+                            sha256_cache,
+                            args.skip_keys,
                         )
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
@@ -158,7 +162,8 @@ def main():
                         preserve_existing,
                         tar_dir,
                         md5_cache,
-                        sha256_cache
+                        sha256_cache,
+                        args.skip_keys,
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:

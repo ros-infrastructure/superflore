@@ -59,4 +59,9 @@ def get_parser(tool_tip, is_generator=True):
             help='location of the upstream repository',
             type=str
         )
+        parser.add_argument(
+            '--skip-keys',
+            nargs='+',
+            help='packages to skip during regeneration'
+        )
     return parser
