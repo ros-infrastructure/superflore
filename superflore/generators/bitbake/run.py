@@ -125,7 +125,8 @@ def main():
             if args.only:
                 for pkg in args.only:
                     if pkg in skip_keys:
-                        warn("Package '%s' is in skip-keys list, skipping..." % pkg)
+                        warn("Package '%s' is in skip-keys list, skipping..."
+                             % pkg)
                         continue
                     info("Regenerating package '%s'..." % pkg)
                     try:
