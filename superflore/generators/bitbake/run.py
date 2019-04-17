@@ -136,8 +136,7 @@ def main():
                             preserve_existing,
                             tar_dir,
                             md5_cache,
-                            sha256_cache,
-                            skip_keys,
+                            sha256_cache
                         )
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
@@ -164,7 +163,7 @@ def main():
                         tar_dir,
                         md5_cache,
                         sha256_cache,
-                        skip_keys,
+                        skip_keys=skip_keys,
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:
