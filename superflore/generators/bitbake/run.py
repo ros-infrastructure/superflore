@@ -18,7 +18,7 @@ import sys
 from rosinstall_generator.distro import get_distro
 from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
-from superflore.generators.bitbake.gen_packages import regenerate_installer
+from superflore.generators.bitbake.gen_packages import regenerate_pkg
 from superflore.generators.bitbake.ros_meta import RosMeta
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
@@ -130,7 +130,7 @@ def main():
                         continue
                     info("Regenerating package '%s'..." % pkg)
                     try:
-                        regenerate_installer(
+                        regenerate_pkg(
                             overlay,
                             pkg,
                             get_distro(args.ros_distro),
@@ -159,7 +159,7 @@ def main():
                     generate_installers(
                         distro,
                         overlay,
-                        regenerate_installer,
+                        regenerate_pkg,
                         preserve_existing,
                         tar_dir,
                         md5_cache,
