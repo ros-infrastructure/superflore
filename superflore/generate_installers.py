@@ -30,7 +30,7 @@ def generate_installers(
     *args,                   # any additional args for gen_pkg_func
     **kwargs                 # any additional keyword arguments
 ):
-    distro_name = distro._distribution_file.name
+    distro_name = distro.name
     pkg_names = get_package_names(distro)
     total = float(len(pkg_names[0]))
     borkd_pkgs = dict()
