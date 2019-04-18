@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
 from superflore.exceptions import UnknownBuildType
 from superflore.exceptions import UnknownLicense
@@ -24,14 +23,14 @@ from superflore.utils import warn
 
 
 def generate_installers(
-    distro_name,             # ros distro name
+    distro,                  # ros distro
     overlay,                 # repo instance
     gen_pkg_func,            # function to call for generating
     preserve_existing=True,  # don't regenerate if installer exists
     *args,                   # any additional args for gen_pkg_func
     **kwargs                 # any additional keyword arguments
 ):
-    distro = get_distro(distro_name)
+    distro_name = distro.name
     pkg_names = get_package_names(distro)
     total = float(len(pkg_names[0]))
     borkd_pkgs = dict()

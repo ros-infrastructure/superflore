@@ -157,7 +157,7 @@ def main():
             for distro in selected_targets:
                 distro_installers, distro_broken, distro_changes =\
                     generate_installers(
-                        distro,
+                        get_distro(distro),
                         overlay,
                         regenerate_pkg,
                         preserve_existing,
