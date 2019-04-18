@@ -34,7 +34,7 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 
-def regenerate_installer(
+def regenerate_pkg(
     overlay, pkg, distro, preserve_existing, tar_dir, md5_cache, sha256_cache
 ):
     make_dir("{0}/recipes-ros-{1}".format(overlay.repo.repo_dir, distro.name))
