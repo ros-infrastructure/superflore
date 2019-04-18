@@ -48,6 +48,7 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
+    skip_keys = args.skip_keys or []
     selected_targets = None
     if args.pr_only:
         if args.dry_run:
@@ -123,6 +124,10 @@ def main():
             CacheManager(md5_filename) as md5_cache:  # noqa
             if args.only:
                 for pkg in args.only:
+                    if pkg in skip_keys:
+                        warn("Package '%s' is in skip-keys list, skipping..."
+                             % pkg)
+                        continue
                     info("Regenerating package '%s'..." % pkg)
                     try:
                         regenerate_installer(
@@ -158,7 +163,8 @@ def main():
                         preserve_existing,
                         tar_dir,
                         md5_cache,
-                        sha256_cache
+                        sha256_cache,
+                        skip_keys=skip_keys,
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:

@@ -42,6 +42,7 @@ def main():
     parser = get_parser('Deploy ROS packages into Gentoo Linux')
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
+    skip_keys = args.skip_keys or []
     selected_targets = None
     if args.pr_only:
         if args.dry_run:
@@ -108,6 +109,10 @@ def main():
                 )
             )
             for pkg in args.only:
+                if pkg in skip_keys:
+                    warn("Package '%s' is in skip-keys list, skipping..."
+                         % pkg)
+                    continue
                 info("Regenerating package '%s'..." % pkg)
                 try:
                     regenerate_pkg(
@@ -140,7 +145,8 @@ def main():
                     distro_name=distro,
                     overlay=overlay,
                     gen_pkg_func=regenerate_pkg,
-                    preserve_existing=preserve_existing
+                    preserve_existing=preserve_existing,
+                    skip_keys=skip_keys,
                 )
             for key in distro_broken.keys():
                 for pkg in distro_broken[key]:
