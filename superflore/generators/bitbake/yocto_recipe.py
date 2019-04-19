@@ -35,6 +35,7 @@ from superflore.exceptions import UnresolvedDependency
 from superflore.generators.bitbake.oe_query import OpenEmbeddedLayersDB
 from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
+from superflore.utils import get_distros
 from superflore.utils import get_license
 from superflore.utils import get_pkg_version
 from superflore.utils import info
@@ -52,7 +53,9 @@ class yoctoRecipe(object):
     generated_native_recipes = set()
     generated_test_deps = set()
     generated_non_test_deps = set()
+    system_deps = set()
     dependency_groups = set()
+    release_platforms = {}
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
@@ -215,7 +218,7 @@ class yoctoRecipe(object):
         ret = 'inherit ros_superflore_generated\n'
         ret += 'inherit ros_distro_${ROS_DISTRO}\n'
         ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
-        ret += "inherit ${@ros_superflore_generated_prefix_all("
+        ret += "inherit ${@ros_superflore_generated__prefix_all("
         ret += "'ROS_DEPENDENCY_GROUPS', 'ros_depgrp_', d)}\n"
         return ret
 
@@ -252,10 +255,10 @@ class yoctoRecipe(object):
     def get_dependencies(
             self, internal_depends, external_depends, is_native=False):
         dependencies = set()
+        system_dependencies = set()
         union_deps = internal_depends | external_depends
         if len(union_deps) <= 0:
-            return dependencies
-
+            return dependencies, system_dependencies
         for dep in union_deps:
             if dep in internal_depends:
                 recipe = yoctoRecipe.convert_to_oe_name(dep, is_native)
@@ -267,6 +270,7 @@ class yoctoRecipe(object):
                     recipe = yoctoRecipe.convert_to_oe_name(
                         res, is_native)
                     dependencies.add(recipe)
+                    system_dependencies.add(recipe)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
                 dep = yoctoRecipe.convert_to_oe_name(dep)
@@ -274,10 +278,12 @@ class yoctoRecipe(object):
                 recipe = dep + yoctoRecipe.get_native_suffix(is_native)
                 if dep in yoctoRecipe.unresolved_deps_cache:
                     dependencies.add(recipe)
+                    system_dependencies.add(recipe)
                     warn('Failed to resolve (cached): ' + dep)
                     continue
                 if dep in yoctoRecipe.resolved_deps_cache:
                     dependencies.add(recipe)
+                    system_dependencies.add(recipe)
                     info('Resolved in OE (cached): ' + dep)
                     continue
                 oe_query = OpenEmbeddedLayersDB()
@@ -286,16 +292,17 @@ class yoctoRecipe(object):
                     recipe = oe_query.name + \
                         yoctoRecipe.get_native_suffix(is_native)
                     dependencies.add(recipe)
+                    system_dependencies.add(recipe)
                     yoctoRecipe.resolved_deps_cache.add(dep)
                     info('Resolved in OE: ' + dep + ' as ' + oe_query.name +
                          ' in ' + oe_query.layer + ' as recipe ' + recipe)
                 else:
                     recipe = dep + yoctoRecipe.get_native_suffix(is_native)
                     dependencies.add(recipe)
+                    system_dependencies.add(recipe)
                     yoctoRecipe.unresolved_deps_cache.add(dep)
                     warn('Failed to resolve: ' + dep)
-
-        return dependencies
+        return dependencies, system_dependencies
 
     def get_recipe_text(self, distributor, license_text):
         """
@@ -335,52 +342,64 @@ class yoctoRecipe(object):
         ret += str(self.license_md5)
         ret += '"\n\n'
         # depends
-        ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_BUILD_DEPENDS', self.get_dependencies(
-                self.depends, self.depends_external)) + '\n'
-        native_deps = self.get_dependencies(
+        deps, sys_deps = self.get_dependencies(
+            self.depends, self.depends_external)
+        yoctoRecipe.system_deps |= sys_deps
+        buildtool_native_deps, sys_deps = self.get_dependencies(
             self.buildtool_depends,
             self.buildtool_depends_external,
             is_native=True
         )
-        ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_BUILDTOOL_DEPENDS', native_deps) + '\n'
-        external_deps = self.get_dependencies(
+        native_deps = set(buildtool_native_deps)
+        yoctoRecipe.system_deps |= sys_deps
+        export_deps, sys_deps = self.get_dependencies(
             self.export_depends, self.export_depends_external)
-        if self.name == 'ament_cmake':
-            ret += yoctoRecipe.generate_multiline_variable(
-                'ROS_EXPORT_DEPENDS', '') + '\n'
-            native_deps |= self.get_dependencies(
-                self.export_depends,
-                self.export_depends_external,
-                is_native=True
-            )
-        else:
-            ret += yoctoRecipe.generate_multiline_variable(
-                'ROS_EXPORT_DEPENDS', external_deps) + '\n'
-        native_deps |= self.get_dependencies(
+        yoctoRecipe.system_deps |= sys_deps
+        buildtool_export_native_deps, sys_deps = self.get_dependencies(
             self.buildtool_export_depends,
             self.buildtool_export_depends_external,
             is_native=True
         )
+        native_deps |= buildtool_export_native_deps
+        yoctoRecipe.system_deps |= sys_deps
         yoctoRecipe.generated_native_recipes |= native_deps
-        ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_BUILDTOOL_EXPORT_DEPENDS', native_deps) + '\n'
-        exec_deps = self.get_dependencies(
+        exec_deps, sys_deps = self.get_dependencies(
             self.rdepends, self.rdepends_external)
+        yoctoRecipe.system_deps |= sys_deps
+        test_deps, sys_deps = self.get_dependencies(self.tdepends,
+                                                    self.tdepends_external)
+        yoctoRecipe.system_deps |= sys_deps
+        yoctoRecipe.generated_non_test_deps |= deps | export_deps | \
+            native_deps | exec_deps
+        yoctoRecipe.generated_test_deps |= test_deps
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_BUILD_DEPENDS', deps) + '\n'
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_BUILDTOOL_DEPENDS', buildtool_native_deps) + '\n'
+        if self.name == 'ament_cmake':
+            ret += yoctoRecipe.generate_multiline_variable(
+                'ROS_EXPORT_DEPENDS', '') + '\n'
+            ament_cmake_native_deps, sys_deps = self.get_dependencies(
+                self.export_depends,
+                self.export_depends_external,
+                is_native=True
+            )
+            buildtool_export_native_deps |= ament_cmake_native_deps
+            yoctoRecipe.generated_non_test_deps |= ament_cmake_native_deps
+            yoctoRecipe.generated_native_recipes |= ament_cmake_native_deps
+            yoctoRecipe.system_deps |= sys_deps
+        else:
+            ret += yoctoRecipe.generate_multiline_variable(
+                'ROS_EXPORT_DEPENDS', export_deps) + '\n'
+        ret += yoctoRecipe.generate_multiline_variable(
+            'ROS_BUILDTOOL_EXPORT_DEPENDS',
+            buildtool_export_native_deps) + '\n'
         ret += yoctoRecipe.generate_multiline_variable(
             'ROS_EXEC_DEPENDS', exec_deps) + '\n'
         ret += '# Currently informational only -- see '
         ret += 'http://www.ros.org/reps/rep-0149.html#dependency-tags.\n'
-        yoctoRecipe.generated_non_test_deps |= self.depends | \
-            self.depends_external | self.export_depends | \
-            self.export_depends_external | native_deps | \
-            exec_deps
-        yoctoRecipe.generated_test_deps |= self.tdepends | \
-            self.tdepends_external
         ret += yoctoRecipe.generate_multiline_variable(
-            'ROS_TEST_DEPENDS', self.get_dependencies(
-                self.tdepends, self.tdepends_external)) + '\n'
+            'ROS_TEST_DEPENDS', test_deps) + '\n'
         ret += 'DEPENDS = "${ROS_BUILD_DEPENDS} ${ROS_BUILDTOOL_DEPENDS}"\n'
         ret += '# Bitbake doesn\'t support the "export" concept, so build them'
         ret += ' as if we needed them to build this package (even though we'
@@ -419,9 +438,10 @@ class yoctoRecipe(object):
         return ret
 
     @staticmethod
-    def generate_rosdistro_conf(basepath, distro, skip_keys=[]):
-        conf_dir = '{0}/conf/{1}/'.format(basepath, distro)
-        conf_path = '{0}generated-ros-distro.conf'.format(conf_dir)
+    def generate_rosdistro_conf(
+            basepath, distro, version, platforms, skip_keys=[]):
+        conf_dir = '{}/conf/ros-distro/include/{}/'.format(basepath, distro)
+        conf_path = '{0}generated-ros-distro.inc'.format(conf_dir)
         try:
             make_dir(conf_dir)
             with open(conf_path, 'w') as conf_file:
@@ -432,14 +452,36 @@ class yoctoRecipe(object):
                 conf_file.write(
                     '# Distributed under the terms of the BSD license\n')
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
+                ros_version = 2
+                distros = get_distros()
+                if distro in distros:
+                    ros_version = int(
+                        distros[distro]['distribution_type'][len('ros'):])
+                conf_file.write(
+                    '\nexport ROS_VERSION = "{}"\n'.format(ros_version))
                 conf_file.write('\n# When superflore was started, in UTC:')
                 conf_file.write(
                     '\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
                         datetime.utcnow().strftime('%Y%m%d%H%M%S')))
-                conf_file.write('# ROS 2 distros only (can\'t set in '
-                                + 'ros2.bbclass because not all recipes'
-                                + ' are generated).\n')
-                conf_file.write('ROS_USE_PYTHON3 = "yes"\n\n')
+                conf_file.write(
+                    '# Number of commits that will be returned by'
+                    + ' "git log files/ROS_DISTRO-cache.yaml" when the '
+                    + 'generated files are committed. This is\n# used for the'
+                    + ' third version field of DISTRO_VERSION.\n')
+                version = 1 if not version else len(version.splitlines()) + 1
+                conf_file.write(
+                    'ROS_NUM_CACHE_YAML_COMMITS = "{}"'.format(version)
+                    + '\n\n')
+                conf_file.write(
+                    '# Iterated values of '
+                    + 'ROS_DISTRO-cache.distribution_file.release_platforms.'
+                    + '<LINUX-DISTRO>.[ <NAME> ... ] .\n')
+                release_platforms = []
+                for p in sorted(platforms.items()):
+                    for release in p[1]:
+                        release_platforms.append(p[0] + '-' + release)
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_DISTRO_RELEASE_PLATFORMS', release_platforms) + '\n')
                 oe_skip_keys = map(
                     lambda skip_key: yoctoRecipe.convert_to_oe_name(skip_key),
                     skip_keys
@@ -450,20 +492,32 @@ class yoctoRecipe(object):
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATED_RECIPES',
                     yoctoRecipe.generated_recipes))
-                conf_file.write('\n# Packages found in the <buildtool_depend>'
-                                + ' and <buildtool_export_depend> items, ie,'
-                                + ' ones for which a -native is built.\n')
+                conf_file.write(
+                    '\n# Packages found in the <buildtool_depend> and '
+                    + '<buildtool_export_depend> items, ie, ones for which a '
+                    + '-native is built. Does not\n# include those found in '
+                    + 'the ROS_EXEC_DEPENDS values in recipes of build tools.'
+                    + '\n')
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_BUILDTOOLS',
-                        yoctoRecipe.generated_native_recipes))
-                conf_file.write('\n# Packages found only in <test_depend>'
-                                + ' items.\n')
+                        yoctoRecipe.generated_native_recipes) + '\n')
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATED_SYSTEM_PACKAGE_DEPENDENCIES',
+                    yoctoRecipe.system_deps))
+                conf_file.write(
+                    '\n# Packages found only in <test_depend> items. Does not'
+                    + ' include those found only in the ROS_*_DEPENDS of '
+                    + 'recipes of tests.\n')
+                test_deps = map(
+                    lambda test_dep: yoctoRecipe.convert_to_oe_name(test_dep),
+                    yoctoRecipe.generated_test_deps
+                    - yoctoRecipe.generated_non_test_deps
+                )
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_TESTS',
-                        yoctoRecipe.generated_test_deps
-                        - yoctoRecipe.generated_non_test_deps) + '\n')
+                        test_deps) + '\n')
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS',
@@ -493,11 +547,18 @@ class yoctoRecipe(object):
                     '# Copyright 2019 Open Source Robotics Foundation\n')
                 pkggrp_file.write(
                     '# Distributed under the terms of the BSD license\n')
-                pkggrp_file.write('\nDESCRIPTION = "All packages listed in ')
-                pkggrp_file.write('${ROS_DISTRO}-cache.yaml"\n')
+                pkggrp_file.write('\nDESCRIPTION = "All non-test packages ')
+                pkggrp_file.write(
+                    'for the target from ${ROS_DISTRO}-cache.yaml"\n')
                 pkggrp_file.write('LICENSE = "MIT"\n\n')
                 pkggrp_file.write('inherit packagegroup\n\n')
                 pkggrp_file.write('PACKAGES = "${PN}"\n\n')
+                pkggrp_file.write(
+                    '# Does not include packages in '
+                    + 'ROS_SUPERFLORE_GENERATED_BUILDTOOLS (with -native '
+                    + 'removed) or ROS_SUPERFLORE_GENERATED_TESTS. (Both\n'
+                    + '# are set in conf/ros-distro/include/ROS_DISTRO/'
+                    + 'generated-ros-distro.inc).\n')
                 pkggrp_file.write(yoctoRecipe.generate_multiline_variable(
                     'RDEPENDS_${PN}', yoctoRecipe.generated_recipes
                     - yoctoRecipe.generated_native_recipes))
@@ -533,3 +594,16 @@ class yoctoRecipe(object):
             err('Failed to write distro cache {} to disk! {}'.format(
                 distro_cache_path, e))
             raise e
+
+    @staticmethod
+    def reset():
+        yoctoRecipe.resolved_deps_cache = set()
+        yoctoRecipe.unresolved_deps_cache = set()
+        yoctoRecipe.generated_recipes = set()
+        yoctoRecipe.generated_components = set()
+        yoctoRecipe.generated_native_recipes = set()
+        yoctoRecipe.generated_test_deps = set()
+        yoctoRecipe.generated_non_test_deps = set()
+        yoctoRecipe.system_deps = set()
+        yoctoRecipe.dependency_groups = set()
+        yoctoRecipe.release_platforms = {}

@@ -128,6 +128,7 @@ def main():
             CacheManager(sha256_filename) as sha256_cache,\
             CacheManager(md5_filename) as md5_cache:  # noqa
             if args.only:
+                distro = get_distro(args.ros_distro)
                 for pkg in args.only:
                     if pkg in skip_keys:
                         warn("Package '%s' is in skip-keys list, skipping..."
@@ -138,7 +139,7 @@ def main():
                         regenerate_pkg(
                             overlay,
                             pkg,
-                            get_distro(args.ros_distro),
+                            distro,
                             preserve_existing,
                             tar_dir,
                             md5_cache,
@@ -149,7 +150,9 @@ def main():
                         err("No package to satisfy key '%s'" % pkg)
                         sys.exit(1)
                 yoctoRecipe.generate_rosdistro_conf(
-                    _repo, args.ros_distro, skip_keys)
+                    _repo, args.ros_distro, overlay.get_file_revision_logs(
+                        'files/{0}-cache.yaml'.format(args.ros_distro)),
+                    distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_packagegroup_ros_world(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
@@ -165,26 +168,31 @@ def main():
                 ok('Successfully synchronized repositories!')
                 sys.exit(0)
 
-            for distro in selected_targets:
+            for adistro in selected_targets:
+                yoctoRecipe.reset()
+                distro = get_distro(adistro)
                 distro_installers, distro_broken, distro_changes =\
                     generate_installers(
-                        get_distro(distro),
+                        distro,
                         overlay,
                         regenerate_pkg,
                         preserve_existing,
                         tar_dir,
                         md5_cache,
                         sha256_cache,
+                        skip_keys,
                         skip_keys=skip_keys,
                         is_oe=True,
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:
                         total_broken.add(pkg)
-                total_changes[distro] = distro_changes
-                total_installers[distro] = distro_installers
+                total_changes[adistro] = distro_changes
+                total_installers[adistro] = distro_installers
                 yoctoRecipe.generate_rosdistro_conf(
-                    _repo, args.ros_distro, skip_keys)
+                    _repo, args.ros_distro, overlay.get_file_revision_logs(
+                        'files/{0}-cache.yaml'.format(args.ros_distro)),
+                    distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_packagegroup_ros_world(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)

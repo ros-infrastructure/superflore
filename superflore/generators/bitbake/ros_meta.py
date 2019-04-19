@@ -43,13 +43,15 @@ class RosMeta(object):
         if distro == 'all':
             commit_msg = 'regenerate all distros, {0}'
             self.repo.git.add('generated-recipes-*')
-            self.repo.git.add('conf/*/generated-ros-distro.conf')
+            self.repo.git.add(
+                'conf/ros-distro/include/*/generated-ros-distro.inc')
             self.repo.git.add('files/*-cache.yaml')
         else:
             commit_msg = 'regenerate ros-{1}, {0}'
             self.repo.git.add('generated-recipes-{0}'.format(distro))
             self.repo.git.add(
-                'conf/{0}/generated-ros-distro.conf'.format(distro))
+                'conf/ros-distro/include/{0}/generated-ros-distro.inc'
+                .format(distro))
             self.repo.git.add('files/{0}-cache.yaml'.format(distro))
         commit_msg = commit_msg.format(time.ctime(), distro)
         info('Committing to branch {0}...'.format(self.branch_name))
@@ -58,3 +60,6 @@ class RosMeta(object):
     def pull_request(self, message, distro=None):
         pr_title = 'rosdistro sync, {0}'.format(time.ctime())
         self.repo.pull_request(message, pr_title, branch=distro)
+
+    def get_file_revision_logs(self, *file_path):
+        return self.repo.git.log('--oneline', '--', *file_path)
