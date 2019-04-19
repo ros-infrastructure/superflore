@@ -233,6 +233,8 @@ class yoctoRecipe(object):
         dep = dep.split('@')[0]
         if dep.endswith('_native'):
             dep = dep[:-len('_native')] + '-rosnative'
+        elif dep.endswith('_dev'):
+            dep = dep[:-len('_dev')] + '-rosdev'
         return dep.replace('_', '-') + cls.get_native_suffix(is_native)
 
     @classmethod
