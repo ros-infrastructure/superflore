@@ -14,3 +14,4 @@ pyyaml
 pygithub
 catkin_pkg
 bs4
+rospkg

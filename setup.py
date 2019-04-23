@@ -11,7 +11,7 @@ install_requires = [
     'termcolor',
     'setuptools',
     'rosinstall_generator',
-    'rosdistro',
+    'rosdistro >= 0.7.4',
     'rosdep',
     'gitpython',
     'requests',
@@ -19,7 +19,8 @@ install_requires = [
     'pyyaml',
     'pygithub',
     'catkin_pkg >= 0.4.0',
-    'bs4'
+    'bs4',
+    'rospkg >= 1.1.8',
 ]
 
 setup(
