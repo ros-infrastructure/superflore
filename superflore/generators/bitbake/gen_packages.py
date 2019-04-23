@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import glob
+import os
 
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
@@ -107,7 +108,8 @@ def _gen_recipe_for_package(
     pkg_rosinstall, tar_dir, md5_cache, sha256_cache, skip_keys
 ):
     pkg_names = get_package_names(distro)
-    pkg_dep_walker = DependencyWalker(distro)
+    pkg_dep_walker = DependencyWalker(distro,
+                                      evaluate_condition_context=os.environ)
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_build_export_deps = pkg_dep_walker.get_depends(
