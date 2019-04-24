@@ -72,6 +72,8 @@ def main():
         warn('"{0}" distro detected...'.format(args.ros_distro))
         selected_targets = [args.ros_distro]
         preserve_existing = False
+    elif args.only:
+        parser.error('Invalid args! --only requires specifying --ros-distro')
     if not selected_targets:
         selected_targets = get_distros_by_status('active')
     repo_org = 'allenh1'
