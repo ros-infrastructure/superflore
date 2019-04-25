@@ -55,7 +55,6 @@ class yoctoRecipe(object):
     generated_non_test_deps = set()
     system_deps = set()
     dependency_groups = set()
-    release_platforms = {}
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
@@ -624,4 +623,3 @@ class yoctoRecipe(object):
         yoctoRecipe.generated_non_test_deps = set()
         yoctoRecipe.system_deps = set()
         yoctoRecipe.dependency_groups = set()
-        yoctoRecipe.release_platforms = {}
