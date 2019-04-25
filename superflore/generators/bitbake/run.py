@@ -157,6 +157,8 @@ def main():
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo)
+                yoctoRecipe.generate_superflore_change_summary(
+                    _repo, overlay.get_change_summary())
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
@@ -198,6 +200,8 @@ def main():
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo)
+                yoctoRecipe.generate_superflore_change_summary(
+                    _repo, overlay.get_change_summary())
 
         num_changes = 0
         for distro_name in total_changes:

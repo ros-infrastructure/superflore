@@ -609,6 +609,21 @@ class yoctoRecipe(object):
             raise e
 
     @staticmethod
+    def generate_superflore_change_summary(basepath, change_summary):
+        change_summary_dir = '{0}/files/'.format(basepath)
+        change_summary_path = '{0}superflore-change-summary.txt'.format(
+            change_summary_dir)
+        try:
+            make_dir(change_summary_dir)
+            with open(change_summary_path, 'w') as change_summary_file:
+                change_summary_file.write(change_summary)
+                ok('Wrote {0}'.format(change_summary_path))
+        except OSError as e:
+            err('Failed to write change summary {} to disk! {}'.format(
+                change_summary_path, e))
+            raise e
+
+    @staticmethod
     def reset():
         yoctoRecipe.rosdep_cache = dict()
         yoctoRecipe.generated_recipes = set()

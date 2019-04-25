@@ -47,6 +47,7 @@ class RosMeta(object):
                 'conf/ros-distro/include/*/generated-ros-distro.inc')
             self.repo.git.add('files/*-cache.yaml')
             self.repo.git.add('files/rosdep-resolve.yaml')
+            self.repo.git.add('files/superflore-change-summary.txt')
         else:
             commit_msg = 'regenerate ros-{1}, {0}'
             self.repo.git.add('generated-recipes-{0}'.format(distro))
@@ -55,6 +56,7 @@ class RosMeta(object):
                 .format(distro))
             self.repo.git.add('files/{0}-cache.yaml'.format(distro))
             self.repo.git.add('files/rosdep-resolve.yaml')
+            self.repo.git.add('files/superflore-change-summary.txt')
         commit_msg = commit_msg.format(time.ctime(), distro)
         info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))
@@ -65,3 +67,11 @@ class RosMeta(object):
 
     def get_file_revision_logs(self, *file_path):
         return self.repo.git.log('--oneline', '--', *file_path)
+
+    def get_change_summary(self):
+        self.repo.git.add('-N', 'generated-recipes-*')
+        sep = '-' * 5
+        return '\n'.join([
+            self.repo.git.status(), sep, self.repo.git.diff('conf'), sep,
+            self.repo.git.diff('files'),
+        ])
