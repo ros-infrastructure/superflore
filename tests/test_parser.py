@@ -33,3 +33,5 @@ class TestParserSetup(unittest.TestCase):
         self.assertIn('pr_only', ret)
         self.assertIn('ros_distro', ret)
         self.assertIn('upstream_repo', ret)
+        self.assertIn('upstream_branch', ret)
+        self.assertIn('skip_keys', ret)
