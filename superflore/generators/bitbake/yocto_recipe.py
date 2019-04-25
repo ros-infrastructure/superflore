@@ -432,6 +432,12 @@ class yoctoRecipe(object):
         return ret
 
     @staticmethod
+    def _get_ros_version(distro):
+        distros = get_distros()
+        return 2 if distro not in distros \
+            else int(distros[distro]['distribution_type'][len('ros'):])
+
+    @staticmethod
     def generate_rosdistro_conf(
             basepath, distro, version, platforms, skip_keys=[]):
         conf_dir = '{}/conf/ros-distro/include/{}/'.format(basepath, distro)
@@ -446,13 +452,16 @@ class yoctoRecipe(object):
                 conf_file.write(
                     '# Distributed under the terms of the BSD license\n')
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
-                ros_version = 2
-                distros = get_distros()
-                if distro in distros:
-                    ros_version = int(
-                        distros[distro]['distribution_type'][len('ros'):])
+                ros_version = yoctoRecipe._get_ros_version(distro)
                 conf_file.write(
                     '\nexport ROS_VERSION = "{}"\n'.format(ros_version))
+                if ros_version == 1:
+                    conf_file.write('# Can override ROS_PYTHON_VERSION in '
+                                    + 'conf/local.conf\n')
+                    conf_file.write('export ROS_PYTHON_VERSION ??= "2"\n')
+                else:
+                    conf_file.write('# DO NOT OVERRIDE ROS_PYTHON_VERSION\n')
+                    conf_file.write('export ROS_PYTHON_VERSION = "3"\n')
                 conf_file.write('\n# When superflore was started, in UTC:')
                 conf_file.write(
                     '\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
