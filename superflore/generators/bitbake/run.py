@@ -156,6 +156,7 @@ def main():
                 yoctoRecipe.generate_packagegroup_ros_world(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
+                yoctoRecipe.generate_rosdep_resolve(_repo)
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
@@ -196,6 +197,7 @@ def main():
                 yoctoRecipe.generate_packagegroup_ros_world(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
+                yoctoRecipe.generate_rosdep_resolve(_repo)
 
         num_changes = 0
         for distro_name in total_changes:

@@ -43,11 +43,11 @@ from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import resolve_dep
 from superflore.utils import warn
+import yaml
 
 
 class yoctoRecipe(object):
-    resolved_deps_cache = set()
-    unresolved_deps_cache = set()
+    rosdep_cache = dict()
     generated_recipes = set()
     generated_components = set()
     generated_native_recipes = set()
@@ -261,47 +261,50 @@ class yoctoRecipe(object):
             return dependencies, system_dependencies
         for dep in union_deps:
             if dep in internal_depends:
-                recipe = yoctoRecipe.convert_to_oe_name(dep, is_native)
+                recipe = self.convert_to_oe_name(dep, is_native)
                 dependencies.add(recipe)
                 info('Internal dependency add: ' + recipe)
                 continue
             try:
                 for res in resolve_dep(dep, 'openembedded', self.distro)[0]:
-                    recipe = yoctoRecipe.convert_to_oe_name(
-                        res, is_native)
+                    recipe = self.convert_to_oe_name(res, is_native)
                     dependencies.add(recipe)
-                    system_dependencies.add(recipe)
+                    system_dependencies.add(self.convert_to_oe_name(res))
+                    yoctoRecipe.rosdep_cache[dep] = res
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
-                dep = yoctoRecipe.convert_to_oe_name(dep)
                 info('Unresolved dependency: ' + dep)
-                recipe = dep + yoctoRecipe.get_native_suffix(is_native)
-                if dep in yoctoRecipe.unresolved_deps_cache:
+                if dep in yoctoRecipe.rosdep_cache:
+                    cached_dep = yoctoRecipe.rosdep_cache[dep]
+                    if cached_dep == 'null':
+                        system_dependencies.add(dep)
+                        recipe = dep + self.get_native_suffix(is_native)
+                        msg = 'Failed to resolve (cached):'
+                        warn('{0} {1}: {2}'.format(msg, dep, recipe))
+                    else:
+                        system_dependencies.add(cached_dep)
+                        recipe = self.convert_to_oe_name(cached_dep, is_native)
+                        msg = 'Resolved in OpenEmbedded (cached):'
+                        info('{0} {1}: {2}'.format(msg, dep, recipe))
                     dependencies.add(recipe)
-                    system_dependencies.add(recipe)
-                    warn('Failed to resolve (cached): ' + dep)
-                    continue
-                if dep in yoctoRecipe.resolved_deps_cache:
-                    dependencies.add(recipe)
-                    system_dependencies.add(recipe)
-                    info('Resolved in OE (cached): ' + dep)
                     continue
                 oe_query = OpenEmbeddedLayersDB()
-                oe_query.query_recipe(dep)
+                oe_query.query_recipe(self.convert_to_oe_name(dep))
                 if oe_query.exists():
-                    recipe = oe_query.name + \
-                        yoctoRecipe.get_native_suffix(is_native)
+                    recipe = self.convert_to_oe_name(oe_query.name, is_native)
                     dependencies.add(recipe)
-                    system_dependencies.add(recipe)
-                    yoctoRecipe.resolved_deps_cache.add(dep)
-                    info('Resolved in OE: ' + dep + ' as ' + oe_query.name +
-                         ' in ' + oe_query.layer + ' as recipe ' + recipe)
+                    oe_name = self.convert_to_oe_name(oe_query.name)
+                    system_dependencies.add(oe_name)
+                    yoctoRecipe.rosdep_cache[dep] = oe_name
+                    info('Resolved in OpenEmbedded: ' + dep + ' as ' +
+                         oe_query.name + ' in ' + oe_query.layer +
+                         ' as recipe ' + recipe)
                 else:
-                    recipe = dep + yoctoRecipe.get_native_suffix(is_native)
+                    recipe = dep + self.get_native_suffix(is_native)
                     dependencies.add(recipe)
-                    system_dependencies.add(recipe)
-                    yoctoRecipe.unresolved_deps_cache.add(dep)
-                    warn('Failed to resolve: ' + dep)
+                    system_dependencies.add(dep)
+                    yoctoRecipe.rosdep_cache[dep] = 'null'
+                    warn('Failed to resolve fully: ' + dep)
         return dependencies, system_dependencies
 
     def get_recipe_text(self, distributor, license_text):
@@ -596,9 +599,24 @@ class yoctoRecipe(object):
             raise e
 
     @staticmethod
+    def generate_rosdep_resolve(basepath):
+        rosdep_resolve_dir = '{0}/files/'.format(basepath)
+        rosdep_resolve_path = '{0}rosdep-resolve.yaml'.format(
+            rosdep_resolve_dir)
+        try:
+            make_dir(rosdep_resolve_dir)
+            with open(rosdep_resolve_path, 'w') as rosdep_resolve_file:
+                rosdep_resolve_file.write(yaml.dump(
+                    yoctoRecipe.rosdep_cache, default_flow_style=False))
+                ok('Wrote {0}'.format(rosdep_resolve_path))
+        except OSError as e:
+            err('Failed to write rosdep resolve cache {} to disk! {}'.format(
+                rosdep_resolve_path, e))
+            raise e
+
+    @staticmethod
     def reset():
-        yoctoRecipe.resolved_deps_cache = set()
-        yoctoRecipe.unresolved_deps_cache = set()
+        yoctoRecipe.rosdep_cache = dict()
         yoctoRecipe.generated_recipes = set()
         yoctoRecipe.generated_components = set()
         yoctoRecipe.generated_native_recipes = set()
