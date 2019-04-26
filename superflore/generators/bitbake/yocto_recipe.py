@@ -232,7 +232,7 @@ class yoctoRecipe(object):
             dep = dep[:-len('_native')] + '-rosnative'
         elif dep.endswith('_dev'):
             dep = dep[:-len('_dev')] + '-rosdev'
-        return dep.replace('_', '-') + cls.get_native_suffix(is_native)
+        return dep.replace('_', '-').lower() + cls.get_native_suffix(is_native)
 
     @classmethod
     def generate_multiline_variable(cls, var, container, sort=True):
