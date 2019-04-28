@@ -83,7 +83,8 @@ def main():
             _repo,
             not args.output_repository_path,
             org=repo_org,
-            repo=repo_name
+            repo=repo_name,
+            from_branch=args.upstream_branch,
         )
         if not preserve_existing and not args.only:
             pr_comment = pr_comment or (

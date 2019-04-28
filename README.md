@@ -52,6 +52,15 @@ optional arguments:
                         location of the Git repo
   --only ONLY [ONLY ...]
                         generate only the specified packages
+  --pr-comment PR_COMMENT
+                        comment to add to the PR
+  --upstream-repo UPSTREAM_REPO
+                        location of the upstream repository as in
+                        https://github.com/<owner>/<repository>
+  --upstream-branch UPSTREAM_BRANCH
+                        branch of the upstream repository
+  --skip-keys SKIP_KEYS
+                        packages to skip during regeneration
 ```
 
 ### Testing Gentoo Ebuilds
