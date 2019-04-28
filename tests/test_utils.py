@@ -64,7 +64,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'a[...]')
 
     def test_mkdir(self):
-        """Tests the make directory funciton"""
+        """Tests the make directory function"""
         with TempfileManager(None) as temp_dir:
             created = '%s/test' % temp_dir
             make_dir(created)

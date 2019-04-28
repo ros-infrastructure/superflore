@@ -6,7 +6,7 @@ ROS.
 Supported Platforms:
 --------------------
  * Gentoo
- * Open Embedded
+ * OpenEmbedded
 
 Installation:
 =============
@@ -22,7 +22,7 @@ Instructions:
 Generate an [OAuth token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) for this applicaiton.
 
 After you have created the token, place it in the
-environment vairalbe `SUPERFLORE_GITHUB_TOKEN`.
+environment variable `SUPERFLORE_GITHUB_TOKEN`.
 
 Then install and run the application.
 

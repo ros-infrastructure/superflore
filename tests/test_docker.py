@@ -71,7 +71,7 @@ class TestDocker(unittest.TestCase):
         docker_instance.run()
 
     def test_get_command(self):
-        """Test the get_comamnd function"""
+        """Test the get_command function"""
         docker_instance = Docker()
         docker_instance.add_bash_command("echo Hello, docker")
         docker_instance.add_bash_command("echo command two.")
