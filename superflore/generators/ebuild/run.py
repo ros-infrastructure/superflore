@@ -174,7 +174,7 @@ def main():
 
         # Commit changes and file pull request
         overlay.regenerate_manifests(total_installers)
-        overlay.commit_changes(args.ros_distro)
+        overlay.commit_changes('all' if args.all else args.ros_distro)
 
         if args.dry_run:
             info('Running in dry mode, not filing PR')

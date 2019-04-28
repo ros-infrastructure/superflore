@@ -37,9 +37,7 @@ class RosOverlay(object):
         info('Adding changes...')
         self.repo.git.add(self.repo.repo_dir)
         info('Committing to branch {0}...'.format(self.branch_name))
-        if distro == 'update':
-            commit_msg = 'rosdistro sync, {0}'
-        elif distro == 'all':
+        if distro == 'all':
             commit_msg = 'regenerate all distros, {0}'
         else:
             commit_msg = 'regenerate ros-{1}, {0}'

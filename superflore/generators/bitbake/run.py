@@ -189,7 +189,7 @@ def main():
         delta = gen_delta_msg(total_changes)
         missing_deps = gen_missing_deps_msg(total_broken)
         # Commit changes and file pull request
-        overlay.commit_changes(args.ros_distro)
+        overlay.commit_changes('all' if args.all else args.ros_distro)
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             save_pr(

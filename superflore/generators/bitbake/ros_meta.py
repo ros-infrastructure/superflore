@@ -39,16 +39,12 @@ class RosMeta(object):
 
     def commit_changes(self, distro):
         info('Adding changes...')
-        if distro == 'all' or distro == 'update':
+        if distro == 'all':
+            commit_msg = 'regenerate all distros, {0}'
             self.repo.git.add('recipes-ros-*')
         else:
-            self.repo.git.add('recipes-ros-{0}'.format(distro))
-        if distro == 'update':
-            commit_msg = 'rosdistro sync, {0}'
-        elif distro == 'all':
-            commit_msg = 'regenerate all distros, {0}'
-        else:
             commit_msg = 'regenerate ros-{1}, {0}'
+            self.repo.git.add('recipes-ros-{0}'.format(distro))
         commit_msg = commit_msg.format(time.ctime(), distro)
         info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))
