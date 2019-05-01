@@ -26,6 +26,7 @@
 from datetime import datetime
 import hashlib
 import os.path
+from subprocess import DEVNULL, PIPE, Popen
 import tarfile
 from time import gmtime, strftime
 from urllib.request import urlretrieve
@@ -653,6 +654,57 @@ class yoctoRecipe(object):
         except OSError as e:
             err('Failed to write change summary {} to disk! {}'.format(
                 change_summary_path, e))
+            raise e
+
+    @staticmethod
+    def generate_newer_system_components(basepath, distro):
+        newer_sys_comps_dir = '{0}/files/{1}/'.format(basepath, distro)
+        newer_sys_comps_path = '{0}newer-system-components.txt'.format(
+            newer_sys_comps_dir)
+        ros_version = yoctoRecipe._get_ros_version(distro)
+        str_distro = 'ros' if ros_version == 1 else 'ros{}'.format(ros_version)
+        args1_wget = ['wget', '-O', '-', 'http://packages.ros.org/'
+                      + str_distro
+                      + '/ubuntu/dists/bionic/main/source/Sources.gz']
+        args2_gunzip = ['gunzip', '-']
+        args3_grep = ['grep', '-E', '^(Package|Version|Build-Depends)']
+        args4_awk = ['awk', '$1 ~ /^Package:/ && $2 !~ /^ros-/ '
+                     + '{ printf "%s;", $2; getline; '
+                     + 'printf "%s;", $2; getline; '
+                     + 'gsub(/Build-Depends:/, ""); print}']
+        args5_sort = ['sort', '-t', ';', '-k', '1,1']
+        try:
+            make_dir(newer_sys_comps_dir)
+            wget = Popen(args1_wget, stdout=PIPE, stderr=DEVNULL)
+            gunzip = Popen(args2_gunzip, stdin=wget.stdout,
+                           stdout=PIPE, stderr=DEVNULL)
+            grep = Popen(args3_grep, stdin=gunzip.stdout,
+                         stdout=PIPE, stderr=DEVNULL)
+            awk = Popen(args4_awk, stdin=grep.stdout,
+                        stdout=PIPE, stderr=DEVNULL)
+            sort = Popen(args5_sort, env={'LC_ALL': 'C'},
+                         stdin=awk.stdout, stdout=PIPE, stderr=DEVNULL)
+            cmds = [wget, gunzip, grep, awk]
+            # Allow previous process to receive a SIGPIPE
+            # if the next one in the pipeline exits.
+            for cmd in cmds:
+                cmd.stdout.close()
+            # Run the pipeline and collect the output
+            txt_output = sort.communicate()[0].decode()
+            # Consume the return value of the other processes
+            for cmd in cmds:
+                cmd.wait()
+            cmds.append(sort)
+            if any([cmd.returncode for cmd in cmds]):
+                errors = ['{}[{}]'.format(cmd.args[0], cmd.returncode)
+                          for cmd in cmds]
+                raise RuntimeError('Error codes ' + ' '.join(errors))
+            with open(newer_sys_comps_path, 'w') as newer_sys_comps_file:
+                newer_sys_comps_file.write(txt_output)
+                ok('Wrote {0}'.format(newer_sys_comps_path))
+        except (OSError, RuntimeError) as e:
+            err('Failed to write change summary {} to disk! {}'.format(
+                newer_sys_comps_path, e))
             raise e
 
     @staticmethod
