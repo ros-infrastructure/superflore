@@ -454,13 +454,18 @@ class yoctoRecipe(object):
                     '# Distributed under the terms of the BSD license\n')
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
                 ros_version = yoctoRecipe._get_ros_version(distro)
-                conf_file.write(
-                    '\nexport ROS_VERSION = "{}"\n'.format(ros_version))
                 if ros_version == 1:
+                    conf_file.write('\nDISTRO = "ros"\n')
+                    conf_file.write(
+                        'export ROS_VERSION = "{}"\n'.format(ros_version))
                     conf_file.write('# Can override ROS_PYTHON_VERSION in '
                                     + 'conf/local.conf\n')
                     conf_file.write('export ROS_PYTHON_VERSION ??= "2"\n')
                 else:
+                    conf_file.write(
+                        '\nDISTRO = "ros{}"\n'.format(ros_version))
+                    conf_file.write(
+                        'export ROS_VERSION = "{}"\n'.format(ros_version))
                     conf_file.write('# DO NOT OVERRIDE ROS_PYTHON_VERSION\n')
                     conf_file.write('export ROS_PYTHON_VERSION = "3"\n')
                 conf_file.write('\n# When superflore was started, in UTC:')
