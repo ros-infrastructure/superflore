@@ -224,6 +224,30 @@ class yoctoRecipe(object):
     def get_spacing_prefix():
         return '\n' + ' ' * 4
 
+    @staticmethod
+    def convert_dep_except_oe_vars(dep):
+        """
+        Convert dependency name to lowercase and replace '_' by '-'
+        except in ${OE} variables.
+        """
+        BEGIN_PATTERN = '${'
+        END_PATTERN = '}'
+        result = ''
+        begin = dep.find(BEGIN_PATTERN)
+        while begin != -1:
+            result += dep[:begin].lower().replace('_', '-')
+            remaining = dep[begin + len(BEGIN_PATTERN):]
+            end = remaining.find(END_PATTERN)
+            if end == -1:
+                dep = dep[begin:]
+                break
+            oe_var = remaining[:end]
+            result += BEGIN_PATTERN + oe_var + END_PATTERN
+            dep = remaining[end + len(END_PATTERN):]
+            begin = dep.find(BEGIN_PATTERN)
+        result += dep.lower().replace('_', '-')
+        return result
+
     @classmethod
     def convert_to_oe_name(cls, dep, is_native=False):
         # Discard meta-layer information past '@'
@@ -234,7 +258,8 @@ class yoctoRecipe(object):
             dep = dep[:-len('_dev')] + '-rosdev'
         if dep in ('ros', 'ros2'):
             dep += '--distro-renamed'
-        return dep.replace('_', '-').lower() + cls.get_native_suffix(is_native)
+        return cls.convert_dep_except_oe_vars(dep) \
+            + cls.get_native_suffix(is_native)
 
     @classmethod
     def generate_multiline_variable(cls, var, container, sort=True):
