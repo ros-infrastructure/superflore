@@ -338,6 +338,7 @@ class yoctoRecipe(object):
         ret += ';md5='
         ret += str(self.license_md5)
         ret += '"\n\n'
+        ret += 'ROS_BPN = "' + self.name + '"\n\n'
         # depends
         deps, sys_deps = self.get_dependencies(
             self.depends, self.depends_external)
