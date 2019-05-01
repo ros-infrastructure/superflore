@@ -546,7 +546,7 @@ class yoctoRecipe(object):
                     '# Distributed under the terms of the BSD license\n')
                 pkggrp_file.write('\nDESCRIPTION = "All non-test packages ')
                 pkggrp_file.write(
-                    'for the target from ${ROS_DISTRO}-cache.yaml"\n')
+                    'for the target from files/${ROS_DISTRO}/cache.yaml"\n')
                 pkggrp_file.write('LICENSE = "MIT"\n\n')
                 pkggrp_file.write('inherit packagegroup\n\n')
                 pkggrp_file.write('PACKAGES = "${PN}"\n\n')
@@ -574,9 +574,8 @@ class yoctoRecipe(object):
 
     @staticmethod
     def generate_distro_cache(basepath, distro, skip_keys=[]):
-        distro_cache_dir = '{0}/files/'.format(basepath)
-        distro_cache_path = '{0}{1}-cache.yaml'.format(
-            distro_cache_dir, distro)
+        distro_cache_dir = '{0}/files/{1}/'.format(basepath, distro)
+        distro_cache_path = '{0}cache.yaml'.format(distro_cache_dir)
         try:
             from rosdistro import get_index, get_index_url
             from rosdistro import get_distribution_cache_string
@@ -593,8 +592,8 @@ class yoctoRecipe(object):
             raise e
 
     @staticmethod
-    def generate_rosdep_resolve(basepath):
-        rosdep_resolve_dir = '{0}/files/'.format(basepath)
+    def generate_rosdep_resolve(basepath, distro):
+        rosdep_resolve_dir = '{0}/files/{1}/'.format(basepath, distro)
         rosdep_resolve_path = '{0}rosdep-resolve.yaml'.format(
             rosdep_resolve_dir)
         try:
@@ -609,8 +608,8 @@ class yoctoRecipe(object):
             raise e
 
     @staticmethod
-    def generate_superflore_change_summary(basepath, change_summary):
-        change_summary_dir = '{0}/files/'.format(basepath)
+    def generate_superflore_change_summary(basepath, distro, change_summary):
+        change_summary_dir = '{0}/files/{1}/'.format(basepath, distro)
         change_summary_path = '{0}superflore-change-summary.txt'.format(
             change_summary_dir)
         try:

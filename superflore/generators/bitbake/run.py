@@ -151,14 +151,14 @@ def main():
                         sys.exit(1)
                 yoctoRecipe.generate_rosdistro_conf(
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
-                        'files/{0}-cache.yaml'.format(args.ros_distro)),
+                        'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_packagegroup_ros_world(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
-                yoctoRecipe.generate_rosdep_resolve(_repo)
+                yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(
-                    _repo, overlay.get_change_summary())
+                    _repo, args.ros_distro, overlay.get_change_summary())
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
@@ -194,14 +194,14 @@ def main():
                 total_installers[adistro] = distro_installers
                 yoctoRecipe.generate_rosdistro_conf(
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
-                        'files/{0}-cache.yaml'.format(args.ros_distro)),
+                        'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_packagegroup_ros_world(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
-                yoctoRecipe.generate_rosdep_resolve(_repo)
+                yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(
-                    _repo, overlay.get_change_summary())
+                    _repo, args.ros_distro, overlay.get_change_summary())
 
         num_changes = 0
         for distro_name in total_changes:
