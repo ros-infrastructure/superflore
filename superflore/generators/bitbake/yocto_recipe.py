@@ -232,6 +232,8 @@ class yoctoRecipe(object):
             dep = dep[:-len('_native')] + '-rosnative'
         elif dep.endswith('_dev'):
             dep = dep[:-len('_dev')] + '-rosdev'
+        if dep in ('ros', 'ros2'):
+            dep += '--distro-renamed'
         return dep.replace('_', '-').lower() + cls.get_native_suffix(is_native)
 
     @classmethod
