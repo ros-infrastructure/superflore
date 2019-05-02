@@ -16,7 +16,6 @@ import os
 import string
 import sys
 
-from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import clean_up
@@ -119,8 +118,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(ret, 'MIT')
         ret = get_license('Creative Commons')
         self.assertEqual(ret, 'CC-BY-SA-3.0')
-        with self.assertRaises(UnknownLicense):
-            ret = get_license('TODO')
+        ret = get_license('United States Government Purpose')
+        self.assertEqual(ret, 'United States Government Purpose')
 
     def test_delta_msg(self):
         """Test the delta message generated for the PR"""

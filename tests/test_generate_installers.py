@@ -16,7 +16,6 @@ import re
 
 from rosinstall_generator.distro import get_distro
 from superflore.exceptions import UnknownBuildType
-from superflore.exceptions import UnknownLicense
 from superflore.generate_installers import generate_installers
 import unittest
 
@@ -55,9 +54,7 @@ def _create_if_p2os(overlay, pkg, distro, preserve_existing, collector):
 def _raise_exceptions(overlay, pkg, distro, preserve_existing, collector):
     """Raise exceptions"""
     collector.append(pkg)
-    if 'l' in pkg:
-        raise UnknownLicense('l')
-    elif 'b' in pkg:
+    if 'b' in pkg:
         raise UnknownBuildType('b')
     elif 'k' in pkg:
         raise KeyError('k')
@@ -116,7 +113,6 @@ class TestGenerateInstallers(unittest.TestCase):
         # anything with a 'k', 'l', or a 'b' has been skipped
         for p in inst:
             self.assertNotIn('k', p)
-            self.assertNotIn('l', p)
             self.assertNotIn('b', p)
 
     def test_changes(self):
