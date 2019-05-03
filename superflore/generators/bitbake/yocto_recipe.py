@@ -49,7 +49,7 @@ import yaml
 
 class yoctoRecipe(object):
     rosdep_cache = dict()
-    generated_recipes = set()
+    generated_recipes = dict()
     generated_components = set()
     generated_native_recipes = set()
     generated_test_deps = set()
@@ -528,7 +528,11 @@ class yoctoRecipe(object):
                     + '\n')
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATED_RECIPES',
-                    yoctoRecipe.generated_recipes))
+                    yoctoRecipe.generated_recipes.keys()) + '\n')
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATED_RECIPES_WITH_VERSIONS',
+                    [recipe + '-' + version for recipe, version
+                     in yoctoRecipe.generated_recipes.items()]))
                 conf_file.write(
                     '\n# Packages found in the <buildtool_depend> and '
                     + '<buildtool_export_depend> items, ie, ones for which a '
@@ -590,8 +594,9 @@ class yoctoRecipe(object):
                     + 'removed) or ROS_SUPERFLORE_GENERATED_TESTS. (Both\n'
                     + '# are set in conf/ros-distro/include/ROS_DISTRO/'
                     + 'generated-ros-distro.inc).\n')
+                recipes_set = set(yoctoRecipe.generated_recipes.keys())
                 pkggrp_file.write(yoctoRecipe.generate_multiline_variable(
-                    'RDEPENDS_${PN}', yoctoRecipe.generated_recipes
+                    'RDEPENDS_${PN}', recipes_set
                     - yoctoRecipe.generated_native_recipes))
                 pkggrp_file.write('\n# Allow the above settings to be'
                                   + ' overridden.\n')
@@ -710,7 +715,7 @@ class yoctoRecipe(object):
     @staticmethod
     def reset():
         yoctoRecipe.rosdep_cache = dict()
-        yoctoRecipe.generated_recipes = set()
+        yoctoRecipe.generated_recipes = dict()
         yoctoRecipe.generated_components = set()
         yoctoRecipe.generated_native_recipes = set()
         yoctoRecipe.generated_test_deps = set()
