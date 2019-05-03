@@ -212,8 +212,7 @@ class yoctoRecipe(object):
                                             dirs[6]).replace('.tar.gz', '')
 
     def get_inherit_line(self):
-        ret = 'inherit ros_superflore_generated\n'
-        ret += 'inherit ros_distro_${ROS_DISTRO}\n'
+        ret = 'inherit ros_distro_${ROS_DISTRO}\n'
         ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
         return ret
 
@@ -339,7 +338,7 @@ class yoctoRecipe(object):
         ret += distributor + "\n"
         ret += '# Distributed under the terms of the ' + license_text
         ret += ' license\n\n'
-
+        ret += 'inherit ros_superflore_generated\n\n'
         # description
         if self.description:
             self.description = self.description.replace('\n', ' ')
@@ -443,14 +442,15 @@ class yoctoRecipe(object):
         ret += self.get_src_location() + '"\n\n'
 
         ret += 'ROS_BUILD_TYPE = "' + self.build_type + '"\n'
-        ret += 'ROS_RECIPES_TREE = "recipes-ros2"\n'
         # include
         ret += '\n# Allow the above settings to be overridden.\n'
+        ret += 'ROS_RECIPES_TREE := '
+        ret += '"${@ros_superflore_generated__get_recipes_tree(\''
+        ret += self.component_name + '\', d)}"\n'
         inc_prefix = 'include ${ROS_LAYERDIR}/'
         component_path = '/' + self.component_name + '/' + self.component_name
         inc_suffix = '_common.inc\n'
-        ret += inc_prefix + 'recipes-ros' + component_path + inc_suffix
-        ret += inc_prefix + 'recipes-ros2' + component_path + inc_suffix
+        ret += inc_prefix + '${ROS_RECIPES_TREE}' + component_path + inc_suffix
         ret += inc_prefix + '${ROS_RECIPES_TREE}' + \
             component_path + '-${PV}' + inc_suffix
         path_prefix = inc_prefix + '${ROS_RECIPES_TREE}/' + self.component_name
