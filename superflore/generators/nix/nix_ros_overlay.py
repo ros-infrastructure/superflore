@@ -20,7 +20,8 @@ from superflore.utils import rand_ascii_str
 
 
 class NixRosOverlay(object):
-    def __init__(self, repo_dir, do_clone, org='lopsided98', repo='nix-ros-overlay'):
+    def __init__(self, repo_dir, do_clone, org='lopsided98',
+                 repo='nix-ros-overlay'):
         self.repo = RepoInstance(org, repo, repo_dir, do_clone)
         self.branch_name = 'nix-bot-%s' % rand_ascii_str()
         info('Creating new branch {0}...'.format(self.branch_name))

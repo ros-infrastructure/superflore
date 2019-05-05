@@ -9,7 +9,7 @@ from urllib.request import urlretrieve
 from rosdistro import DistributionFile
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.rosdistro import RosPackage
-from rosinstall_generator.distro import _generate_rosinstall, get_package_names
+from rosinstall_generator.distro import _generate_rosinstall
 
 from superflore.PackageMetadata import PackageMetadata
 from superflore.exceptions import UnresolvedDependency
@@ -47,7 +47,8 @@ class NixPackage:
         if os.path.exists(archive_path):
             info("using cached archive for package '{}'...".format(name))
         else:
-            info("downloading archive version for package '{}'...".format(name))
+            info("downloading archive version for package '{}'..."
+                 .format(name))
             urlretrieve(src_uri, archive_path)
             downloaded_archive = True
 
@@ -73,11 +74,11 @@ class NixPackage:
         metadata = PackageMetadata(package_xml)
 
         dep_walker = DependencyWalker(distro,
-                                      get_distro_condition_context(distro.name))
+                                      get_distro_condition_context(
+                                          distro.name))
 
         buildtool_deps = dep_walker.get_depends(pkg.name, "buildtool")
         build_deps = dep_walker.get_depends(pkg.name, "build")
-        # TODO: do we need exec depends as well
         run_deps = dep_walker.get_depends(pkg.name, "run")
         test_deps = dep_walker.get_depends(pkg.name, "test")
 
