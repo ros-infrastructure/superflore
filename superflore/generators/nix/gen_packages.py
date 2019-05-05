@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from typing import Iterable
+from typing import Iterable, Dict, Set
 
 from rosdistro import DistributionFile
 from rosinstall_generator.distro import get_package_names
@@ -30,10 +30,11 @@ org_license = "BSD"
 
 
 def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
-                   preserve_existing: bool, tar_dir: str, sha256_cache):
-    pkg_names = get_package_names(distro)[0]
+                   preserve_existing: bool, tar_dir: str,
+                   sha256_cache: Dict[str, str]):
+    all_pkgs = set(get_package_names(distro)[0])
 
-    if pkg not in pkg_names:
+    if pkg not in all_pkgs:
         raise RuntimeError("Unknown package '{}'".format(pkg))
 
     normalized_pkg = NixPackage.normalize_name(pkg)
@@ -51,7 +52,7 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
         return None, []
 
     try:
-        current = NixPackage(pkg, distro, tar_dir, sha256_cache)
+        current = NixPackage(pkg, distro, tar_dir, sha256_cache, all_pkgs)
     except Exception as e:
         err('Failed to generate derivation for package {}!'.format(pkg))
         raise e

@@ -53,6 +53,9 @@ def get_view(os_name, os_version, ros_distro):
     return view_cache[key]
 
 
+_installer_ctx = create_default_installer_context()
+
+
 def resolve_more_for_os(rosdep_key, view, installer, os_name, os_version):
     """
     Resolve rosdep key to dependencies and installer key.
@@ -64,9 +67,8 @@ def resolve_more_for_os(rosdep_key, view, installer, os_name, os_version):
     :raises: :exc:`rosdep2.ResolutionError`
     """
     d = view.lookup(rosdep_key)
-    ctx = create_default_installer_context()
-    os_installers = ctx.get_os_installer_keys(os_name)
-    default_os_installer = ctx.get_default_os_installer_key(os_name)
+    os_installers = _installer_ctx.get_os_installer_keys(os_name)
+    default_os_installer = _installer_ctx.get_default_os_installer_key(os_name)
     inst_key, rule = d.get_rule_for_platform(os_name, os_version,
                                              os_installers,
                                              default_os_installer)
@@ -82,15 +84,14 @@ def resolve_rosdep_key(
     ignored=None
 ):
     ignored = ignored or []
-    ctx = create_default_installer_context()
     try:
-        installer_key = ctx.get_default_os_installer_key(os_name)
+        installer_key = _installer_ctx.get_default_os_installer_key(os_name)
     except KeyError:
         raise UnresolvedDependency(
             "could not resolve package {} for os {}."
             .format(key, os_name)
         )
-    installer = ctx.get_installer(installer_key)
+    installer = _installer_ctx.get_installer(installer_key)
     ros_distro = ros_distro or DEFAULT_ROS_DISTRO
     view = get_view(os_name, os_version, ros_distro)
     try:
