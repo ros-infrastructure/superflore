@@ -22,7 +22,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-
+from operator import attrgetter
 from textwrap import dedent
 from time import gmtime, strftime
 from typing import Iterable
@@ -64,6 +64,7 @@ class NixLicense:
             self.name = name
             self.custom = True
 
+    @property
     def nix_code(self) -> str:
         if self.custom:
             return '"{}"'.format(self.name)
@@ -115,7 +116,7 @@ class NixDerivation:
         ret += dedent('''
         # Copyright {} {}
         # Distributed under the terms of the {} license
-        
+
         ''').format(
             strftime("%Y", gmtime()), distributor,
             license_name)
@@ -132,12 +133,12 @@ class NixDerivation:
         buildRosPackage {{
           pname = "ros-{}-{}";
           version = "{}";
-          
+
           src = fetchurl {{
             url = {};
             sha256 = "{}";
           }};
-          
+
         ''').format(
             self.distro_name, self.name,
             self.version,
@@ -171,6 +172,7 @@ class NixDerivation:
           }};
         }}
         ''').format(self.description,
-                    self._to_nix_list(map(NixLicense.nix_code, self.licenses)))
+                    self._to_nix_list(map(attrgetter('nix_code'),
+                                          self.licenses)))
 
         return ''.join(ret)

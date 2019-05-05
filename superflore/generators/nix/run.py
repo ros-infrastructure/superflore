@@ -164,11 +164,12 @@ def main():
                 total_installers[distro] = distro_installers
 
                 # If we are just updating a few packages using --only, then
-                # leave the package set alone. This means that new packages will
-                # not be added, but it is still useful for updates.
+                # leave the package set alone. This means that new packages
+                # will not be added, but it is still useful for updates.
                 if not preserve_existing:
                     regenerate_pkg_set(overlay, distro, distro_installers)
-                    ok('Generated package set for distro \'{}\''.format(distro))
+                    ok('Generated package set for distro \'{}\''
+                       .format(distro))
 
         num_changes = 0
         for distro_name in total_changes:

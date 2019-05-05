@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from typing import Iterable, Dict, Set
+from typing import Iterable, Dict
 
 from rosdistro import DistributionFile
 from rosinstall_generator.distro import get_package_names
