@@ -1,8 +1,9 @@
 import hashlib
 import itertools
 import os
+import re
 import tarfile
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Set
 from urllib.request import urlretrieve
 
 from rosdistro import DistributionFile
@@ -23,8 +24,9 @@ class NixPackage:
     """
 
     def __init__(self, name: str, distro: DistributionFile, tar_dir: str,
-                 sha256_cache: Dict[str, str]) -> None:
+                 sha256_cache: Dict[str, str], all_pkgs: Set[str]) -> None:
         self.distro = distro
+        self._all_pkgs = all_pkgs
 
         pkg = distro.release_packages[name]
         repo = distro.repositories[pkg.repository_name].release_repository
@@ -56,19 +58,16 @@ class NixPackage:
 
         # We already have the archive, so try to extract package.xml from it.
         # This is much faster than downloading it from GitHub.
+        package_xml_regex = re.compile(r'^[^/]+/package\.xml$')
         package_xml = None
-        archive = tarfile.open(archive_path, 'r')
-        while True:
-            file_info = archive.next()
-            if file_info is None:
-                break
-            if '/' not in file_info.name:
-                root = file_info.name
-                package_xml = archive.extractfile(root + '/package.xml').read()
+        archive = tarfile.open(archive_path, 'r|*')
+        for file in archive:
+            if package_xml_regex.match(file.name):
+                package_xml = archive.extractfile(file).read()
                 break
         # Fallback to the standard method of fetching package.xml
         if package_xml is None:
-            warn("failed to extract package.xml from archive: {}".format(e))
+            warn("failed to extract package.xml from archive")
             package_xml = ros_pkg.get_package_xml(distro.name)
 
         metadata = PackageMetadata(package_xml)
@@ -109,7 +108,7 @@ class NixPackage:
     def _resolve_dependency(self, d: str) -> Iterable[str]:
         try:
             return (self.normalize_name(d),) \
-                if d in self.distro.release_packages \
+                if d in self._all_pkgs \
                 else resolve_dep(d, 'nix')[0]
         except UnresolvedDependency:
             self.unresolved_dependencies.add(d)
