@@ -256,15 +256,15 @@ class yoctoRecipe(object):
             dep = dep[:-len('_native')] + '-rosnative'
         elif dep.endswith('_dev'):
             dep = dep[:-len('_dev')] + '-rosdev'
-        if dep in ('ros', 'ros2'):
+        elif dep in ('ros1', 'ros2'):
             dep += '--distro-renamed'
         return cls.convert_dep_except_oe_vars(dep) \
             + cls.get_native_suffix(is_native)
 
     @classmethod
-    def generate_multiline_variable(cls, var, container, sort=True):
+    def generate_multiline_variable(cls, var, container, sort=True, key=None):
         if sort:
-            container = sorted(container)
+            container = sorted(container, key=key)
         assignment = '{0} = "'.format(var)
         expression = '"\n'
         if container:
@@ -482,18 +482,14 @@ class yoctoRecipe(object):
                     '# Distributed under the terms of the BSD license\n')
                 conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
                 ros_version = yoctoRecipe._get_ros_version(distro)
+                conf_file.write('\nDISTRO = "ros{}"\n'.format(ros_version))
+                conf_file.write(
+                    'export ROS_VERSION = "{}"\n'.format(ros_version))
                 if ros_version == 1:
-                    conf_file.write('\nDISTRO = "ros"\n')
-                    conf_file.write(
-                        'export ROS_VERSION = "{}"\n'.format(ros_version))
                     conf_file.write('# Can override ROS_PYTHON_VERSION in '
                                     + 'conf/local.conf\n')
                     conf_file.write('export ROS_PYTHON_VERSION ??= "2"\n')
                 else:
-                    conf_file.write(
-                        '\nDISTRO = "ros{}"\n'.format(ros_version))
-                    conf_file.write(
-                        'export ROS_VERSION = "{}"\n'.format(ros_version))
                     conf_file.write('# DO NOT OVERRIDE ROS_PYTHON_VERSION\n')
                     conf_file.write('export ROS_PYTHON_VERSION = "3"\n')
                 conf_file.write('\n# When superflore was started, in UTC:')
@@ -530,9 +526,10 @@ class yoctoRecipe(object):
                     'ROS_SUPERFLORE_GENERATED_RECIPES',
                     yoctoRecipe.generated_recipes.keys()) + '\n')
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATED_RECIPES_WITH_VERSIONS',
-                    [recipe + '-' + version for recipe, version
-                     in yoctoRecipe.generated_recipes.items()]))
+                    'ROS_SUPERFLORE_GENERATED_RECIPE_BASENAMES',
+                    [recipe + '_' + version for recipe, version
+                     in yoctoRecipe.generated_recipes.items()],
+                    key=lambda recipe: recipe.split('_')[0]))
                 conf_file.write(
                     '\n# Packages found in the <buildtool_depend> and '
                     + '<buildtool_export_depend> items, ie, ones for which a '
