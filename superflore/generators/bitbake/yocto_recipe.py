@@ -26,6 +26,7 @@
 from datetime import datetime
 import hashlib
 import os.path
+import re
 from subprocess import DEVNULL, PIPE, Popen
 import tarfile
 from time import gmtime, strftime
@@ -108,6 +109,7 @@ class yoctoRecipe(object):
         self.src_sha256 = sha256_cache[self.getArchiveName()]
         self.src_md5 = md5_cache[self.getArchiveName()]
         self.skip_keys = skip_keys
+        self.multi_hyphen_re = re.compile('-{2,}')
 
     def getArchiveName(self):
         if not self.archive_name:
@@ -215,6 +217,14 @@ class yoctoRecipe(object):
         ret = 'inherit ros_distro_${ROS_DISTRO}\n'
         ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
         return ret
+
+    def trim_hyphens(self, s):
+        return self.multi_hyphen_re.sub('-', s)
+
+    def translate_license(self, l):
+        conversion_table = {ord(' '): '-', ord('/'): '-', ord(':'): '-',
+                            ord('+'): '-', ord('('): '-', ord(')'): '-'}
+        return self.trim_hyphens(l.translate(conversion_table))
 
     @staticmethod
     def get_native_suffix(is_native=False):
@@ -354,10 +364,12 @@ class yoctoRecipe(object):
         # license
         self.get_license_line()
         if isinstance(self.license, str):
-            ret += 'LICENSE = "%s"\n' % get_license(self.license)
+            ret += 'LICENSE = "%s"\n' % self.translate_license(
+                get_license(self.license))
         elif isinstance(self.license, list):
             ret += 'LICENSE = "'
-            ret += ' & '.join([get_license(l) for l in self.license]) + '"\n'
+            ret += ' & '.join([self.translate_license(
+                get_license(l)) for l in self.license]) + '"\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
         ret += ';endline='
