@@ -20,7 +20,6 @@ import string
 import sys
 import time
 
-from superflore.exceptions import UnknownLicense
 from superflore.exceptions import UnknownPlatform
 from superflore.rosdep_support import get_cached_index, resolve_rosdep_key
 from termcolor import colored
@@ -199,8 +198,8 @@ def get_license(l):
     elif re.search(pub_dom_re, l, f):
         return 'public_domain'
     else:
-        err('Could not match license "{0}".'.format(l))
-        raise UnknownLicense('bad license')
+        warn('Could not match license "{0}". Passing it through...'.format(l))
+        return l
 
 
 def resolve_dep(pkg, os, distro=None):

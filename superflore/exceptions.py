@@ -13,11 +13,6 @@
 # limitations under the License.
 
 
-class UnknownLicense(Exception):
-    def __init__(self, message):
-        self.message = message
-
-
 class UnresolvedDependency(Exception):
     def __init__(self, message):
         self.message = message
