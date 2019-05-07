@@ -153,8 +153,6 @@ def main():
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
                         'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)
-                yoctoRecipe.generate_packagegroup_ros_world(
-                    _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(
@@ -198,8 +196,6 @@ def main():
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
                         'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)
-                yoctoRecipe.generate_packagegroup_ros_world(
-                    _repo, args.ros_distro)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(
