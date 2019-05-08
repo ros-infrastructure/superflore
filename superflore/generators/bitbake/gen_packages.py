@@ -15,6 +15,7 @@
 import glob
 import os
 
+from catkin_pkg.package import InvalidPackage
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
@@ -64,6 +65,9 @@ def regenerate_pkg(
         current = oe_installer(
             distro, pkg, tar_dir, md5_cache, sha256_cache, skip_keys
         )
+    except InvalidPackage as e:
+        err('Invalid package: ' + str(e))
+        return None, []
     except Exception as e:
         err('Failed to generate installer for package {}!'.format(pkg))
         raise e
