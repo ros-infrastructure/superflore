@@ -508,6 +508,13 @@ class yoctoRecipe(object):
                 conf_file.write(
                     '\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
                         datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+                oe_skip_keys = map(
+                    lambda skip_key: yoctoRecipe.convert_to_oe_name(skip_key),
+                    skip_keys
+                )
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', oe_skip_keys)
+                    + '\n')
                 conf_file.write(
                     '# Number of commits that will be returned by'
                     + ' "git log files/ROS_DISTRO-cache.yaml" when the '
@@ -527,13 +534,6 @@ class yoctoRecipe(object):
                         release_platforms.append(p[0] + '-' + release)
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_DISTRO_RELEASE_PLATFORMS', release_platforms) + '\n')
-                oe_skip_keys = map(
-                    lambda skip_key: yoctoRecipe.convert_to_oe_name(skip_key),
-                    skip_keys
-                )
-                conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATION_SKIP_LIST', oe_skip_keys)
-                    + '\n')
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATED_RECIPES',
                     yoctoRecipe.generated_recipes.keys()) + '\n')
@@ -543,11 +543,20 @@ class yoctoRecipe(object):
                      in yoctoRecipe.generated_recipes.items()],
                     key=lambda recipe: recipe.split('_')[0]))
                 conf_file.write(
+                    '\n# What\'s built by packagegroup-ros-world. Does not '
+                    + 'include packages that appear solely in '
+                    + 'ROS_SUPERFLORE_GENERATED_BUILDTOOLS\n# (with a -native'
+                    + ' suffix) or ROS_SUPERFLORE_GENERATED_TESTS.\n')
+                recipes_set = set(yoctoRecipe.generated_recipes.keys())
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES', recipes_set
+                    - yoctoRecipe.generated_native_recipes))
+                conf_file.write(
                     '\n# Packages found in the <buildtool_depend> and '
                     + '<buildtool_export_depend> items, ie, ones for which a '
                     + '-native is built. Does not\n# include those found in '
-                    + 'the ROS_EXEC_DEPENDS values in recipes of build tools.'
-                    + '\n')
+                    + 'the ROS_EXEC_DEPENDS values in the recipes of build '
+                    + 'tools.\n')
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_BUILDTOOLS',
