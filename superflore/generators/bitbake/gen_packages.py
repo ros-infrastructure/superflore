@@ -37,14 +37,16 @@ def regenerate_pkg(
     overlay, pkg, distro, preserve_existing, tar_dir, md5_cache, sha256_cache,
     skip_keys
 ):
-    repo_dir = overlay.repo.repo_dir
-    recipes_dir = '{0}/generated-recipes-{1}'.format(repo_dir, distro.name)
-    make_dir(recipes_dir)
-    version = get_pkg_version(distro, pkg, is_oe=True)
     pkg_names = get_package_names(distro)[0]
-
     if pkg not in pkg_names:
+        yoctoRecipe.not_generated_recipes.add(pkg)
         raise RuntimeError("Unknown package '%s'" % pkg)
+    try:
+        version = get_pkg_version(distro, pkg, is_oe=True)
+    except KeyError as ke:
+        yoctoRecipe.not_generated_recipes.add(pkg)
+        raise ke
+    repo_dir = overlay.repo.repo_dir
     component_name = yoctoRecipe.convert_to_oe_name(
         distro.release_packages[pkg].repository_name)
     recipe_name = yoctoRecipe.convert_to_oe_name(pkg)
@@ -58,6 +60,7 @@ def regenerate_pkg(
     existing = glob.glob(glob_pattern)
     if preserve_existing and existing:
         ok("recipe for package '%s' up to date, skipping..." % pkg)
+        yoctoRecipe.not_generated_recipes.add(pkg)
         return None, []
     elif existing:
         overlay.repo.remove_file(existing[0], True)
@@ -67,18 +70,22 @@ def regenerate_pkg(
         )
     except InvalidPackage as e:
         err('Invalid package: ' + str(e))
+        yoctoRecipe.not_generated_recipes.add(pkg)
         return None, []
     except Exception as e:
-        err('Failed to generate installer for package {}!'.format(pkg))
-        raise e
+        err('Failed generating installer for {}! {}'.format(pkg, str(e)))
+        yoctoRecipe.not_generated_recipes.add(pkg)
+        return None, []
     try:
         recipe_text = current.recipe_text()
-    except NoPkgXml:
-        err("Could not fetch pkg!")
+    except NoPkgXml as nopkg:
+        err("Could not fetch pkg! {}".format(str(nopkg)))
+        yoctoRecipe.not_generated_recipes.add(pkg)
         return None, []
     except KeyError as ke:
-        err("Failed to parse data for package {}!".format(pkg))
-        raise ke
+        err("Failed to parse data for package {}! {}".format(pkg, str(ke)))
+        yoctoRecipe.not_generated_recipes.add(pkg)
+        return None, []
     make_dir(
         "{0}/generated-recipes-{1}/{2}".format(
             repo_dir,
@@ -101,9 +108,10 @@ def regenerate_pkg(
             recipe_file.write(recipe_text)
             yoctoRecipe.generated_components.add(component_name)
             yoctoRecipe.generated_recipes[recipe_name] = version
-    except Exception as e:
+    except Exception:
         err("Failed to write recipe to disk!")
-        raise e
+        yoctoRecipe.not_generated_recipes.add(pkg)
+        return None, []
     return current, []
 
 

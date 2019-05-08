@@ -55,6 +55,7 @@ class yoctoRecipe(object):
     generated_native_recipes = set()
     generated_test_deps = set()
     generated_non_test_deps = set()
+    not_generated_recipes = set()
     system_deps = set()
 
     def __init__(
@@ -516,6 +517,13 @@ class yoctoRecipe(object):
                     'ROS_SUPERFLORE_GENERATION_SKIP_LIST', oe_skip_keys)
                     + '\n')
                 conf_file.write(
+                    '# Superflore was unable to generate recipes for these '
+                    + 'packages, eg, because their repositories are not on '
+                    + 'GitHub.\n')
+                conf_file.write(yoctoRecipe.generate_multiline_variable(
+                    'ROS_SUPERFLORE_GENERATION_NOT_POSSIBLE',
+                    yoctoRecipe.not_generated_recipes) + '\n')
+                conf_file.write(
                     '# Number of commits that will be returned by'
                     + ' "git log files/ROS_DISTRO-cache.yaml" when the '
                     + 'generated files are committed. This is\n# used for the'
@@ -695,4 +703,5 @@ class yoctoRecipe(object):
         yoctoRecipe.generated_native_recipes = set()
         yoctoRecipe.generated_test_deps = set()
         yoctoRecipe.generated_non_test_deps = set()
+        yoctoRecipe.not_generated_recipes = set()
         yoctoRecipe.system_deps = set()
