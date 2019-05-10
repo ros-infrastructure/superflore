@@ -76,6 +76,6 @@ class RosMeta(object):
         self.repo.git.add('-N', 'generated-recipes-*')
         sep = '-' * 5
         return '\n'.join([
-            self.repo.git.status(), sep, self.repo.git.diff('conf'), sep,
-            self.repo.git.diff('files'),
+            sep, self.repo.git.status(), sep, self.repo.git.diff('conf'),
+            sep, self.repo.git.diff('files'),
         ])
