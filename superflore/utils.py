@@ -289,9 +289,14 @@ def url_to_repo_org(url):
 
 
 def retry_on_exception(callback, *args, retries=5, retry_msg='', error_msg=''):
+    try:
+        return callback(*args)
+    except Exception as e:
+        if retries <= 0:
+            raise e
     for retry in range(1, retries+1):
         try:
-            ret = callback(*args)
+            return callback(*args)
         except Exception as e:
             if retry == retries:
                 if error_msg:
@@ -299,5 +304,3 @@ def retry_on_exception(callback, *args, retries=5, retry_msg='', error_msg=''):
                 raise e
             if retry_msg:
                 warn(f'{retry_msg} {e} {retry}/{retries}...')
-        else:
-            return ret

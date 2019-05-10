@@ -202,15 +202,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(resolve_dep('p2os_msgs', 'oe'), 'p2os-msgs')
 
     def test_retry_on_exception(self):
-        def callback_success(must_be_one):
+        def callback_basic(must_be_one):
             if must_be_one == 1:
                 return 'Success'
             raise Exception('Failure')
-
-        def callback_failure(must_be_two):
-            if must_be_two == 2:
-                raise Exception('Failure')
-            return None
 
         def callback_params(must_be_three, must_be_four):
             if must_be_three == 3 and must_be_four == 4:
@@ -223,16 +218,23 @@ class TestUtils(unittest.TestCase):
             callback_retries.limit += 1
             raise Exception('Failure')
         # Checks success case
-        self.assertEqual(retry_on_exception(callback_success, 1), 'Success')
+        self.assertEqual(retry_on_exception(callback_basic, 1), 'Success')
         # Checks failure case
         with self.assertRaises(Exception):
-            ret = retry_on_exception(callback_failure, 2)
+            retry_on_exception(callback_basic, 2)
         # Checks callback can receive multiple params
         self.assertEqual(retry_on_exception(callback_params, 3, 4), 'Success')
-        # Checks it gets retried 9 times before succeeding at the 10th
-        callback_retries.limit = 1
-        self.assertEqual(retry_on_exception(callback_retries, 10, retries=10), 10)
-        # Checks it gets retried 10 times before giving up fully
-        callback_retries.limit = 1
+        # Checks it doesn't retry when retries is zero; runs just once
+        callback_retries.limit = -1
         with self.assertRaises(Exception):
-            ret = retry_on_exception(callback_retries, 11, retries=10)
+            retry_on_exception(callback_retries, 0, retries=0)
+        self.assertEqual(callback_retries.limit, 0)
+        # Checks it gets retried 9 times before succeeding at the 10th
+        callback_retries.limit = 0
+        self.assertEqual(retry_on_exception(
+            callback_retries, 10, retries=10), 10)
+        # Checks it gets retried 10 times before giving up fully
+        callback_retries.limit = -1
+        with self.assertRaises(Exception):
+            retry_on_exception(callback_retries, 11, retries=10)
+        self.assertEqual(callback_retries.limit, 10)
