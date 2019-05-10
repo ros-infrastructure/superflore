@@ -29,6 +29,7 @@ from superflore.utils import get_distros
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
+from superflore.utils import retry_on_exception
 from superflore.utils import warn
 
 # TODO(allenh1): This is a blacklist of things that
@@ -124,7 +125,7 @@ def _gen_metadata_for_package(
 ):
     pkg_metadata_xml = metadata_xml()
     try:
-        pkg_xml = ros_pkg.get_package_xml(distro.name)
+        pkg_xml = retry_on_exception(ros_pkg.get_package_xml, distro.name)
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
@@ -176,7 +177,7 @@ def _gen_ebuild_for_package(
 
     # parse through package xml
     try:
-        pkg_xml = ros_pkg.get_package_xml(distro.name)
+        pkg_xml = retry_on_exception(ros_pkg.get_package_xml, distro.name)
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild

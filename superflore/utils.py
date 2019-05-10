@@ -286,3 +286,18 @@ def url_to_repo_org(url):
         )
     url = url.replace('https://github.com/', '').split('/')
     return url[0], url[1]
+
+
+def retry_on_exception(callback, *args, retries=5, retry_msg='', error_msg=''):
+    for retry in range(1, retries+1):
+        try:
+            ret = callback(*args)
+        except Exception as e:
+            if retry == retries:
+                if error_msg:
+                    err(f'{error_msg} {e} {retry}/{retries}')
+                raise e
+            if retry_msg:
+                warn(f'{retry_msg} {e} {retry}/{retries}...')
+        else:
+            return ret

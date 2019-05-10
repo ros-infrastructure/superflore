@@ -26,6 +26,7 @@ from superflore.utils import get_pr_text
 from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
 from superflore.utils import resolve_dep
+from superflore.utils import retry_on_exception
 from superflore.utils import sanitize_string
 from superflore.utils import trim_string
 from superflore.utils import url_to_repo_org
@@ -199,3 +200,39 @@ class TestUtils(unittest.TestCase):
         # Note(allenh1): we're not going to test the hard-coded resolutions.
         self.assertEqual(resolve_dep('tinyxml2', 'oe'), 'libtinyxml2')
         self.assertEqual(resolve_dep('p2os_msgs', 'oe'), 'p2os-msgs')
+
+    def test_retry_on_exception(self):
+        def callback_success(must_be_one):
+            if must_be_one == 1:
+                return 'Success'
+            raise Exception('Failure')
+
+        def callback_failure(must_be_two):
+            if must_be_two == 2:
+                raise Exception('Failure')
+            return None
+
+        def callback_params(must_be_three, must_be_four):
+            if must_be_three == 3 and must_be_four == 4:
+                return 'Success'
+            return None
+
+        def callback_retries(expected_num_retries):
+            if callback_retries.limit >= expected_num_retries:
+                return callback_retries.limit
+            callback_retries.limit += 1
+            raise Exception('Failure')
+        # Checks success case
+        self.assertEqual(retry_on_exception(callback_success, 1), 'Success')
+        # Checks failure case
+        with self.assertRaises(Exception):
+            ret = retry_on_exception(callback_failure, 2)
+        # Checks callback can receive multiple params
+        self.assertEqual(retry_on_exception(callback_params, 3, 4), 'Success')
+        # Checks it gets retried 9 times before succeeding at the 10th
+        callback_retries.limit = 1
+        self.assertEqual(retry_on_exception(callback_retries, 10, retries=10), 10)
+        # Checks it gets retried 10 times before giving up fully
+        callback_retries.limit = 1
+        with self.assertRaises(Exception):
+            ret = retry_on_exception(callback_retries, 11, retries=10)
