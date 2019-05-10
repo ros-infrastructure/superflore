@@ -614,6 +614,7 @@ class yoctoRecipe(object):
             yaml_str = get_distribution_cache_string(index, distro)
             make_dir(distro_cache_dir)
             with open(distro_cache_path, 'w') as distro_cache_file:
+                distro_cache_file.write('# {}/cache.yaml\n'.format(distro))
                 distro_cache_file.write(yaml_str)
                 ok('Wrote {0}'.format(distro_cache_path))
         except OSError as e:
@@ -629,6 +630,8 @@ class yoctoRecipe(object):
         try:
             make_dir(rosdep_resolve_dir)
             with open(rosdep_resolve_path, 'w') as rosdep_resolve_file:
+                rosdep_resolve_file.write(
+                    '# {}/rosdep-resolve.yaml\n'.format(distro))
                 rosdep_resolve_file.write(yaml.dump(
                     yoctoRecipe.rosdep_cache, default_flow_style=False))
                 ok('Wrote {0}'.format(rosdep_resolve_path))
@@ -645,6 +648,8 @@ class yoctoRecipe(object):
         try:
             make_dir(change_summary_dir)
             with open(change_summary_path, 'w') as change_summary_file:
+                change_summary_file.write(
+                    '{}/superflore-change-summary.txt\n'.format(distro))
                 change_summary_file.write(change_summary)
                 ok('Wrote {0}'.format(change_summary_path))
         except OSError as e:
@@ -696,6 +701,8 @@ class yoctoRecipe(object):
                           for cmd in cmds]
                 raise RuntimeError('Error codes ' + ' '.join(errors))
             with open(newer_sys_comps_path, 'w') as newer_sys_comps_file:
+                newer_sys_comps_file.write(
+                    '# {}/newer-system-components.txt\n'.format(distro))
                 newer_sys_comps_file.write(txt_output)
                 ok('Wrote {0}'.format(newer_sys_comps_path))
         except (OSError, RuntimeError) as e:
