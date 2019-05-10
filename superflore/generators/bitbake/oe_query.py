@@ -22,6 +22,8 @@ class OpenEmbeddedLayersDB(object):
     def __init__(self):
         # Tells if we could read recipe information
         self._exists = False
+        # OpenEmbedded branch to be queried
+        self._oe_branch = 'thud'
         # Valid layers in priority order to filter when searching for a recipe
         self._prio_valid_layers = OrderedDict.fromkeys(
             ['openembedded-core', 'meta-oe', 'meta-python', 'meta-multimedia',
@@ -123,8 +125,9 @@ class OpenEmbeddedLayersDB(object):
 
     def query_recipe(self, recipe):
         if recipe:
-            url_base = 'https://layers.openembedded.org/'
-            url_prefix = url_base + 'layerindex/branch/master/recipes/?q={}'
+            url_prefix = 'https://layers.openembedded.org/layerindex/branch/'
+            url_prefix += '{}/recipes/'.format(self._oe_branch)
+            url_prefix += '?q={}'
             for layer in self._prio_valid_layers:
                 query_url = url_prefix.format(
                     recipe + urllib.parse.quote(' layer:') + layer)
