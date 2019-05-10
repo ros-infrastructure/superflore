@@ -69,11 +69,17 @@ class yoctoRecipe(object):
         self.version = get_pkg_version(distro, pkg_name, is_oe=True)
         self.src_uri = src_uri
         self.pkg_xml = pkg_xml
+        self.author = None
         if self.pkg_xml:
             pkg_fields = PackageMetadata(pkg_xml)
-            author_name = pkg_fields.upstream_name
-            author_email = pkg_fields.upstream_email
-            self.author = author_name + ' <' + author_email + '>'
+            maintainer_name = pkg_fields.upstream_name
+            maintainer_email = pkg_fields.upstream_email
+            author_name = pkg_fields.author_name
+            author_email = pkg_fields.author_email
+            self.maintainer = maintainer_name + ' <' + maintainer_email + '>'
+            if author_name or author_email:
+                self.author = author_name + \
+                    (' <' + author_email + '>' if author_email else '')
             self.license = pkg_fields.upstream_license
             self.description = pkg_fields.description
             self.homepage = pkg_fields.homepage
@@ -83,7 +89,7 @@ class yoctoRecipe(object):
             self.license = None
             self.homepage = None
             self.build_type = 'catkin'
-            self.author = "OSRF"
+            self.maintainer = "OSRF"
         self.depends = set()
         self.depends_external = set()
         self.buildtool_depends = set()
@@ -357,7 +363,9 @@ class yoctoRecipe(object):
         else:
             ret += 'DESCRIPTION = "None"\n'
         # author
-        ret += 'AUTHOR = "' + self.author + '"\n'
+        ret += 'AUTHOR = "' + self.maintainer + '"\n'
+        if self.author:
+            ret += 'ROS_AUTHOR = "' + self.author + '"\n'
         if self.homepage:
             ret += 'HOMEPAGE = "' + self.homepage + '"\n'
         # section

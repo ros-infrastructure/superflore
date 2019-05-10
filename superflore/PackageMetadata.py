@@ -40,6 +40,12 @@ class PackageMetadata:
         self.upstream_name = [
             author.name for author in pkg.maintainers
         ][0]
+        self.author_email = [
+            author.email for author in pkg.authors
+        ][0] if pkg.authors else ''
+        self.author_name = [
+            author.name for author in pkg.authors
+        ][0] if pkg.authors else ''
         self.member_of_groups = [
             group.name for group in pkg.member_of_groups
         ]
