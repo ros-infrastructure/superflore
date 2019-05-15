@@ -288,19 +288,23 @@ def url_to_repo_org(url):
     return url[0], url[1]
 
 
-def retry_on_exception(callback, *args, retries=5, retry_msg='', error_msg=''):
+def retry_on_exception(callback, *args, max_retries=5, num_retry=0,
+                       retry_msg='', error_msg='', sleep_secs=0.125):
     try:
         return callback(*args)
     except Exception as e:
-        if retries <= 0:
-            raise e
-    for retry in range(1, retries+1):
-        try:
-            return callback(*args)
-        except Exception as e:
-            if retry == retries:
-                if error_msg:
-                    err(f'{error_msg} {e} {retry}/{retries}')
-                raise e
+        if num_retry >= max_retries or max_retries < 0 or num_retry < 0:
+            if error_msg:
+                err(f'{e} {error_msg} {num_retry}/{max_retries}')
+            raise e from None
+        if num_retry > 0:
             if retry_msg:
-                warn(f'{retry_msg} {e} {retry}/{retries}...')
+                warn(f'{e} {retry_msg} {num_retry}/{max_retries}...')
+            time.sleep(sleep_secs)
+            if num_retry <= 6:
+                sleep_secs *= 2
+            else:
+                sleep_secs = 0.125
+        return retry_on_exception(callback, *args, max_retries=max_retries,
+                                  num_retry=num_retry+1, retry_msg=retry_msg,
+                                  error_msg=error_msg, sleep_secs=sleep_secs)

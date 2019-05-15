@@ -15,6 +15,7 @@
 import os
 import string
 import sys
+import time
 
 from superflore.exceptions import UnknownPlatform
 from superflore.TempfileManager import TempfileManager
@@ -202,6 +203,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(resolve_dep('p2os_msgs', 'oe'), 'p2os-msgs')
 
     def test_retry_on_exception(self):
+        """Test retry on exception"""
         def callback_basic(must_be_one):
             if must_be_one == 1:
                 return 'Success'
@@ -224,17 +226,29 @@ class TestUtils(unittest.TestCase):
             retry_on_exception(callback_basic, 2)
         # Checks callback can receive multiple params
         self.assertEqual(retry_on_exception(callback_params, 3, 4), 'Success')
-        # Checks it doesn't retry when retries is zero; runs just once
+        # Checks it doesn't retry when max_retries is zero; runs just once
         callback_retries.limit = -1
         with self.assertRaises(Exception):
-            retry_on_exception(callback_retries, 0, retries=0)
+            retry_on_exception(callback_retries, 0, max_retries=0)
         self.assertEqual(callback_retries.limit, 0)
-        # Checks it gets retried 9 times before succeeding at the 10th
+        # Checks it doesn't retry when max_retries is negative; runs just once
+        callback_retries.limit = -1
+        with self.assertRaises(Exception):
+            retry_on_exception(callback_retries, 0, max_retries=-1)
+        self.assertEqual(callback_retries.limit, 0)
+        # Checks it gets retried 2 times before succeeding at the 3rd
         callback_retries.limit = 0
         self.assertEqual(retry_on_exception(
-            callback_retries, 10, retries=10), 10)
-        # Checks it gets retried 10 times before giving up fully
+            callback_retries, 3, max_retries=3), 3)
+        # Checks it gets retried 3 times before giving up fully
         callback_retries.limit = -1
         with self.assertRaises(Exception):
-            retry_on_exception(callback_retries, 11, retries=10)
-        self.assertEqual(callback_retries.limit, 10)
+            retry_on_exception(callback_retries, 4, max_retries=3)
+        self.assertEqual(callback_retries.limit, 3)
+        # Check that when retrying 9 times it'll sleep at least 16 seconds
+        # 0 + 0.125 + 0.25 + 0.5 + 1 + 2 + 4 + 8 + 0.125 = 16 seconds
+        time_before = time.time()
+        with self.assertRaises(Exception):
+            retry_on_exception(callback_basic, 2, max_retries=9)
+        elapsed_time = time.time()-time_before
+        self.assertAlmostEqual(elapsed_time, 16, places=0)
