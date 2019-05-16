@@ -295,11 +295,13 @@ def retry_on_exception(callback, *args, max_retries=5, num_retry=0,
     except Exception as e:
         if num_retry >= max_retries or max_retries < 0 or num_retry < 0:
             if error_msg:
-                err(f'{e} {error_msg} {num_retry}/{max_retries}')
+                err('{0} {1} {2}/{3}'.format(str(e), error_msg,
+                    num_retry, max_retries))
             raise e from None
         if num_retry > 0:
             if retry_msg:
-                warn(f'{e} {retry_msg} {num_retry}/{max_retries}...')
+                warn('{0} {1} {2}/{3}...'.format(str(e), retry_msg,
+                     num_retry, max_retries))
             time.sleep(sleep_secs)
             if num_retry <= 6:
                 sleep_secs *= 2

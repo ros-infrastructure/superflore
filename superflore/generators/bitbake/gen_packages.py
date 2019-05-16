@@ -155,10 +155,10 @@ def _gen_recipe_for_package(
         pkg_recipe.add_depend(tdep)
 
     # parse throught package xml
-    final_error_msg = f'Failed to fetch metadata for package {pkg_name}'
+    error_msg = 'Failed to fetch metadata for package {}'.format(pkg_name)
     pkg_xml = retry_on_exception(ros_pkg.get_package_xml, distro.name,
                                  retry_msg='Could not get package xml!',
-                                 error_msg=final_error_msg)
+                                 error_msg=error_msg)
     pkg_fields = PackageMetadata(pkg_xml)
     pkg_recipe.pkg_xml = pkg_xml
     pkg_recipe.license = pkg_fields.upstream_license
