@@ -23,7 +23,7 @@
 # IN THE SOFTWARE.
 #
 
-from datetime import datetime
+from collections import defaultdict
 import hashlib
 import os.path
 import re
@@ -49,7 +49,7 @@ import yaml
 
 
 class yoctoRecipe(object):
-    rosdep_cache = dict()
+    rosdep_cache = defaultdict(set)
     generated_recipes = dict()
     generated_components = set()
     generated_native_recipes = set()
@@ -310,27 +310,33 @@ class yoctoRecipe(object):
                 info('Internal dependency add: ' + recipe)
                 continue
             try:
-                for res in resolve_dep(dep, 'openembedded', self.distro)[0]:
+                results = resolve_dep(dep, 'openembedded', self.distro)[0]
+                if not results:
+                    yoctoRecipe.rosdep_cache[dep] = []
+                    continue
+                for res in results:
                     recipe = self.convert_to_oe_name(res, is_native)
                     dependencies.add(recipe)
                     system_dependencies.add(self.convert_to_oe_name(res))
-                    yoctoRecipe.rosdep_cache[dep] = res
+                    yoctoRecipe.rosdep_cache[dep].add(res)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
                 info('Unresolved dependency: ' + dep)
                 if dep in yoctoRecipe.rosdep_cache:
-                    cached_dep = yoctoRecipe.rosdep_cache[dep]
-                    if cached_dep == 'null':
+                    cached_deps = yoctoRecipe.rosdep_cache[dep]
+                    if cached_deps == set(['null']):
                         system_dependencies.add(dep)
                         recipe = dep + self.get_native_suffix(is_native)
+                        dependencies.add(recipe)
                         msg = 'Failed to resolve (cached):'
                         warn('{0} {1}: {2}'.format(msg, dep, recipe))
-                    else:
-                        system_dependencies.add(cached_dep)
-                        recipe = self.convert_to_oe_name(cached_dep, is_native)
-                        msg = 'Resolved in OpenEmbedded (cached):'
-                        info('{0} {1}: {2}'.format(msg, dep, recipe))
-                    dependencies.add(recipe)
+                    elif cached_deps:
+                        system_dependencies |= cached_deps
+                        for d in cached_deps:
+                            recipe = self.convert_to_oe_name(d, is_native)
+                            dependencies.add(recipe)
+                            msg = 'Resolved in OpenEmbedded (cached):'
+                            info('{0} {1}: {2}'.format(msg, dep, recipe))
                     continue
                 oe_query = OpenEmbeddedLayersDB()
                 oe_query.query_recipe(self.convert_to_oe_name(dep))
@@ -339,7 +345,7 @@ class yoctoRecipe(object):
                     dependencies.add(recipe)
                     oe_name = self.convert_to_oe_name(oe_query.name)
                     system_dependencies.add(oe_name)
-                    yoctoRecipe.rosdep_cache[dep] = oe_name
+                    yoctoRecipe.rosdep_cache[dep].add(oe_name)
                     info('Resolved in OpenEmbedded: ' + dep + ' as ' +
                          oe_query.name + ' in ' + oe_query.layer +
                          ' as recipe ' + recipe)
@@ -347,7 +353,7 @@ class yoctoRecipe(object):
                     recipe = dep + self.get_native_suffix(is_native)
                     dependencies.add(recipe)
                     system_dependencies.add(dep)
-                    yoctoRecipe.rosdep_cache[dep] = 'null'
+                    yoctoRecipe.rosdep_cache[dep].add('null')
                     warn('Failed to resolve fully: ' + dep)
         return dependencies, system_dependencies
 
@@ -672,8 +678,10 @@ class yoctoRecipe(object):
             with open(rosdep_resolve_path, 'w') as rosdep_resolve_file:
                 rosdep_resolve_file.write(
                     '# {}/rosdep-resolve.yaml\n'.format(distro))
+                cache_as_dict_of_list = {
+                    k: list(v) for k, v in yoctoRecipe.rosdep_cache.items()}
                 rosdep_resolve_file.write(yaml.dump(
-                    yoctoRecipe.rosdep_cache, default_flow_style=False))
+                    cache_as_dict_of_list, default_flow_style=False))
                 ok('Wrote {0}'.format(rosdep_resolve_path))
         except OSError as e:
             err('Failed to write rosdep resolve cache {} to disk! {}'.format(
@@ -752,7 +760,7 @@ class yoctoRecipe(object):
 
     @staticmethod
     def reset():
-        yoctoRecipe.rosdep_cache = dict()
+        yoctoRecipe.rosdep_cache = defaultdict(set)
         yoctoRecipe.generated_recipes = dict()
         yoctoRecipe.generated_components = set()
         yoctoRecipe.generated_native_recipes = set()
