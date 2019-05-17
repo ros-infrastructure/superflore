@@ -28,7 +28,7 @@ from superflore.utils import err
 from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
-from superflore.utils import warn
+from superflore.utils import retry_on_exception
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
@@ -155,11 +155,10 @@ def _gen_recipe_for_package(
         pkg_recipe.add_depend(tdep)
 
     # parse throught package xml
-    try:
-        pkg_xml = ros_pkg.get_package_xml(distro.name)
-    except Exception:
-        warn("fetch metadata for package {}".format(pkg_name))
-        return pkg_recipe
+    error_msg = 'Failed to fetch metadata for package {}'.format(pkg_name)
+    pkg_xml = retry_on_exception(ros_pkg.get_package_xml, distro.name,
+                                 retry_msg='Could not get package xml!',
+                                 error_msg=error_msg)
     pkg_fields = PackageMetadata(pkg_xml)
     pkg_recipe.pkg_xml = pkg_xml
     pkg_recipe.license = pkg_fields.upstream_license
