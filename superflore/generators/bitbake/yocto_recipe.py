@@ -56,7 +56,7 @@ class yoctoRecipe(object):
     generated_test_deps = set()
     generated_non_test_deps = set()
     not_generated_recipes = set()
-    system_deps = set()
+    platform_deps = set()
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
@@ -403,31 +403,31 @@ class yoctoRecipe(object):
         # depends
         deps, sys_deps = self.get_dependencies(
             self.depends, self.depends_external)
-        yoctoRecipe.system_deps |= sys_deps
+        yoctoRecipe.platform_deps |= sys_deps
         buildtool_native_deps, sys_deps = self.get_dependencies(
             self.buildtool_depends,
             self.buildtool_depends_external,
             is_native=True
         )
         native_deps = set(buildtool_native_deps)
-        yoctoRecipe.system_deps |= sys_deps
+        yoctoRecipe.platform_deps |= sys_deps
         export_deps, sys_deps = self.get_dependencies(
             self.export_depends, self.export_depends_external)
-        yoctoRecipe.system_deps |= sys_deps
+        yoctoRecipe.platform_deps |= sys_deps
         buildtool_export_native_deps, sys_deps = self.get_dependencies(
             self.buildtool_export_depends,
             self.buildtool_export_depends_external,
             is_native=True
         )
         native_deps |= buildtool_export_native_deps
-        yoctoRecipe.system_deps |= sys_deps
+        yoctoRecipe.platform_deps |= sys_deps
         yoctoRecipe.generated_native_recipes |= native_deps
         exec_deps, sys_deps = self.get_dependencies(
             self.rdepends, self.rdepends_external)
-        yoctoRecipe.system_deps |= sys_deps
+        yoctoRecipe.platform_deps |= sys_deps
         test_deps, sys_deps = self.get_dependencies(self.tdepends,
                                                     self.tdepends_external)
-        yoctoRecipe.system_deps |= sys_deps
+        yoctoRecipe.platform_deps |= sys_deps
         yoctoRecipe.generated_non_test_deps |= deps | export_deps | \
             native_deps | exec_deps
         yoctoRecipe.generated_test_deps |= test_deps
@@ -446,7 +446,7 @@ class yoctoRecipe(object):
             buildtool_export_native_deps |= ament_cmake_native_deps
             yoctoRecipe.generated_non_test_deps |= ament_cmake_native_deps
             yoctoRecipe.generated_native_recipes |= ament_cmake_native_deps
-            yoctoRecipe.system_deps |= sys_deps
+            yoctoRecipe.platform_deps |= sys_deps
         else:
             ret += yoctoRecipe.generate_multiline_variable(
                 'ROS_EXPORT_DEPENDS', export_deps) + '\n'
@@ -594,8 +594,8 @@ class yoctoRecipe(object):
                         'ROS_SUPERFLORE_GENERATED_BUILDTOOLS',
                         yoctoRecipe.generated_native_recipes) + '\n')
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATED_SYSTEM_PACKAGE_DEPENDENCIES',
-                    yoctoRecipe.system_deps))
+                    'ROS_SUPERFLORE_GENERATED_PLATFORM_PACKAGE_DEPENDENCIES',
+                    yoctoRecipe.platform_deps))
                 conf_file.write(
                     '\n# Packages found only in <test_depend> items. Does not'
                     + ' include those found only in the ROS_*_DEPENDS of '
@@ -767,4 +767,4 @@ class yoctoRecipe(object):
         yoctoRecipe.generated_test_deps = set()
         yoctoRecipe.generated_non_test_deps = set()
         yoctoRecipe.not_generated_recipes = set()
-        yoctoRecipe.system_deps = set()
+        yoctoRecipe.platform_deps = set()
