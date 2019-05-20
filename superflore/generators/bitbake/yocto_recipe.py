@@ -29,9 +29,10 @@ import os.path
 import re
 from subprocess import DEVNULL, PIPE, Popen
 import tarfile
-from time import gmtime, strftime
+from time import gmtime, strftime, strptime
 from urllib.request import urlretrieve
 
+from rosdistro import get_distribution_cache_string, get_index, get_index_url
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.bitbake.oe_query import OpenEmbeddedLayersDB
@@ -497,6 +498,18 @@ class yoctoRecipe(object):
         return ret
 
     @staticmethod
+    def _get_cache_last_modified_time(distro):
+        try:
+            from urllib.request import urlopen
+        except ImportError:
+            from urllib2 import urlopen
+        dist = get_index(get_index_url()).distributions[distro]
+        conn = urlopen(dist['distribution_cache'])
+        last_modified = conn.headers['last-modified']
+        ts = strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
+        return strftime('%Y%m%d%H%M%S', ts)
+
+    @staticmethod
     def _get_ros_version(distro):
         distros = get_distros()
         return 2 if distro not in distros \
@@ -532,7 +545,7 @@ class yoctoRecipe(object):
                 conf_file.write('\n# When superflore was started, in UTC:')
                 conf_file.write(
                     '\nROS_SUPERFLORE_GENERATION_DATETIME = "{0}"\n\n'.format(
-                        datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+                        yoctoRecipe._get_cache_last_modified_time(distro)))
                 oe_skip_keys = map(
                     lambda skip_key: yoctoRecipe.convert_to_oe_name(skip_key),
                     skip_keys
@@ -623,10 +636,7 @@ class yoctoRecipe(object):
         distro_cache_dir = '{0}/files/{1}/'.format(basepath, distro)
         distro_cache_path = '{0}cache.yaml'.format(distro_cache_dir)
         try:
-            from rosdistro import get_index, get_index_url
-            from rosdistro import get_distribution_cache_string
-            index_url = get_index_url()
-            index = get_index(index_url)
+            index = get_index(get_index_url())
             yaml_str = get_distribution_cache_string(index, distro)
             make_dir(distro_cache_dir)
             with open(distro_cache_path, 'w') as distro_cache_file:
