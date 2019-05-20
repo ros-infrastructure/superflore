@@ -12,7 +12,7 @@ install_requires = [
     'setuptools',
     'rosinstall_generator',
     'rosdistro >= 0.7.4',
-    'rosdep',
+    'rosdep >= 0.15.2',
     'gitpython',
     'requests',
     'docker',
