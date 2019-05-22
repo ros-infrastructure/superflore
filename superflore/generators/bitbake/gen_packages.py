@@ -48,13 +48,13 @@ def regenerate_pkg(
     repo_dir = overlay.repo.repo_dir
     component_name = yoctoRecipe.convert_to_oe_name(
         distro.release_packages[pkg].repository_name)
-    recipe_name = yoctoRecipe.convert_to_oe_name(pkg)
+    recipe = yoctoRecipe.convert_to_oe_name(pkg)
     # check for an existing recipe
     glob_pattern = '{0}/generated-recipes-{1}/{2}/{3}*.bb'.format(
         repo_dir,
         distro.name,
         component_name,
-        recipe_name
+        recipe
     )
     existing = glob.glob(glob_pattern)
     if preserve_existing and existing:
@@ -98,7 +98,7 @@ def regenerate_pkg(
         repo_dir,
         distro.name,
         component_name,
-        recipe_name,
+        recipe,
         version
     )
     try:
@@ -106,7 +106,7 @@ def regenerate_pkg(
             ok('Writing recipe {0}'.format(recipe_file_name))
             recipe_file.write(recipe_text)
             yoctoRecipe.generated_components.add(component_name)
-            yoctoRecipe.generated_recipes[recipe_name] = version
+            yoctoRecipe.generated_recipes[recipe] = (version, component_name)
     except Exception:
         err("Failed to write recipe to disk!")
         yoctoRecipe.not_generated_recipes.add(pkg)

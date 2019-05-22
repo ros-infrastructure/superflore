@@ -58,12 +58,15 @@ class yoctoRecipe(object):
     generated_non_test_deps = set()
     not_generated_recipes = set()
     platform_deps = set()
+    max_component_name = 0
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
         tar_dir, md5_cache, sha256_cache, skip_keys
     ):
         self.component = component_name
+        yoctoRecipe.max_component_name = max(
+            yoctoRecipe.max_component_name, len(component_name))
         self.oe_component = yoctoRecipe.convert_to_oe_name(component_name)
         self.num_pkgs = num_pkgs
         self.name = pkg_name
@@ -589,10 +592,12 @@ class yoctoRecipe(object):
                     'ROS_SUPERFLORE_GENERATED_RECIPES',
                     yoctoRecipe.generated_recipes.keys()) + '\n')
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
-                    'ROS_SUPERFLORE_GENERATED_RECIPE_BASENAMES',
-                    [recipe + '_' + version for recipe, version
+                    'ROS_SUPERFLORE_GENERATED_RECIPE_BASENAMES_WITH_COMPONENT',
+                    [(yoctoRecipe.max_component_name - len(component)) * ' '
+                     + component + '/' + recipe + '_' + version
+                     for recipe, (version, component)
                      in yoctoRecipe.generated_recipes.items()],
-                    key=lambda recipe: recipe.split('_')[0]))
+                    key=lambda recipe: recipe.split('/')[1].split('_')[0]))
                 conf_file.write(
                     '\n# What\'s built by packagegroup-ros-world. Does not '
                     + 'include packages that appear solely in '
@@ -784,3 +789,4 @@ class yoctoRecipe(object):
         yoctoRecipe.generated_non_test_deps = set()
         yoctoRecipe.not_generated_recipes = set()
         yoctoRecipe.platform_deps = set()
+        yoctoRecipe.max_component_name = 0
