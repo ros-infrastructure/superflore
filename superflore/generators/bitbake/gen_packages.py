@@ -30,7 +30,6 @@ from superflore.utils import ok
 from superflore.utils import retry_on_exception
 
 org = "Open Source Robotics Foundation"
-org_license = "BSD"
 
 
 def regenerate_pkg(
@@ -195,4 +194,4 @@ class oe_installer(object):
         )
 
     def recipe_text(self):
-        return self.recipe.get_recipe_text(org, org_license)
+        return self.recipe.get_recipe_text(org)
