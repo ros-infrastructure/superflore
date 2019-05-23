@@ -727,9 +727,9 @@ class yoctoRecipe(object):
             raise e
 
     @staticmethod
-    def generate_newer_system_components(basepath, distro):
+    def generate_newer_platform_components(basepath, distro):
         newer_sys_comps_dir = '{0}/files/{1}/'.format(basepath, distro)
-        newer_sys_comps_path = '{0}newer-system-components.txt'.format(
+        newer_sys_comps_path = '{0}newer-platform-components.list'.format(
             newer_sys_comps_dir)
         ros_version = yoctoRecipe._get_ros_version(distro)
         str_distro = 'ros' if ros_version == 1 else 'ros{}'.format(ros_version)
@@ -771,7 +771,7 @@ class yoctoRecipe(object):
                 raise RuntimeError('Error codes ' + ' '.join(errors))
             with open(newer_sys_comps_path, 'w') as newer_sys_comps_file:
                 newer_sys_comps_file.write(
-                    '# {}/newer-system-components.txt\n'.format(distro))
+                    '# {}/newer-platform-components.list\n'.format(distro))
                 newer_sys_comps_file.write(txt_output)
                 ok('Wrote {0}'.format(newer_sys_comps_path))
         except (OSError, RuntimeError) as e:

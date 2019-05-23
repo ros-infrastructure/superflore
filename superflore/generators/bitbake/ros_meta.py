@@ -45,9 +45,9 @@ class RosMeta(object):
             self.repo.git.add('generated-recipes-*')
             self.repo.git.add(
                 'conf/ros-distro/include/*/generated-ros-distro.inc')
-            self.repo.git.add('files/*/cache.yaml')
+            self.repo.git.add('files/*/cache.*')
             self.repo.git.add('files/*/rosdep-resolve.yaml')
-            self.repo.git.add('files/*/newer-system-components.txt')
+            self.repo.git.add('files/*/newer-platform-components.list')
             self.repo.git.add('files/*/superflore-change-summary.txt')
         else:
             commit_msg = 'regenerate ros-{1}, {0}'
@@ -55,10 +55,10 @@ class RosMeta(object):
             self.repo.git.add(
                 'conf/ros-distro/include/{0}/generated-ros-distro.inc'
                 .format(distro))
-            self.repo.git.add('files/{0}/cache.yaml'.format(distro))
+            self.repo.git.add('files/{0}/cache.*'.format(distro))
             self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
             self.repo.git.add(
-                'files/{0}/newer-system-components.txt'.format(distro))
+                'files/{0}/newer-platform-components.list'.format(distro))
             self.repo.git.add(
                 'files/{0}/superflore-change-summary.txt'.format(distro))
         commit_msg = commit_msg.format(time.ctime(), distro)
