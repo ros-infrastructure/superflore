@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import time
 
 from superflore.repo_instance import RepoInstance
@@ -76,6 +77,7 @@ class RosMeta(object):
         self.repo.git.add('-N', 'generated-recipes-*')
         sep = '-' * 5
         return '\n'.join([
-            sep, self.repo.git.status(), sep, self.repo.git.diff('conf'),
-            sep, self.repo.git.diff('files'),
+            sep,
+            re.sub('^On branch.*\n', '', self.repo.git.status(), re.MULTILINE),
+            sep, self.repo.git.diff('conf'), sep, self.repo.git.diff('files'),
         ])
