@@ -25,9 +25,9 @@ class TestOpenEmbeddedQuery(unittest.TestCase):
     def test_sample_queries(self):
         """Test sample queries to OpenEmbedded layers database"""
         oe_query = OpenEmbeddedLayersDB()
-        oe_query.query_recipe(''),
+        oe_query.query_recipe('')
         self.assertEqual(oe_query.exists(), False)
         self.assertIs('', str(oe_query))
-        oe_query.query_recipe('clang'),
+        oe_query.query_recipe('clang')
         self.assertEqual(oe_query.exists(), True)
         self.assertIn('LLVM based C/C++ compiler', str(oe_query))
