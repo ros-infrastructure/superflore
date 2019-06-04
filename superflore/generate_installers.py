@@ -44,7 +44,7 @@ def generate_installers(
         if 'skip_keys' in kwargs and pkg in kwargs['skip_keys']:
             warn("Package '%s' is in skip-keys list, skipping..." % pkg)
             continue
-        version = get_pkg_version(distro, pkg)
+        version = get_pkg_version(distro, pkg, **kwargs)
         percent = '%.1f' % (100 * (float(i) / total))
         try:
             current, current_info = gen_pkg_func(

@@ -20,6 +20,7 @@ from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_pkg
 from superflore.generators.bitbake.ros_meta import RosMeta
+from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
@@ -38,6 +39,7 @@ from superflore.utils import warn
 
 
 def main():
+    os.environ["ROS_OS_OVERRIDE"] = "openembedded"
     overlay = None
     preserve_existing = True
     parser = get_parser('Deploy ROS packages into Yocto Linux')
@@ -48,7 +50,7 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
-    skip_keys = args.skip_keys or []
+    skip_keys = set(args.skip_keys) if args.skip_keys else set()
     selected_targets = None
     if args.pr_only:
         if args.dry_run:
@@ -76,7 +78,7 @@ def main():
         parser.error('Invalid args! --only requires specifying --ros-distro')
     if not selected_targets:
         selected_targets = get_distros_by_status('active')
-    repo_org = 'allenh1'
+    repo_org = 'ros'
     repo_name = 'meta-ros'
     if args.upstream_repo:
         repo_org, repo_name = url_to_repo_org(args.upstream_repo)
@@ -126,6 +128,7 @@ def main():
             CacheManager(sha256_filename) as sha256_cache,\
             CacheManager(md5_filename) as md5_cache:  # noqa
             if args.only:
+                distro = get_distro(args.ros_distro)
                 for pkg in args.only:
                     if pkg in skip_keys:
                         warn("Package '%s' is in skip-keys list, skipping..."
@@ -136,15 +139,26 @@ def main():
                         regenerate_pkg(
                             overlay,
                             pkg,
-                            get_distro(args.ros_distro),
+                            distro,
                             preserve_existing,
                             tar_dir,
                             md5_cache,
-                            sha256_cache
+                            sha256_cache,
+                            skip_keys=skip_keys,
                         )
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
                         sys.exit(1)
+                yoctoRecipe.generate_rosdistro_conf(
+                    _repo, args.ros_distro, overlay.get_file_revision_logs(
+                        'files/{0}/cache.yaml'.format(args.ros_distro)),
+                    distro.release_platforms, skip_keys)
+                yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
+                yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
+                yoctoRecipe.generate_superflore_change_summary(
+                    _repo, args.ros_distro, overlay.get_change_summary())
+                yoctoRecipe.generate_newer_platform_components(
+                    _repo, args.ros_distro)
                 # Commit changes and file pull request
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
@@ -157,23 +171,37 @@ def main():
                 ok('Successfully synchronized repositories!')
                 sys.exit(0)
 
-            for distro in selected_targets:
+            for adistro in selected_targets:
+                yoctoRecipe.reset()
+                distro = get_distro(adistro)
                 distro_installers, distro_broken, distro_changes =\
                     generate_installers(
-                        get_distro(distro),
+                        distro,
                         overlay,
                         regenerate_pkg,
                         preserve_existing,
                         tar_dir,
                         md5_cache,
                         sha256_cache,
+                        skip_keys,
                         skip_keys=skip_keys,
+                        is_oe=True,
                     )
                 for key in distro_broken.keys():
                     for pkg in distro_broken[key]:
                         total_broken.add(pkg)
-                total_changes[distro] = distro_changes
-                total_installers[distro] = distro_installers
+                total_changes[adistro] = distro_changes
+                total_installers[adistro] = distro_installers
+                yoctoRecipe.generate_rosdistro_conf(
+                    _repo, args.ros_distro, overlay.get_file_revision_logs(
+                        'files/{0}/cache.yaml'.format(args.ros_distro)),
+                    distro.release_platforms, skip_keys)
+                yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
+                yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
+                yoctoRecipe.generate_superflore_change_summary(
+                    _repo, args.ros_distro, overlay.get_change_summary())
+                yoctoRecipe.generate_newer_platform_components(
+                    _repo, args.ros_distro)
 
         num_changes = 0
         for distro_name in total_changes:

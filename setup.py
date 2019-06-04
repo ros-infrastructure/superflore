@@ -11,14 +11,16 @@ install_requires = [
     'termcolor',
     'setuptools',
     'rosinstall_generator',
-    'rosdistro',
-    'rosdep',
+    'rosdistro >= 0.7.4',
+    'rosdep >= 0.15.2',
     'gitpython',
     'requests',
     'docker',
     'pyyaml',
     'pygithub',
-    'catkin_pkg >= 0.4.0'
+    'catkin_pkg >= 0.4.0',
+    'bs4',
+    'rospkg >= 1.1.8',
 ]
 
 setup(

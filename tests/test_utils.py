@@ -18,6 +18,7 @@ import sys
 import time
 
 from superflore.exceptions import UnknownPlatform
+from superflore.exceptions import UnresolvedDependency
 from superflore.TempfileManager import TempfileManager
 from superflore.utils import clean_up
 from superflore.utils import gen_delta_msg
@@ -197,10 +198,12 @@ class TestUtils(unittest.TestCase):
             self.assertFalse(os.path.exists('%s/.pr-title.tmp' % tempdir))
 
     def test_resolve_dep_oe(self):
-        """Test resolve dependency with Open Embedded"""
-        # Note(allenh1): we're not going to test the hard-coded resolutions.
-        self.assertEqual(resolve_dep('tinyxml2', 'oe'), 'libtinyxml2')
-        self.assertEqual(resolve_dep('p2os_msgs', 'oe'), 'p2os-msgs')
+        """Test resolve dependency with OpenEmbedded"""
+        self.assertEqual(resolve_dep('tinyxml2', 'openembedded')[0],
+            ['libtinyxml2@meta-oe'])
+        # Note: since p2os_msgs is a ROS package, rosdep resolve will fail
+        with self.assertRaises(UnresolvedDependency):
+            resolved_deps = resolve_dep('p2os_msgs', 'openembedded')
 
     def test_retry_on_exception(self):
         """Test retry on exception"""
