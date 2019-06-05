@@ -51,13 +51,13 @@ def generate_installers(
                 overlay, pkg, distro, preserve_existing, *args
             )
             if not current:
-                if preserve_existing:
-                    # don't replace the installer
-                    succeeded = succeeded + 1
-                    continue
                 if current_info:
                     # we are missing dependencies
                     borkd_pkgs[pkg] = current_info
+                elif preserve_existing:
+                    # don't replace the installer
+                    succeeded += 1
+                    continue
                 failed_msg = "{0}%: Failed to generate".format(percent)
                 failed_msg += " installer for package '%s'!" % pkg
                 err(failed_msg)
@@ -65,7 +65,7 @@ def generate_installers(
                 continue
             success_msg = 'Successfully generated installer for package'
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
-            succeeded = succeeded + 1
+            succeeded += 1
             if current_info:
                 changes.append(
                     '*{0} {1} --> {2}*'.format(
