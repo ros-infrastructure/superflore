@@ -20,6 +20,7 @@ import string
 import sys
 import time
 
+from pkg_resources import DistributionNotFound, get_distribution
 from superflore.exceptions import UnknownPlatform
 from superflore.rosdep_support import get_cached_index, resolve_rosdep_key
 from termcolor import colored
@@ -283,3 +284,11 @@ def retry_on_exception(callback, *args, max_retries=5, num_retry=0,
         return retry_on_exception(callback, *args, max_retries=max_retries,
                                   num_retry=num_retry+1, retry_msg=retry_msg,
                                   error_msg=error_msg, sleep_secs=sleep_secs)
+
+
+def get_superflore_version():
+    try:
+        version = get_distribution("superflore").version
+    except DistributionNotFound:
+        version = 'Unknown'
+    return version
