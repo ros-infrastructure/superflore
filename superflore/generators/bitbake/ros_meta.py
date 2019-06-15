@@ -44,7 +44,7 @@ class RosMeta(object):
             commit_msg = 'regenerate all distros, {0}'
             self.repo.git.add('generated-recipes-*')
             self.repo.git.add(
-                'conf/ros-distro/include/*/generated-ros-distro.inc')
+                'conf/ros-distro/include/*/*.inc')
             self.repo.git.add('files/*/cache.*')
             self.repo.git.add('files/*/rosdep-resolve.yaml')
             self.repo.git.add('files/*/newer-platform-components.list')
@@ -53,7 +53,7 @@ class RosMeta(object):
             commit_msg = 'regenerate ros-{1}, {0}'
             self.repo.git.add('generated-recipes-{0}'.format(distro))
             self.repo.git.add(
-                'conf/ros-distro/include/{0}/generated-ros-distro.inc'
+                'conf/ros-distro/include/{0}/*.inc'
                 .format(distro))
             self.repo.git.add('files/{0}/cache.*'.format(distro))
             self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
