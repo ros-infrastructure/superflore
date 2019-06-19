@@ -41,6 +41,7 @@ from superflore.utils import err
 from superflore.utils import get_distros
 from superflore.utils import get_license
 from superflore.utils import get_pkg_version
+from superflore.utils import get_superflore_version
 from superflore.utils import info
 from superflore.utils import make_dir
 from superflore.utils import ok
@@ -537,7 +538,10 @@ class yoctoRecipe(object):
                     + 'superflore run (which\n# resets it to "0").')
                 conf_file.write(
                     '\nROS_DISTRO_METADATA_VERSION_REVISION = "0"\n')
-                conf_file.write('\nROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
+                conf_file.write(
+                    '\nROS_SUPERFLORE_PROGRAM_VERSION = "{}"\n'
+                    .format(get_superflore_version()))
+                conf_file.write('ROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
                 ros_version = yoctoRecipe._get_ros_version(distro)
                 conf_file.write(
                     '\nROS_DISTRO_TYPE = "ros{}"\n'.format(ros_version))

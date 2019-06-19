@@ -17,6 +17,8 @@ import string
 import sys
 import time
 
+from pkg_resources import parse_version
+from superflore import __version__
 from superflore.exceptions import UnknownPlatform
 from superflore.exceptions import UnresolvedDependency
 from superflore.TempfileManager import TempfileManager
@@ -25,6 +27,7 @@ from superflore.utils import gen_delta_msg
 from superflore.utils import get_license
 from superflore.utils import gen_missing_deps_msg
 from superflore.utils import get_pr_text
+from superflore.utils import get_superflore_version
 from superflore.utils import make_dir
 from superflore.utils import rand_ascii_str
 from superflore.utils import resolve_dep
@@ -255,3 +258,9 @@ class TestUtils(unittest.TestCase):
             retry_on_exception(callback_basic, 2, max_retries=9)
         elapsed_time = time.time()-time_before
         self.assertAlmostEqual(elapsed_time, 16, places=0)
+
+    def test_get_superflore_version(self):
+        """Test get SuperFlore version"""
+        if __version__ != 'unset':
+            self.assertGreaterEqual(parse_version(get_superflore_version()),
+                                    parse_version('0.2.1'))
