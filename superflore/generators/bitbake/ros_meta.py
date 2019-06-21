@@ -17,16 +17,15 @@ import time
 
 from superflore.repo_instance import RepoInstance
 from superflore.utils import info
-from superflore.utils import rand_ascii_str
 
 
 class RosMeta(object):
     def __init__(
-       self, repo_dir, do_clone, org='ros', repo='meta-ros', from_branch=''
+        self, dir, do_clone, branch, org='ros', repo='meta-ros', from_branch=''
     ):
         self.repo = RepoInstance(
-            org, repo, repo_dir, do_clone, from_branch=from_branch)
-        self.branch_name = 'yocto-bot-%s' % rand_ascii_str()
+            org, repo, dir, do_clone, from_branch=from_branch)
+        self.branch_name = branch
         info('Creating new branch {0}...'.format(self.branch_name))
         self.repo.create_branch(self.branch_name)
 
