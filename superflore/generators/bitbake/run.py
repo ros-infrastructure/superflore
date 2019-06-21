@@ -153,7 +153,7 @@ def main():
                         'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_superflore_datetime_inc(
-                    _repo, args.ros_distro)
+                    _repo, args.ros_distro, now)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(
@@ -195,7 +195,7 @@ def main():
                         'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_superflore_datetime_inc(
-                    _repo, args.ros_distro)
+                    _repo, args.ros_distro, now)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(

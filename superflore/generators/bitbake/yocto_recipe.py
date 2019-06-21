@@ -24,7 +24,6 @@
 #
 
 from collections import defaultdict
-from datetime import datetime
 import hashlib
 import os.path
 import re
@@ -507,7 +506,7 @@ class yoctoRecipe(object):
             else int(distros[distro]['distribution_type'][len('ros'):])
 
     @staticmethod
-    def generate_superflore_datetime_inc(basepath, dist):
+    def generate_superflore_datetime_inc(basepath, dist, now):
         datetime_dir = '{}/conf/ros-distro/include/{}/'.format(basepath, dist)
         datetime_file_name = 'generated-superflore-datetime.inc'
         datetime_path = '{}{}'.format(datetime_dir, datetime_file_name)
@@ -528,9 +527,8 @@ class yoctoRecipe(object):
                     + 'date portion is used as\n# the third version field of '
                     + 'ROS_DISTRO_METADATA_VERSION prior to the first release'
                     + ' of a ROS_DISTRO.\n')
-                now = datetime.utcnow().strftime('%Y%m%d%H%M%S')
                 datetime_file.write(
-                    'ROS_SUPERFLORE_GENERATION_DATETIME = "{}"'.format(now))
+                    'ROS_SUPERFLORE_GENERATION_DATETIME = "{}"\n'.format(now))
                 ok('Wrote {0}'.format(datetime_path))
         except OSError as e:
             err('Failed to write SuperFlore datetime {} to disk! {}'.format(
