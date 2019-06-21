@@ -74,6 +74,7 @@ class RosOverlay(object):
             print(dock.log)
             raise
 
-    def pull_request(self, message, overlay=None):
-        pr_title = 'rosdistro sync, {0}'.format(time.ctime())
-        self.repo.pull_request(message, pr_title)
+    def pull_request(self, message, overlay=None, title=''):
+        if not title:
+            title = 'rosdistro sync, {0}'.format(time.ctime())
+        self.repo.pull_request(message, title)
