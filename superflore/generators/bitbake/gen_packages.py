@@ -50,19 +50,23 @@ def regenerate_pkg(
         distro.release_packages[pkg].repository_name)
     recipe = yoctoRecipe.convert_to_oe_name(pkg)
     # check for an existing recipe
-    glob_pattern = '{0}/generated-recipes-{1}/{2}/{3}*.bb'.format(
+    prefix = '{0}/generated-recipes-{1}/{2}/{3}'.format(
         repo_dir,
         distro.name,
         component_name,
-        recipe
+        recipe,
     )
-    existing = glob.glob(glob_pattern)
+    existing = glob.glob('{}*.bb'.format(prefix))
+    previous_version = None
     if preserve_existing and existing:
         ok("recipe for package '%s' up to date, skipping..." % pkg)
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, []
     elif existing:
-        overlay.repo.remove_file(existing[0], True)
+        existing = existing[0]
+        overlay.repo.remove_file(existing, True)
+        idx_version = existing.rfind('_') + len('_')
+        previous_version = existing[idx_version:].rstrip('.bb')
     try:
         current = oe_installer(
             distro, pkg, tar_dir, md5_cache, sha256_cache, skip_keys
@@ -111,7 +115,7 @@ def regenerate_pkg(
         err("Failed to write recipe to disk!")
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, []
-    return current, []
+    return current, previous_version
 
 
 def _gen_recipe_for_package(
