@@ -523,9 +523,9 @@ class yoctoRecipe(object):
                     '# Copyright ' + strftime("%Y", gmtime())
                     + ' Open Source Robotics Foundation\n\n')
                 datetime_file.write(
-                    '# The start time, in UTC, of the last superflore run that'
-                    + ' resulted in a change to the generated files. The date'
-                    + ' portion is used as\n# the second version field of '
+                    '\n# The start time, in UTC, of the last superflore run '
+                    + 'that resulted in a change to the generated files. The '
+                    + 'date portion is used as\n# the third version field of '
                     + 'ROS_DISTRO_METADATA_VERSION prior to the first release'
                     + ' of a ROS_DISTRO.\n')
                 now = datetime.utcnow().strftime('%Y%m%d%H%M%S')
@@ -591,7 +591,7 @@ class yoctoRecipe(object):
                     '# Number of commits that will be returned by'
                     + ' "git log files/ROS_DISTRO-cache.yaml" when the '
                     + 'generated files are committed. This is\n# used for the'
-                    + ' third version field of DISTRO_VERSION.\n')
+                    + ' fourth version field of DISTRO_VERSION.\n')
                 version = 1 if not version else len(version.splitlines()) + 1
                 conf_file.write(
                     'ROS_NUM_CACHE_YAML_COMMITS = "{}"'.format(version)
