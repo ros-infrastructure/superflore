@@ -152,14 +152,17 @@ def main():
                 yoctoRecipe.generate_newer_platform_components(
                     _repo, args.ros_distro)
                 # Commit changes and file pull request
+                title = '{{{0}}} Sync to {0}-cache.yaml as of {1}\n'.format(
+                    args.ros_distro, now)
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 overlay.commit_changes(args.ros_distro)
                 if args.dry_run:
-                    save_pr(overlay, args.only, '', pr_comment)
+                    save_pr(overlay, args.only, '', pr_comment, title=title)
                     sys.exit(0)
                 delta = "Regenerated: '%s'\n" % args.only
-                file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro)
+                file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro,
+                        title=title)
                 ok('Successfully synchronized repositories!')
                 sys.exit(0)
 
@@ -207,13 +210,15 @@ def main():
         # remove duplicates
         delta = gen_delta_msg(total_changes)
         # Commit changes and file pull request
+        title = '{{{0}}} Sync to {0}-cache.yaml as of {1}\n'.format(
+            args.ros_distro, now)
         overlay.commit_changes(args.ros_distro)
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             save_pr(
-                overlay, delta, '', comment=pr_comment
+                overlay, delta, '', pr_comment, title=title,
             )
             sys.exit(0)
-        file_pr(overlay, delta, '', comment=pr_comment)
+        file_pr(overlay, delta, '', comment=pr_comment, title=title)
         clean_up()
         ok('Successfully synchronized repositories!')
