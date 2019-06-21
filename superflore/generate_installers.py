@@ -67,10 +67,10 @@ def generate_installers(
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
             succeeded += 1
             if not current_info:
-                changes.append('*{0} {1}*'.format(pkg, version))
+                changes.append('{0} {1}'.format(pkg, version))
             elif current_info != version:
                 changes.append(
-                    '*{0} {1} --> {2}*'.format(
+                    '{0} {1} --> {2}'.format(
                         pkg, current_info, version
                     )
                 )

@@ -43,14 +43,14 @@ def info(string):  # pragma: no cover
     print(colored('>>>> {0}'.format(string), 'cyan'))
 
 
-def get_pr_text(comment=None):
+def get_pr_text(comment=None, markup='```'):
     msg = ''
     if comment:
         msg += '%s\n' % comment
     msg += 'To reproduce this PR, run the following command.\n\n'
     args = sys.argv
     args[0] = args[0].split('/')[-1]
-    msg += '```\n%s\n```' % ' '.join(args) + '\n'
+    msg += '{1}\n{0}\n{1}\n'.format(' '.join(args), markup)
     return msg
 
 
@@ -225,17 +225,20 @@ def get_distros_by_status(status='active'):
             if t[1].get('distribution_status') == status]
 
 
-def gen_delta_msg(total_changes):
+def gen_delta_msg(total_changes, markup='*'):
     """Return string of changes for the PR message."""
-    delta = "Changes:\n"
-    delta += "========\n"
+    delta = ''
+    is_single_distro = len(total_changes) == 1
+    distro_header = '#'
+    if not is_single_distro:
+        delta += "# Changes:\n"
+        distro_header *= 2
     for distro in sorted(total_changes):
         if not total_changes[distro]:
             continue
-        delta += "%s Changes:\n" % distro.title()
-        delta += "---------------\n"
+        delta += "{} {} Changes:\n".format(distro_header, distro.title())
         for d in sorted(total_changes[distro]):
-            delta += '* {0}\n'.format(d)
+            delta += '* {1}{0}{1}\n'.format(d, markup)
         delta += "\n"
     return delta
 
