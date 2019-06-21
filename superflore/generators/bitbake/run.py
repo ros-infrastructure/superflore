@@ -28,7 +28,6 @@ from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
-from superflore.utils import gen_missing_deps_msg
 from superflore.utils import get_distros_by_status
 from superflore.utils import info
 from superflore.utils import load_pr
@@ -116,7 +115,6 @@ def main():
             )
         # generate installers
         total_installers = dict()
-        total_broken = set()
         total_changes = dict()
         if args.tar_archive_dir:
             sha256_filename = '%s/sha256_cache.pickle' % args.tar_archive_dir
@@ -174,7 +172,7 @@ def main():
             for adistro in selected_targets:
                 yoctoRecipe.reset()
                 distro = get_distro(adistro)
-                distro_installers, distro_broken, distro_changes =\
+                distro_installers, _, distro_changes =\
                     generate_installers(
                         distro,
                         overlay,
@@ -187,9 +185,6 @@ def main():
                         skip_keys=skip_keys,
                         is_oe=True,
                     )
-                for key in distro_broken.keys():
-                    for pkg in distro_broken[key]:
-                        total_broken.add(pkg)
                 total_changes[adistro] = distro_changes
                 total_installers[adistro] = distro_installers
                 yoctoRecipe.generate_rosdistro_conf(
@@ -215,15 +210,14 @@ def main():
 
         # remove duplicates
         delta = gen_delta_msg(total_changes)
-        missing_deps = gen_missing_deps_msg(total_broken)
         # Commit changes and file pull request
         overlay.commit_changes('all' if args.all else args.ros_distro)
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             save_pr(
-                overlay, delta, missing_deps=missing_deps, comment=pr_comment
+                overlay, delta, '', comment=pr_comment
             )
             sys.exit(0)
-        file_pr(overlay, delta, missing_deps, comment=pr_comment)
+        file_pr(overlay, delta, '', comment=pr_comment)
         clean_up()
         ok('Successfully synchronized repositories!')
