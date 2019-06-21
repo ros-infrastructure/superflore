@@ -64,10 +64,13 @@ class RosMeta(object):
         return self.repo.git.log('--oneline', '--', *file_path)
 
     def get_change_summary(self):
-        self.repo.git.add('-N', 'generated-recipes-*')
+        self.repo.git.add('generated-recipes-*')
         sep = '-' * 5
         return '\n'.join([
-            sep,
-            re.sub('^On branch.*\n', '', self.repo.git.status(), re.MULTILINE),
-            sep, self.repo.git.diff('conf'), sep, self.repo.git.diff('files'),
+            sep, self.repo.git.status('--porcelain'), sep,
+            self.repo.git.diff('conf'), sep, self.repo.git.diff(
+                'files/*/cache.diffme',
+                'files/*/newer-platform-components.list',
+                'files/*/rosdep-resolve.yaml'
+            ),
         ])
