@@ -281,6 +281,8 @@ def retry_on_exception(callback, *args, max_retries=5, num_retry=0,
                 sleep_secs *= 2
             else:
                 sleep_secs = 0.125
+        elif num_retry == 0:
+            warn('{0}'.format(str(e)))
         return retry_on_exception(callback, *args, max_retries=max_retries,
                                   num_retry=num_retry+1, retry_msg=retry_msg,
                                   error_msg=error_msg, sleep_secs=sleep_secs)

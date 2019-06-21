@@ -22,6 +22,7 @@ from superflore.exceptions import NoGitHubAuthToken
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
+from superflore.utils import retry_on_exception
 
 
 class RepoInstance(object):
@@ -110,7 +111,11 @@ class RepoInstance(object):
         forked_repo = self.gh_user.create_fork(self.gh_upstream)
         info('Pushing changes to fork...')
         self.git.remote('add', 'github', forked_repo.html_url)
-        self.git.push('-u', 'github', self.branch or 'master')
+        retry_on_exception(
+            self.git.push, '-u', 'github', self.branch or 'master',
+            retry_msg='Could not push', error_msg='Error during push',
+            sleep_secs=0.0,
+        )
         info('Filing pull-request...')
         pr_head = '%s:%s' % (self.gh_user.login, self.branch)
         pr = self.gh_upstream.create_pull(
