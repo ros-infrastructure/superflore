@@ -41,27 +41,17 @@ class RosMeta(object):
 
     def commit_changes(self, distro):
         info('Adding changes...')
-        if distro == 'all':
-            commit_msg = 'regenerate all distros, {0}'
-            self.repo.git.add('generated-recipes-*')
-            self.repo.git.add(
-                'conf/ros-distro/include/*/*.inc')
-            self.repo.git.add('files/*/cache.*')
-            self.repo.git.add('files/*/rosdep-resolve.yaml')
-            self.repo.git.add('files/*/newer-platform-components.list')
-            self.repo.git.add('files/*/superflore-change-summary.txt')
-        else:
-            commit_msg = 'regenerate ros-{1}, {0}'
-            self.repo.git.add('generated-recipes-{0}'.format(distro))
-            self.repo.git.add(
-                'conf/ros-distro/include/{0}/*.inc'
-                .format(distro))
-            self.repo.git.add('files/{0}/cache.*'.format(distro))
-            self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
-            self.repo.git.add(
-                'files/{0}/newer-platform-components.list'.format(distro))
-            self.repo.git.add(
-                'files/{0}/superflore-change-summary.txt'.format(distro))
+        commit_msg = 'regenerate ros-{1}, {0}'
+        self.repo.git.add('generated-recipes-{0}'.format(distro))
+        self.repo.git.add(
+            'conf/ros-distro/include/{0}/*.inc'
+            .format(distro))
+        self.repo.git.add('files/{0}/cache.*'.format(distro))
+        self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
+        self.repo.git.add(
+            'files/{0}/newer-platform-components.list'.format(distro))
+        self.repo.git.add(
+            'files/{0}/superflore-change-summary.txt'.format(distro))
         commit_msg = commit_msg.format(time.ctime(), distro)
         info('Committing to branch {0}...'.format(self.branch_name))
         self.repo.git.commit(m='{0}'.format(commit_msg))

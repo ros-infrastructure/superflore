@@ -16,7 +16,7 @@ import argparse
 
 
 # set up a parser and return it
-def get_parser(tool_tip, is_generator=True):
+def get_parser(tool_tip, is_generator=True, exclude_all=False):
     parser = argparse.ArgumentParser(tool_tip)
     if is_generator:
         parser.add_argument(
@@ -24,11 +24,12 @@ def get_parser(tool_tip, is_generator=True):
             help='regenerate packages for the specified distro',
             type=str
         )
-        parser.add_argument(
-            '--all',
-            help='regenerate all packages in all distros',
-            action="store_true"
-        )
+        if not exclude_all:
+            parser.add_argument(
+                '--all',
+                help='regenerate all packages in all distros',
+                action="store_true"
+            )
         parser.add_argument(
             '--dry-run',
             help='run without filing a PR to remote',

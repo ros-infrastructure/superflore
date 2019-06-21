@@ -42,7 +42,8 @@ def main():
     os.environ["ROS_OS_OVERRIDE"] = "openembedded"
     overlay = None
     preserve_existing = True
-    parser = get_parser('Deploy ROS packages into Yocto Linux')
+    parser = get_parser(
+        'Deploy ROS packages into OpenEmbedded Linux', exclude_all=True)
     parser.add_argument(
         '--tar-archive-dir',
         help='location to store archived packages',
@@ -67,9 +68,6 @@ def main():
             err('Failed to file PR!')
             err('reason: {0}'.format(e))
             sys.exit(1)
-    elif args.all:
-        warn('"All" mode detected... this may take a while!')
-        preserve_existing = False
     elif args.ros_distro:
         warn('"{0}" distro detected...'.format(args.ros_distro))
         selected_targets = [args.ros_distro]
@@ -98,16 +96,16 @@ def main():
         if not args.only:
             pr_comment = pr_comment or (
                 'Superflore yocto generator began regeneration of all '
-                'packages from ROS distribution(s) %s on Meta-ROS from '
+                'packages from ROS distribution %s on Meta-ROS from '
                 'commit %s.' % (
-                    selected_targets,
+                    selected_targets[0],
                     overlay.repo.get_last_hash()
                 )
             )
         else:
             pr_comment = pr_comment or (
                 'Superflore yocto generator began regeneration of '
-                'package(s) %s from ROS distribution(s) %s on Meta-ROS from '
+                'package(s) %s from ROS distribution %s on Meta-ROS from '
                 'commit %s.' % (
                     args.only,
                     args.ros_distro,
@@ -221,7 +219,7 @@ def main():
         delta = gen_delta_msg(total_changes)
         missing_deps = gen_missing_deps_msg(total_broken)
         # Commit changes and file pull request
-        overlay.commit_changes('all' if args.all else args.ros_distro)
+        overlay.commit_changes(args.ros_distro)
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             save_pr(
