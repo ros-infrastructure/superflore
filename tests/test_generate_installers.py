@@ -117,7 +117,7 @@ class TestGenerateInstallers(unittest.TestCase):
 
     def test_changes(self):
         """Tests changes represented by generate installers"""
-        changes_re = '\*(([a-zA-Z]|\_|[0-9])+)\ [0-9]\.[0-9]\.[0-9]("-r"[0-9])?\*'
+        changes_re = '(([a-zA-Z]|\_|[0-9])+)\ [0-9]\.[0-9]\.[0-9]("-r"[0-9])?'
         acc = list()
         inst, broken, changes = generate_installers(
             get_distro('lunar'), None, _create_if_p2os, True, acc
