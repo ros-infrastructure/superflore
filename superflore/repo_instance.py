@@ -35,10 +35,11 @@ class RepoInstance(object):
         self.repo_url = repo_url.format(self.repo_owner, self.repo_name)
         self.repo_dir = repo_dir or self.repo_name
         # by default, start on master.
-        self.branch = from_branch or 'master'
+        self.from_branch = from_branch or 'master'
+        self.branch = self.from_branch
         if do_clone:
             self.repo = Repo.clone_from(
-                self.repo_url, self.repo_dir, branch=self.branch)
+                self.repo_url, self.repo_dir, branch=self.from_branch)
         else:
             self.repo = Repo(repo_dir)
         self.git = self.repo.git
@@ -112,7 +113,7 @@ class RepoInstance(object):
         info('Pushing changes to fork...')
         self.git.remote('add', 'github', forked_repo.html_url)
         retry_on_exception(
-            self.git.push, '-u', 'github', self.branch or 'master',
+            self.git.push, '-u', 'github', self.branch or branch,
             retry_msg='Could not push', error_msg='Error during push',
             sleep_secs=0.0,
         )
@@ -121,7 +122,7 @@ class RepoInstance(object):
         pr = self.gh_upstream.create_pull(
             title=title,
             body=message,
-            base='master',
+            base=self.from_branch or branch,
             head=pr_head
         )
         ok('Successfully filed a pull request.')
