@@ -29,6 +29,7 @@ from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
 from superflore.utils import get_distros_by_status
+from superflore.utils import get_pr_text
 from superflore.utils import get_utcnow_timestamp_str
 from superflore.utils import info
 from superflore.utils import load_pr
@@ -147,20 +148,23 @@ def main():
                     _repo, args.ros_distro, now)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
-                yoctoRecipe.generate_superflore_change_summary(
-                    _repo, args.ros_distro, overlay.get_change_summary())
                 yoctoRecipe.generate_newer_platform_components(
                     _repo, args.ros_distro)
+                yoctoRecipe.generate_superflore_change_summary(
+                    _repo, args.ros_distro, overlay.get_change_summary())
                 # Commit changes and file pull request
                 title = '{{{0}}} Sync to {0}-cache.yaml as of {1}\n'.format(
                     args.ros_distro, now)
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
-                overlay.commit_changes(args.ros_distro)
+                delta = "Regenerated: '%s'\n" % args.only
+                commit_msg = '\n'.join([get_pr_text(
+                    title + '\n' + pr_comment.replace(
+                        '**superflore**', 'superflore'), markup=''), delta])
+                overlay.commit_changes(args.ros_distro, commit_msg)
                 if args.dry_run:
                     save_pr(overlay, args.only, '', pr_comment, title=title)
                     sys.exit(0)
-                delta = "Regenerated: '%s'\n" % args.only
                 file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro,
                         title=title)
                 ok('Successfully synchronized repositories!')
@@ -192,10 +196,10 @@ def main():
                     _repo, args.ros_distro, now)
                 yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
-                yoctoRecipe.generate_superflore_change_summary(
-                    _repo, args.ros_distro, overlay.get_change_summary())
                 yoctoRecipe.generate_newer_platform_components(
                     _repo, args.ros_distro)
+                yoctoRecipe.generate_superflore_change_summary(
+                    _repo, args.ros_distro, overlay.get_change_summary())
 
         num_changes = 0
         for distro_name in total_changes:
@@ -208,11 +212,15 @@ def main():
             sys.exit(0)
 
         # remove duplicates
-        delta = gen_delta_msg(total_changes)
+        delta = gen_delta_msg(total_changes, markup='')
         # Commit changes and file pull request
         title = '{{{0}}} Sync to {0}-cache.yaml as of {1}\n'.format(
             args.ros_distro, now)
-        overlay.commit_changes(args.ros_distro)
+        commit_msg = '\n'.join([get_pr_text(
+            title + '\n' + pr_comment.replace('**superflore**', 'superflore'),
+            markup=''), delta])
+        overlay.commit_changes(args.ros_distro, commit_msg)
+        delta = gen_delta_msg(total_changes)
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             save_pr(
