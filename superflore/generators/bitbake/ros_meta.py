@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
-
 from superflore.repo_instance import RepoInstance
 from superflore.utils import info
 
@@ -37,22 +35,18 @@ class RosMeta(object):
             info('Cleaning up generated-recipes-* directories...')
             self.repo.git.rm('-rf', 'generated-recipes-*')
 
-    def commit_changes(self, distro):
+    def commit_changes(self, distro, commit_msg):
         info('Adding changes...')
-        commit_msg = 'regenerate ros-{1}, {0}'
         self.repo.git.add('generated-recipes-{0}'.format(distro))
-        self.repo.git.add(
-            'conf/ros-distro/include/{0}/*.inc'
-            .format(distro))
+        self.repo.git.add('conf/ros-distro/include/{0}/*.inc'.format(distro))
         self.repo.git.add('files/{0}/cache.*'.format(distro))
         self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
         self.repo.git.add(
             'files/{0}/newer-platform-components.list'.format(distro))
         self.repo.git.add(
             'files/{0}/superflore-change-summary.txt'.format(distro))
-        commit_msg = commit_msg.format(time.ctime(), distro)
         info('Committing to branch {0}...'.format(self.branch_name))
-        self.repo.git.commit(m='{0}'.format(commit_msg))
+        self.repo.git.commit(m=commit_msg)
 
     def pull_request(self, message, distro=None, title=''):
         self.repo.pull_request(message, title, branch=distro)
