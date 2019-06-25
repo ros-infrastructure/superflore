@@ -610,9 +610,14 @@ class yoctoRecipe(object):
                     + 'ROS_SUPERFLORE_GENERATED_BUILDTOOLS\n# (with a -native'
                     + ' suffix) or ROS_SUPERFLORE_GENERATED_TESTS.\n')
                 recipes_set = set(yoctoRecipe.generated_recipes.keys())
+                test_deps = set(map(
+                    lambda test_dep: yoctoRecipe.convert_to_oe_name(test_dep),
+                    yoctoRecipe.generated_test_deps
+                    - yoctoRecipe.generated_non_test_deps
+                ))
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATED_WORLD_PACKAGES', recipes_set
-                    - yoctoRecipe.generated_native_recipes))
+                    - yoctoRecipe.generated_native_recipes - test_deps))
                 conf_file.write(
                     '\n# Packages found in the <buildtool_depend> and '
                     + '<buildtool_export_depend> items, ie, ones for which a '
@@ -630,11 +635,6 @@ class yoctoRecipe(object):
                     '\n# Packages found only in <test_depend> items. Does not'
                     + ' include those found only in the ROS_*_DEPENDS of '
                     + 'recipes of tests.\n')
-                test_deps = map(
-                    lambda test_dep: yoctoRecipe.convert_to_oe_name(test_dep),
-                    yoctoRecipe.generated_test_deps
-                    - yoctoRecipe.generated_non_test_deps
-                )
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_TESTS',
