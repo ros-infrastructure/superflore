@@ -60,7 +60,7 @@ def main():
         try:
             prev_overlay = RepoInstance(args.output_repository_path, False)
             msg, title = load_pr()
-            prev_overlay.pull_request(msg, title)
+            prev_overlay.pull_request(msg, title=title)
             clean_up()
             sys.exit(0)
         except Exception as e:
