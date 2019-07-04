@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import errno
 import os
 import random
@@ -294,3 +295,7 @@ def get_superflore_version():
     except DistributionNotFound:
         version = 'Unknown'
     return version
+
+
+def get_utcnow_timestamp_str():
+    return datetime.utcnow().strftime('%Y%m%d%H%M%S')

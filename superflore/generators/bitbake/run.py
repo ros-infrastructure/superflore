@@ -29,6 +29,7 @@ from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
 from superflore.utils import get_distros_by_status
+from superflore.utils import get_utcnow_timestamp_str
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
@@ -77,6 +78,7 @@ def main():
         parser.error('Invalid args! --only requires specifying --ros-distro')
     if not selected_targets:
         selected_targets = get_distros_by_status('active')
+    now = get_utcnow_timestamp_str()
     repo_org = 'ros'
     repo_name = 'meta-ros'
     if args.upstream_repo:
@@ -90,6 +92,7 @@ def main():
         overlay = RosMeta(
             _repo,
             not args.output_repository_path,
+            branch='superflore/{}'.format(now),
             org=repo_org,
             repo=repo_name,
             from_branch=args.upstream_branch,
