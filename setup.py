@@ -25,16 +25,18 @@ install_requires = [
 
 setup(
     name='superflore',
-    version='0.2.1',
+    version='0.3.0',
     packages=find_packages(exclude=['tests', 'tests.*']),
     author='Hunter L. Allen',
-    author_email='hunter@openrobotics.org',
+    author_email='hunterlallen@protonmail.com',
     url='https://github.com/ros-infrastructure/superflore',
     keywords=['ROS'],
     install_requires=install_requires,
     python_requires='>=3',
     classifiers=['Programming Language :: Python',
-                 'License :: OSI Approved :: Apache Software License'],
+                 'License :: OSI Approved :: Apache Software License',
+                 'License :: OSI Approved :: MIT Software License'
+    ],
     description='Super Bloom',
     license='Apache 2.0',
     test_suite='tests',
