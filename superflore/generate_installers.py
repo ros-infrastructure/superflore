@@ -68,12 +68,12 @@ def generate_installers(
             succeeded += 1
             if current_info:
                 changes.append(
-                    '*{0} {1} --> {2}*'.format(
+                    '{0} {1} --> {2}'.format(
                         pkg, current_info, version
                     )
                 )
             else:
-                changes.append('*{0} {1}*'.format(pkg, version))
+                changes.append('{0} {1}'.format(pkg, version))
             installers.append(pkg)
         except UnknownBuildType as ub:
             err(
