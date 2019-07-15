@@ -35,7 +35,7 @@ setup(
     python_requires='>=3',
     classifiers=['Programming Language :: Python',
                  'License :: OSI Approved :: Apache Software License',
-                 'License :: OSI Approved :: MIT Software License'
+                 'License :: OSI Approved :: MIT License'
     ],
     description='Super Bloom',
     license='Apache 2.0',
