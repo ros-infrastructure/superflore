@@ -186,7 +186,9 @@ def main():
                 total_installers[adistro] = distro_installers
                 yoctoRecipe.generate_ros_distro_inc(
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
-                        'files/{0}/cache.yaml'.format(args.ros_distro)),
+                        'meta-ros{0}-{1}/files/cache.yaml'.format(
+                            yoctoRecipe._get_ros_version(args.ros_distro),
+                            args.ros_distro)),
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_superflore_datetime_inc(
                     _repo, args.ros_distro, now)
@@ -194,7 +196,8 @@ def main():
                 yoctoRecipe.generate_newer_platform_components(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(
-                    _repo, args.ros_distro, overlay.get_change_summary())
+                    _repo, args.ros_distro,
+                    overlay.get_change_summary(args.ros_distro))
 
         num_changes = 0
         for distro_name in total_changes:
@@ -202,7 +205,7 @@ def main():
 
         if num_changes == 0:
             info('ROS distro is up to date.')
-            summary = overlay.get_change_summary()
+            summary = overlay.get_change_summary(args.ros_distro)
             if len(summary) == 0:
                 info('Exiting...')
                 clean_up()

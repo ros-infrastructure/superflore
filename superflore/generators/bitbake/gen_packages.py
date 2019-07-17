@@ -50,8 +50,9 @@ def regenerate_pkg(
         distro.release_packages[pkg].repository_name)
     recipe = yoctoRecipe.convert_to_oe_name(pkg)
     # check for an existing recipe
-    prefix = '{0}/generated-recipes-{1}/{2}/{3}'.format(
+    prefix = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/{4}'.format(
         repo_dir,
+        yoctoRecipe._get_ros_version(distro.name),
         distro.name,
         component_name,
         recipe,
@@ -90,21 +91,24 @@ def regenerate_pkg(
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     make_dir(
-        "{0}/generated-recipes-{1}/{2}".format(
+        "{0}/meta-ros{1}-{2}/generated-recipes/{3}".format(
             repo_dir,
+            yoctoRecipe._get_ros_version(distro.name),
             distro.name,
             component_name
         )
     )
     success_msg = 'Successfully generated recipe for package'
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
-    recipe_file_name = '{0}/generated-recipes-{1}/{2}/{3}_{4}.bb'.format(
-        repo_dir,
-        distro.name,
-        component_name,
-        recipe,
-        version
-    )
+    recipe_file_name = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/' \
+        '{4}_{5}.bb'.format(
+            repo_dir,
+            yoctoRecipe._get_ros_version(distro.name),
+            distro.name,
+            component_name,
+            recipe,
+            version
+        )
     try:
         with open('{0}'.format(recipe_file_name), "w") as recipe_file:
             ok('Writing recipe {0}'.format(recipe_file_name))

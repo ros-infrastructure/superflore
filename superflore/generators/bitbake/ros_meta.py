@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
 from superflore.repo_instance import RepoInstance
 from superflore.utils import info
 
@@ -31,21 +32,30 @@ class RosMeta(object):
     def clean_ros_recipe_dirs(self, distro=None):
         if distro:
             info(
-                'Cleaning up generated-recipes-{} directory...'.format(distro))
-            self.repo.git.rm('-rf', 'generated-recipes-{}'.format(distro))
+                'Cleaning up meta-ros{}-{}/generated-recipes directory...'
+                .format(yoctoRecipe._get_ros_version(distro), distro))
+            self.repo.git.rm('-rf', 'meta-ros{}-{}/generated-recipes'.format(
+                yoctoRecipe._get_ros_version(distro), distro))
         else:
-            info('Cleaning up generated-recipes-* directories...')
-            self.repo.git.rm('-rf', 'generated-recipes-*')
+            info('Cleaning up generated-recipes directories...')
+            self.repo.git.rm('-rf', 'generated-recipes')
 
     def commit_changes(self, distro, commit_msg):
         info('Adding changes...')
-        self.repo.git.add('generated-recipes-{0}'.format(distro))
-        self.repo.git.add('conf/ros-distro/include/{0}/*.inc'.format(distro))
-        self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
-        self.repo.git.add(
-            'files/{0}/newer-platform-components.list'.format(distro))
-        self.repo.git.add(
-            'files/{0}/superflore-change-summary.txt'.format(distro))
+        self.repo.git.add('meta-ros{0}-{1}/generated-recipes'.format(
+            yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add('meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
+                          'generated/*.inc'.format(
+                              yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
+                          'rosdep-resolve.yaml'.format(
+                              yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
+                          'newer-platform-components.list'.format(
+                              yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
+                          'superflore-change-summary.txt'.format(
+                              yoctoRecipe._get_ros_version(distro), distro))
         if self.repo.git.status('--porcelain') == '':
             info('Nothing changed; no commit done')
         else:
@@ -61,13 +71,25 @@ class RosMeta(object):
     def get_file_revision_logs(self, *file_path):
         return self.repo.git.log('--oneline', '--', *file_path)
 
-    def get_change_summary(self):
-        self.repo.git.add('generated-recipes-*')
+    def get_change_summary(self, distro):
+        self.repo.git.add('meta-ros{0}-{1}/generated-recipes'.format(
+            yoctoRecipe._get_ros_version(distro), distro))
         sep = '-' * 5
         return '\n'.join([
-            sep, self.repo.git.status('--porcelain'), sep,
-            self.repo.git.diff('conf'), sep, self.repo.git.diff(
-                'files/*/newer-platform-components.list',
-                'files/*/rosdep-resolve.yaml'
+            sep,
+            self.repo.git.status('--porcelain'),
+            sep,
+            self.repo.git.diff(
+                'meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
+                'generated/*.inc'.format(
+                    yoctoRecipe._get_ros_version(distro), distro)),
+            sep,
+            self.repo.git.diff(
+                'meta-ros{0}-{1}/files/{1}/generated/'
+                'newer-platform-components.list'.format(
+                    yoctoRecipe._get_ros_version(distro), distro),
+                'meta-ros{0}-{1}/files/{1}/generated/'
+                'rosdep-resolve.yaml'.format(
+                    yoctoRecipe._get_ros_version(distro), distro)
             ),
         ]) + '\n'
