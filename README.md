@@ -19,10 +19,12 @@ Dependencies:
 
 Instructions:
 -------------
-Generate an [OAuth token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) for this application.
+To automatically create a pull-request, you need to generate an [OAuth token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) for this application.
 
 After you have created the token, place it in the
 environment variable `SUPERFLORE_GITHUB_TOKEN`.
+
+If you're running it with `--dry-run` enabled, then `SUPERFLORE_GITHUB_TOKEN` isn't needed.
 
 Then install and run the application.
 

@@ -18,7 +18,6 @@ import shutil
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
 from github import Github
-from superflore.exceptions import NoGitHubAuthToken
 from superflore.utils import err
 from superflore.utils import info
 from superflore.utils import ok
@@ -43,19 +42,6 @@ class RepoInstance(object):
         else:
             self.repo = Repo(repo_dir)
         self.git = self.repo.git
-        if 'SUPERFLORE_GITHUB_TOKEN' not in os.environ:
-            raise NoGitHubAuthToken(
-                'Please create an OAuth token for Superflore, and place '
-                'the string in the environment variable '
-                'SUPERFLORE_GITHUB_TOKEN'
-            )
-        self.github = Github(os.environ['SUPERFLORE_GITHUB_TOKEN'])
-        self.gh_user = self.github.get_user()
-        self.gh_upstream = self.github.get_repo(
-            '%s/%s' % (
-                repo_owner, repo_name
-            )
-        )
 
     def clone(self, branch=None):
         shutil.rmtree(self.repo_dir)
@@ -108,6 +94,13 @@ class RepoInstance(object):
 
     def pull_request(self, message, title, branch='master', remote='origin'):
         info('Forking repository if a fork does not exist...')
+        self.github = Github(os.environ['SUPERFLORE_GITHUB_TOKEN'])
+        self.gh_user = self.github.get_user()
+        self.gh_upstream = self.github.get_repo(
+            '%s/%s' % (
+                self.repo_owner, self.repo_name
+            )
+        )
         # TODO(allenh1): Don't fork if you're authorized for repo
         forked_repo = self.gh_user.create_fork(self.gh_upstream)
         info('Pushing changes to fork...')

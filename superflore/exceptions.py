@@ -29,8 +29,10 @@ class NoPkgXml(Exception):
 
 
 class NoGitHubAuthToken(Exception):
-    def __init__(self, message):
-        self.message = message
+    def __init__(self):
+        self.message = 'Please create an OAuth token for Superflore, ' \
+            'and place the string in the environment variable ' \
+            'SUPERFLORE_GITHUB_TOKEN'
 
 
 class UnknownBuildType(Exception):
