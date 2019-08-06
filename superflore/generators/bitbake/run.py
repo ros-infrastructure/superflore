@@ -117,14 +117,10 @@ def main():
         total_installers = dict()
         total_changes = dict()
         if args.tar_archive_dir:
-            sha256_filename = '%s/sha256_cache.pickle' % args.tar_archive_dir
-            md5_filename = '%s/md5_cache.pickle' % args.tar_archive_dir
+            srcrev_filename = '%s/srcrev_cache.pickle' % args.tar_archive_dir
         else:
-            sha256_filename = None
-            md5_filename = None
-        with TempfileManager(args.tar_archive_dir) as tar_dir,\
-            CacheManager(sha256_filename) as sha256_cache,\
-            CacheManager(md5_filename) as md5_cache:  # noqa
+            srcrev_filename = None
+        with CacheManager(srcrev_filename) as srcrev_cache:
             if args.only:
                 distro = get_distro(args.ros_distro)
                 for pkg in args.only:
@@ -139,9 +135,7 @@ def main():
                             pkg,
                             distro,
                             preserve_existing,
-                            tar_dir,
-                            md5_cache,
-                            sha256_cache,
+                            srcrev_cache,
                             skip_keys=skip_keys,
                         )
                     except KeyError:
@@ -175,9 +169,7 @@ def main():
                         overlay,
                         regenerate_pkg,
                         preserve_existing,
-                        tar_dir,
-                        md5_cache,
-                        sha256_cache,
+                        srcrev_cache,
                         skip_keys,
                         skip_keys=skip_keys,
                         is_oe=True,
