@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-import time
-
 from superflore.repo_instance import RepoInstance
 from superflore.utils import info
 
@@ -38,46 +35,33 @@ class RosMeta(object):
             info('Cleaning up generated-recipes-* directories...')
             self.repo.git.rm('-rf', 'generated-recipes-*')
 
-    def commit_changes(self, distro):
+    def commit_changes(self, distro, commit_msg):
         info('Adding changes...')
-        if distro == 'all':
-            commit_msg = 'regenerate all distros, {0}'
-            self.repo.git.add('generated-recipes-*')
-            self.repo.git.add(
-                'conf/ros-distro/include/*/*.inc')
-            self.repo.git.add('files/*/cache.*')
-            self.repo.git.add('files/*/rosdep-resolve.yaml')
-            self.repo.git.add('files/*/newer-platform-components.list')
-            self.repo.git.add('files/*/superflore-change-summary.txt')
-        else:
-            commit_msg = 'regenerate ros-{1}, {0}'
-            self.repo.git.add('generated-recipes-{0}'.format(distro))
-            self.repo.git.add(
-                'conf/ros-distro/include/{0}/*.inc'
-                .format(distro))
-            self.repo.git.add('files/{0}/cache.*'.format(distro))
-            self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
-            self.repo.git.add(
-                'files/{0}/newer-platform-components.list'.format(distro))
-            self.repo.git.add(
-                'files/{0}/superflore-change-summary.txt'.format(distro))
-        commit_msg = commit_msg.format(time.ctime(), distro)
+        self.repo.git.add('generated-recipes-{0}'.format(distro))
+        self.repo.git.add('conf/ros-distro/include/{0}/*.inc'.format(distro))
+        self.repo.git.add('files/{0}/cache.*'.format(distro))
+        self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
+        self.repo.git.add(
+            'files/{0}/newer-platform-components.list'.format(distro))
+        self.repo.git.add(
+            'files/{0}/superflore-change-summary.txt'.format(distro))
         info('Committing to branch {0}...'.format(self.branch_name))
-        self.repo.git.commit(m='{0}'.format(commit_msg))
+        self.repo.git.commit(m=commit_msg)
 
     def pull_request(self, message, distro=None, title=''):
-        if not title:
-            title = 'rosdistro sync, {0}'.format(time.ctime())
         self.repo.pull_request(message, title, branch=distro)
 
     def get_file_revision_logs(self, *file_path):
         return self.repo.git.log('--oneline', '--', *file_path)
 
     def get_change_summary(self):
-        self.repo.git.add('-N', 'generated-recipes-*')
+        self.repo.git.add('generated-recipes-*')
         sep = '-' * 5
         return '\n'.join([
-            sep,
-            re.sub('^On branch.*\n', '', self.repo.git.status(), re.MULTILINE),
-            sep, self.repo.git.diff('conf'), sep, self.repo.git.diff('files'),
+            sep, self.repo.git.status('--porcelain'), sep,
+            self.repo.git.diff('conf'), sep, self.repo.git.diff(
+                'files/*/cache.diffme',
+                'files/*/newer-platform-components.list',
+                'files/*/rosdep-resolve.yaml'
+            ),
         ])

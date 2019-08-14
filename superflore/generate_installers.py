@@ -66,14 +66,14 @@ def generate_installers(
             success_msg = 'Successfully generated installer for package'
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
             succeeded += 1
-            if current_info:
+            if not current_info:
+                changes.append('{0} {1}'.format(pkg, version))
+            elif current_info != version:
                 changes.append(
                     '{0} {1} --> {2}'.format(
                         pkg, current_info, version
                     )
                 )
-            else:
-                changes.append('{0} {1}'.format(pkg, version))
             installers.append(pkg)
         except UnknownBuildType as ub:
             err(

@@ -55,9 +55,10 @@ def get_pr_text(comment=None, markup='```'):
     return msg
 
 
-def save_pr(overlay, delta, missing_deps, comment):
+def save_pr(overlay, delta, missing_deps, comment,
+            title='rosdistro sync, {0}\n'.format(time.ctime())):
     with open('.pr-title.tmp', 'w') as title_file:
-        title_file.write('rosdistro sync, {0}\n'.format(time.ctime()))
+        title_file.write(title)
     with open('.pr-message.tmp', 'w') as pr_msg_file:
         pr_msg_file.write('%s\n' % get_pr_text(comment))
 
@@ -80,10 +81,11 @@ def load_pr():
     return msg, title
 
 
-def file_pr(overlay, delta, missing_deps, comment, distro=None):
+def file_pr(overlay, delta, missing_deps, comment, distro=None, title=''):
     try:
         msg = get_pr_text(comment)
-        overlay.pull_request('%s\n%s\n%s' % (msg, delta, missing_deps), distro)
+        overlay.pull_request('{}\n{}\n{}'.format(msg, delta, missing_deps),
+                             distro, title=title)
     except Exception as e:
         err(
             'Failed to file PR with the %s/%s repo!' % (
