@@ -56,7 +56,7 @@ def regenerate_pkg(
         component_name,
         recipe,
     )
-    existing = glob.glob('{}*.bb'.format(prefix))
+    existing = glob.glob('{}_*.bb'.format(prefix))
     previous_version = None
     if preserve_existing and existing:
         ok("recipe for package '%s' up to date, skipping..." % pkg)
