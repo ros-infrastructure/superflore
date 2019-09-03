@@ -24,31 +24,31 @@ def _gen_package(overlay, pkg, distro, preserve_existing, collector):
     """This is just a stub. We just add to the collector"""
     collector.append(pkg)
     # return new installer, name it.
-    return True, pkg
+    return True, pkg, pkg
 
 
 def _fail_if_p2os(overlay, pkg, distro, preserve_existing, collector):
     """Fail if it's a p2os package"""
     collector.append(pkg)
     if 'p2os' in pkg:
-        return False, True
-    return True, True
+        return False, True, pkg
+    return True, True, pkg
 
 
 def _skip_if_p2os(overlay, pkg, distro, preserve_existing, collector):
     """Skip if it's a p2os package"""
     collector.append(pkg)
     if 'p2os' in pkg:
-        return False, False
-    return True, pkg
+        return False, False, pkg
+    return True, pkg, pkg
 
 
 def _create_if_p2os(overlay, pkg, distro, preserve_existing, collector):
     """Don't if the package is p2os"""
     collector.append(pkg)
     if 'p2os' in pkg:
-        return True, False
-    return True, True
+        return True, False, pkg
+    return True, True, pkg
 
 
 def _raise_exceptions(overlay, pkg, distro, preserve_existing, collector):
@@ -58,7 +58,7 @@ def _raise_exceptions(overlay, pkg, distro, preserve_existing, collector):
         raise UnknownBuildType('b')
     elif 'k' in pkg:
         raise KeyError('k')
-    return True, pkg
+    return True, pkg, pkg
 
 
 class TestGenerateInstallers(unittest.TestCase):

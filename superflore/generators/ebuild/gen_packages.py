@@ -66,7 +66,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     previous_version = None
     if preserve_existing and os.path.isfile(ebuild_name):
         ok("ebuild for package '%s' up to date, skipping..." % pkg)
-        return None, []
+        return None, [], None
     elif existing:
         overlay.repo.remove_file(existing[0])
         previous_version = existing[0].lstrip(prefix).rstrip('.ebuild')
@@ -91,7 +91,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
         unresolved = current.ebuild.get_unresolved()
         for dep in unresolved:
             err(" unresolved: \"{}\"".format(dep))
-        return None, current.ebuild.get_unresolved()
+        return None, current.ebuild.get_unresolved(), None
     except KeyError as ke:
         err("Failed to parse data for package {}!".format(pkg))
         raise ke
@@ -117,7 +117,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     except Exception as e:
         err("Failed to write ebuild/metadata to disk!")
         raise e
-    return current, previous_version
+    return current, previous_version, pkg
 
 
 def _gen_metadata_for_package(

@@ -61,7 +61,7 @@ def regenerate_pkg(
     if preserve_existing and existing:
         ok("recipe for package '%s' up to date, skipping..." % pkg)
         yoctoRecipe.not_generated_recipes.add(pkg)
-        return None, []
+        return None, [], None
     elif existing:
         existing = existing[0]
         overlay.repo.remove_file(existing, True)
@@ -74,21 +74,21 @@ def regenerate_pkg(
     except InvalidPackage as e:
         err('Invalid package: ' + str(e))
         yoctoRecipe.not_generated_recipes.add(pkg)
-        return None, []
+        return None, [], None
     except Exception as e:
         err('Failed generating installer for {}! {}'.format(pkg, str(e)))
         yoctoRecipe.not_generated_recipes.add(pkg)
-        return None, []
+        return None, [], None
     try:
         recipe_text = current.recipe_text()
     except NoPkgXml as nopkg:
         err("Could not fetch pkg! {}".format(str(nopkg)))
         yoctoRecipe.not_generated_recipes.add(pkg)
-        return None, []
+        return None, [], None
     except KeyError as ke:
         err("Failed to parse data for package {}! {}".format(pkg, str(ke)))
         yoctoRecipe.not_generated_recipes.add(pkg)
-        return None, []
+        return None, [], None
     make_dir(
         "{0}/generated-recipes-{1}/{2}".format(
             repo_dir,
@@ -114,8 +114,8 @@ def regenerate_pkg(
     except Exception:
         err("Failed to write recipe to disk!")
         yoctoRecipe.not_generated_recipes.add(pkg)
-        return None, []
-    return current, previous_version
+        return None, [], None
+    return current, previous_version, recipe
 
 
 def _gen_recipe_for_package(
