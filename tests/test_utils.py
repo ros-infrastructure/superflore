@@ -134,10 +134,13 @@ class TestUtils(unittest.TestCase):
         total_changes['hydro'] = ['foo', 'bar']
         total_changes['boxturtle'] = ['baz']
         total_changes['C'] = []
-        expect = '# Changes:\n'\
-                 '## Boxturtle Changes:\n'\
+        expect = 'Changes:\n'\
+                 '========\n'\
+                 'Boxturtle Changes:\n'\
+                 '------------------\n'\
                  '* *baz*\n\n'\
-                 '## Hydro Changes:\n'\
+                 'Hydro Changes:\n'\
+                 '--------------\n'\
                  '* *bar*\n'\
                  '* *foo*\n\n'
         got = gen_delta_msg(total_changes)

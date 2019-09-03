@@ -232,14 +232,18 @@ def gen_delta_msg(total_changes, markup='*'):
     """Return string of changes for the PR message."""
     delta = ''
     is_single_distro = len(total_changes) == 1
-    distro_header = '#'
+    distro_header = '='
     if not is_single_distro:
-        delta += "# Changes:\n"
-        distro_header *= 2
+        delta += "Changes:\n"
+        delta += "========\n"
+        distro_header = '-'
     for distro in sorted(total_changes):
         if not total_changes[distro]:
             continue
-        delta += "{} {} Changes:\n".format(distro_header, distro.title())
+        heading = "{} Changes:\n".format(distro.title())
+        delta += heading
+        delta += distro_header * (len(heading) - 1)
+        delta += "\n"
         for d in sorted(total_changes[distro]):
             delta += '* {1}{0}{1}\n'.format(d, markup)
         delta += "\n"
