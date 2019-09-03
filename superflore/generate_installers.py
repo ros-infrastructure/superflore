@@ -38,8 +38,9 @@ def generate_installers(
     bad_installers = []
     succeeded = 0
     failed = 0
+    what_generating = 'recipe' if kwargs.get('is_oe', False) else 'ebuild'
 
-    info("Generating installers for distro '%s'" % distro_name)
+    info("Generating %ss for distro '%s'" % (what_generating, distro_name))
     for i, pkg in enumerate(sorted(pkg_names[0])):
         if 'skip_keys' in kwargs and pkg in kwargs['skip_keys']:
             warn("Package '%s' is in skip-keys list, skipping..." % pkg)
@@ -47,7 +48,7 @@ def generate_installers(
         version = get_pkg_version(distro, pkg, **kwargs)
         percent = '%.1f' % (100 * (float(i) / total))
         try:
-            current, current_info, pkg_name_for_changes = gen_pkg_func(
+            current, current_info, installer_name = gen_pkg_func(
                 overlay, pkg, distro, preserve_existing, *args
             )
             if not current:
@@ -59,19 +60,20 @@ def generate_installers(
                     succeeded += 1
                     continue
                 failed_msg = "{0}%: Failed to generate".format(percent)
-                failed_msg += " installer for package '%s'!" % pkg
+                failed_msg += " %s for package '%s'!" % (what_generating, pkg)
                 err(failed_msg)
                 failed = failed + 1
                 continue
-            success_msg = 'Successfully generated installer for package'
+            success_msg = 'Successfully generated %s for package' % \
+                what_generating
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
             succeeded += 1
             if not current_info:
-                changes.append('{0} {1}'.format(pkg_name_for_changes, version))
+                changes.append('{0} {1}'.format(installer_name, version))
             elif current_info != version:
                 changes.append(
                     '{0} {1} --> {2}'.format(
-                        pkg_name_for_changes, current_info, version
+                        installer_name, current_info, version
                     )
                 )
             installers.append(pkg)
@@ -83,7 +85,7 @@ def generate_installers(
             )
             failed = failed + 1
         except KeyError:
-            failed_msg = 'Failed to generate installer'
+            failed_msg = 'Failed to generate %s' % what_generating
             err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
             bad_installers.append(pkg)
             failed = failed + 1

@@ -68,7 +68,7 @@ def regenerate_pkg(
         idx_version = existing.rfind('_') + len('_')
         previous_version = existing[idx_version:].rstrip('.bb')
     try:
-        current = oe_installer(
+        current = oe_recipe(
             distro, pkg, tar_dir, md5_cache, sha256_cache, skip_keys
         )
     except InvalidPackage as e:
@@ -76,7 +76,7 @@ def regenerate_pkg(
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     except Exception as e:
-        err('Failed generating installer for {}! {}'.format(pkg, str(e)))
+        err('Failed generating recipe for {}! {}'.format(pkg, str(e)))
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     try:
@@ -96,7 +96,7 @@ def regenerate_pkg(
             component_name
         )
     )
-    success_msg = 'Successfully generated installer for package'
+    success_msg = 'Successfully generated recipe for package'
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
     recipe_file_name = '{0}/generated-recipes-{1}/{2}/{3}_{4}.bb'.format(
         repo_dir,
@@ -180,7 +180,7 @@ def _gen_recipe_for_package(
     return pkg_recipe
 
 
-class oe_installer(object):
+class oe_recipe(object):
     def __init__(
         self, distro, pkg_name, tar_dir, md5_cache, sha256_cache, skip_keys
     ):
