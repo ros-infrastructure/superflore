@@ -147,7 +147,7 @@ def main():
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
                         sys.exit(1)
-                yoctoRecipe.generate_rosdistro_conf(
+                yoctoRecipe.generate_ros_distro_inc(
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
                         'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)
@@ -195,7 +195,7 @@ def main():
                     )
                 total_changes[adistro] = distro_changes
                 total_installers[adistro] = distro_installers
-                yoctoRecipe.generate_rosdistro_conf(
+                yoctoRecipe.generate_ros_distro_inc(
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
                         'files/{0}/cache.yaml'.format(args.ros_distro)),
                     distro.release_platforms, skip_keys)

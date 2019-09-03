@@ -35,7 +35,6 @@ from urllib.request import urlretrieve
 from rosdistro import get_distribution_cache_string, get_index, get_index_url
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
-from superflore.generators.bitbake.oe_query import OpenEmbeddedLayersDB
 from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
 from superflore.utils import get_distros
@@ -46,11 +45,17 @@ from superflore.utils import info
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import resolve_dep
-from superflore.utils import warn
 import yaml
+
+UNRESOLVED_PLATFORM_PKG_PREFIX = 'ROS_UNRESOLVED_PLATFORM_PKG_'
+UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX = '${'+UNRESOLVED_PLATFORM_PKG_PREFIX
 
 
 class yoctoRecipe(object):
+    """
+    This is used to generate rosdep-resolved.yaml => don't call
+    convert_to_oe_name() on what's added.
+    """
     rosdep_cache = defaultdict(set)
     generated_recipes = dict()
     generated_components = set()
@@ -148,9 +153,9 @@ class yoctoRecipe(object):
 
     def downloadArchive(self):
         if os.path.exists(self.getArchiveName()):
-            info("using cached archive for package '%s'..." % self.name)
+            info("Using cached archive for package '%s'..." % self.name)
         else:
-            info("downloading archive version for package '%s' from %s..." %
+            info("Downloading archive version for package '%s' from %s..." %
                  (self.name, self.src_uri))
             urlretrieve(self.src_uri, self.getArchiveName())
 
@@ -245,8 +250,15 @@ class yoctoRecipe(object):
         return self.trim_hyphens(l.translate(conversion_table))
 
     @staticmethod
-    def get_native_suffix(is_native=False):
-        return '-native' if is_native else ''
+    def modify_name_if_native(dep, is_native):
+        """
+        If the name is for an unresolved platform package, move the "-native"
+        inside the "}" so that it's part of the variable name.
+        """
+        if dep.startswith(UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX):
+            return dep[0:-len('}')] + ('-native}' if is_native else '}')
+        else:
+            return dep + ('-native' if is_native else '')
 
     @staticmethod
     def get_spacing_prefix():
@@ -286,12 +298,17 @@ class yoctoRecipe(object):
             dep = dep[:-len('_dev')] + '-rosdev'
         elif dep in ('ros1', 'ros2'):
             dep += '--distro-renamed'
-        return cls.convert_dep_except_oe_vars(dep) \
-            + cls.get_native_suffix(is_native)
+        return cls.modify_name_if_native(
+            cls.convert_dep_except_oe_vars(dep),
+            is_native)
 
     @classmethod
     def generate_multiline_variable(cls, var, container, sort=True, key=None):
         if sort:
+            """
+            TODO(herb-kuta-lge): Have default <key> drop trailing '}' so that
+            "${..._foo-native}" sorts after "${..._foo}".
+            """
             container = sorted(container, key=key)
         assignment = '{0} = "'.format(var)
         expression = '"\n'
@@ -326,40 +343,16 @@ class yoctoRecipe(object):
                     yoctoRecipe.rosdep_cache[dep].add(res)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
-                info('Unresolved dependency: ' + dep)
-                if dep in yoctoRecipe.rosdep_cache:
-                    cached_deps = yoctoRecipe.rosdep_cache[dep]
-                    if cached_deps == set(['null']):
-                        system_dependencies.add(dep)
-                        recipe = dep + self.get_native_suffix(is_native)
-                        dependencies.add(recipe)
-                        msg = 'Failed to resolve (cached):'
-                        warn('{0} {1}: {2}'.format(msg, dep, recipe))
-                    elif cached_deps:
-                        system_dependencies |= cached_deps
-                        for d in cached_deps:
-                            recipe = self.convert_to_oe_name(d, is_native)
-                            dependencies.add(recipe)
-                            msg = 'Resolved in OpenEmbedded (cached):'
-                            info('{0} {1}: {2}'.format(msg, dep, recipe))
-                    continue
-                oe_query = OpenEmbeddedLayersDB()
-                oe_query.query_recipe(self.convert_to_oe_name(dep))
-                if oe_query.exists():
-                    recipe = self.convert_to_oe_name(oe_query.name, is_native)
-                    dependencies.add(recipe)
-                    oe_name = self.convert_to_oe_name(oe_query.name)
-                    system_dependencies.add(oe_name)
-                    yoctoRecipe.rosdep_cache[dep].add(oe_name)
-                    info('Resolved in OpenEmbedded: ' + dep + ' as ' +
-                         oe_query.name + ' in ' + oe_query.layer +
-                         ' as recipe ' + recipe)
-                else:
-                    recipe = dep + self.get_native_suffix(is_native)
-                    dependencies.add(recipe)
-                    system_dependencies.add(dep)
-                    yoctoRecipe.rosdep_cache[dep].add('null')
-                    warn('Failed to resolve fully: ' + dep)
+                unresolved_name = UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX\
+                    + dep + '}'
+                recipe = self.convert_to_oe_name(unresolved_name, is_native)
+                dependencies.add(recipe)
+                system_dependencies.add(recipe)
+                # Never add -native.
+                rosdep_name = self.convert_to_oe_name(unresolved_name, False)
+                yoctoRecipe.rosdep_cache[dep].add(rosdep_name)
+                info('Unresolved external dependency add: ' + recipe)
+
         return dependencies, system_dependencies
 
     def get_recipe_text(self, distributor):
@@ -534,7 +527,7 @@ class yoctoRecipe(object):
             raise e
 
     @staticmethod
-    def generate_rosdistro_conf(
+    def generate_ros_distro_inc(
             basepath, distro, version, platforms, skip_keys=[]):
         conf_dir = '{}/conf/ros-distro/include/{}/'.format(basepath, distro)
         conf_file_name = 'generated-ros-distro.inc'
@@ -651,6 +644,28 @@ class yoctoRecipe(object):
                     yoctoRecipe.generate_multiline_variable(
                         'ROS_SUPERFLORE_GENERATED_RECIPES_FOR_COMPONENTS',
                         yoctoRecipe.generated_components))
+                conf_file.write(
+                    '\n# Platform packages without a OE-RECIPE@OE-LAYER'
+                    + ' mapping in base.yaml, python.yaml, or ruby.yaml. Until'
+                    + ' they are added, override\n# the settings in'
+                    + ' ros-distro.inc .\n')
+                """
+                Drop trailing "}" so that "..._foo-native" sorts after
+                "..._foo".
+                """
+                unresolved = [p[0:-1] for p in yoctoRecipe.platform_deps
+                              if p.startswith(
+                                UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX)]
+                for p in sorted(unresolved):
+                    """
+                    PN is last underscore-separated field. NB the trailing '}'
+                    has already been removed.
+                    """
+                    pn = p.split('_')[-1]
+                    conf_file.write(
+                        UNRESOLVED_PLATFORM_PKG_PREFIX + pn + ' = "UNRESOLVED-'
+                        + pn + '"\n')
+
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))

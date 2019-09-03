@@ -19,7 +19,6 @@ install_requires = [
     'pyyaml',
     'pygithub',
     'catkin_pkg >= 0.4.0',
-    'bs4',
     'rospkg >= 1.1.8',
 ]
 
