@@ -147,20 +147,10 @@ def main():
                     except KeyError:
                         err("No package to satisfy key '%s'" % pkg)
                         sys.exit(1)
-                yoctoRecipe.generate_ros_distro_inc(
-                    _repo, args.ros_distro, overlay.get_file_revision_logs(
-                        'files/{0}/cache.yaml'.format(args.ros_distro)),
-                    distro.release_platforms, skip_keys)
-                yoctoRecipe.generate_superflore_datetime_inc(
-                    _repo, args.ros_distro, now)
-                yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
-                yoctoRecipe.generate_newer_platform_components(
-                    _repo, args.ros_distro)
-                yoctoRecipe.generate_superflore_change_summary(
-                    _repo, args.ros_distro, overlay.get_change_summary())
                 # Commit changes and file pull request
-                title = '{{{0}}} Sync to {0}-cache.yaml as of {1}\n'.format(
-                    args.ros_distro, now)
+                title =\
+                    '{{{0}}} Selected recipes generated from '\
+                    '{0}-cache.yaml as of {1}\n'.format(args.ros_distro, now)
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 delta = "Regenerated: '%s'\n" % args.only
