@@ -236,8 +236,7 @@ class yoctoRecipe(object):
         return ret
 
     def get_bottom_inherit_line(self):
-        ret = 'inherit ${ROS_COMPONENT_TYPE}_component\n'
-        ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
+        ret = 'inherit ros_${ROS_BUILD_TYPE}\n'
         return ret
 
     def trim_hyphens(self, s):
@@ -469,8 +468,6 @@ class yoctoRecipe(object):
         ret += 'SRC_URI[sha256sum] = "' + self.src_sha256 + '"\n'
         ret += 'S = "${WORKDIR}/'
         ret += self.get_src_location() + '"\n\n'
-        ret += 'ROS_COMPONENT_TYPE = "${@ros_distro__get_component_type(\''
-        ret += self.oe_component + '\', d)}"\n'
         ret += 'ROS_BUILD_TYPE = "' + self.build_type + '"\n'
         # Inherits
         ret += '\n' + self.get_bottom_inherit_line()
