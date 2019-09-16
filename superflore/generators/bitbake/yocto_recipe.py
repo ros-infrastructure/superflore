@@ -520,11 +520,11 @@ class yoctoRecipe(object):
                     '\n#\n# Copyright ' + strftime("%Y", gmtime())
                     + ' Open Source Robotics Foundation\n\n')
                 datetime_file.write(
-                    '\n# The start time, in UTC, of the last superflore run '
-                    + 'that resulted in a change to the generated files. The '
-                    + 'date portion is used as\n# the third version field of '
-                    + 'ROS_DISTRO_METADATA_VERSION prior to the first release'
-                    + ' of a ROS_DISTRO.\n')
+                    '\n# The time, in UTC, associated with the last superflore'
+                    + ' run that resulted in a change to the generated files.'
+                    + ' The date portion is\n# used as the third version field'
+                    + ' of ROS_DISTRO_METADATA_VERSION prior to the first'
+                    + ' release of a ROS_DISTRO.\n')
                 datetime_file.write(
                     'ROS_SUPERFLORE_GENERATION_DATETIME = "{}"\n'.format(now))
                 ok('Wrote {0}'.format(datetime_path))

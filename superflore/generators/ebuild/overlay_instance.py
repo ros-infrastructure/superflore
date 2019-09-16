@@ -43,7 +43,10 @@ class RosOverlay(object):
             commit_msg = 'regenerate ros-{1}, {0}'
         else:
             commit_msg = 'rosdistro sync, {0}'
-        commit_msg = commit_msg.format(time.ctime(), distro)
+        timestamp = os.getenv(
+            'SUPERFLORE_GENERATION_DATETIME',
+            time.ctime())
+        commit_msg = commit_msg.format(timestamp, distro)
         self.repo.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(
@@ -76,5 +79,8 @@ class RosOverlay(object):
 
     def pull_request(self, message, overlay=None, title=''):
         if not title:
-            title = 'rosdistro sync, {0}'.format(time.ctime())
+            timestamp = os.getenv(
+                'SUPERFLORE_GENERATION_DATETIME',
+                time.ctime())
+            title = 'rosdistro sync, {0}'.format(timestamp)
         self.repo.pull_request(message, title)
