@@ -209,9 +209,14 @@ def main():
 
         if num_changes == 0:
             info('ROS distro is up to date.')
-            info('Exiting...')
-            clean_up()
-            sys.exit(0)
+            summary = overlay.get_change_summary()
+            if len(summary) == 0:
+                info('Exiting...')
+                clean_up()
+                sys.exit(0)
+            else:
+                info('But there are some changes in other regenerated files:'
+                     '%s' % summary)
 
         # remove duplicates
         delta = gen_delta_msg(total_changes, markup='')
