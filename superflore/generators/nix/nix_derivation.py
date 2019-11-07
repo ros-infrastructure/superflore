@@ -22,6 +22,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
+import os
+import urllib.parse
 from operator import attrgetter
 from textwrap import dedent
 from time import gmtime, strftime
@@ -32,11 +34,12 @@ from superflore.utils import get_license
 
 class NixLicense:
     """
-    Generates
+    Converts a ROS license to the correct Nix license attribute.
     """
 
     _LICENSE_MAP = {
         'Apache-2.0': 'asl20',
+        'ASL 2.0': 'asl20',
         'BSD': 'bsdOriginal',
         'BSD-2': 'bsd2',
         'LGPL-2': 'lgpl2',
@@ -72,9 +75,11 @@ class NixLicense:
 
 
 class NixDerivation:
-    def __init__(self, name: str, version: str, src_uri: str, src_sha256: str,
+    def __init__(self, name: str, version: str,
+                 src_url: str, src_sha256: str,
                  description: str, licenses: Iterable[NixLicense],
                  distro_name: str,
+                 build_type: str,
                  build_inputs: Iterable[str] = tuple(),
                  propagated_build_inputs: Iterable[str] = tuple(),
                  check_inputs: Iterable[str] = tuple(),
@@ -83,12 +88,16 @@ class NixDerivation:
                  ) -> None:
         self.name = name
         self.version = version
-        self.src_uri = src_uri
+        self.src_url = src_url
         self.src_sha256 = src_sha256
+        # fetchurl's naming logic cannot account for URL parameters
+        self.src_name = os.path.basename(
+            urllib.parse.urlparse(self.src_url).path)
 
         self.description = description
         self.licenses = licenses
         self.distro_name = distro_name
+        self.build_type = build_type
 
         self.build_inputs = set(build_inputs)
         self.propagated_build_inputs = set(propagated_build_inputs)
@@ -130,19 +139,24 @@ class NixDerivation:
 
         ret += dedent('''
         buildRosPackage {{
-          pname = "ros-{}-{}";
-          version = "{}";
+          pname = "ros-{distro_name}-{name}";
+          version = "{version}";
 
           src = fetchurl {{
-            url = {};
-            sha256 = "{}";
+            url = "{src_url}";
+            name = "{src_name}";
+            sha256 = "{src_sha256}";
           }};
 
+          buildType = "{build_type}";
         ''').format(
-            self.distro_name, self.name,
-            self.version,
-            self.src_uri,
-            self.src_sha256)
+            distro_name=self.distro_name,
+            name=self.name,
+            version=self.version,
+            src_url=self.src_url,
+            src_name=self.src_name,
+            src_sha256=self.src_sha256,
+            build_type=self.build_type)
 
         if self.build_inputs:
             ret += "  buildInputs = {};\n" \
