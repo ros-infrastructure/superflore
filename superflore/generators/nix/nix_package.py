@@ -79,25 +79,28 @@ class NixPackage:
                                           distro.name))
 
         buildtool_deps = dep_walker.get_depends(pkg.name, "buildtool")
+        buildtool_export_deps = dep_walker.get_depends(pkg.name, "buildtool_export")
         build_deps = dep_walker.get_depends(pkg.name, "build")
-        run_deps = dep_walker.get_depends(pkg.name, "run")
+        build_export_deps = dep_walker.get_depends(pkg.name, "build_export")
+        exec_deps = dep_walker.get_depends(pkg.name, "exec")
         test_deps = dep_walker.get_depends(pkg.name, "test")
 
         self.unresolved_dependencies = set()
 
         build_inputs = self._resolve_dependencies(build_deps)
-        propagated_build_inputs = self._resolve_dependencies(run_deps)
+        propagated_build_inputs = self._resolve_dependencies(exec_deps | buildtool_export_deps | build_export_deps)
         check_inputs = self._resolve_dependencies(test_deps)
         native_build_inputs = self._resolve_dependencies(buildtool_deps)
 
         self._derivation = NixDerivation(
             name=normalized_name,
             version=version,
-            src_uri=src_uri,
+            src_url=src_uri,
             src_sha256=src_sha256,
             description=metadata.description,
             licenses=map(NixLicense, metadata.upstream_license),
             distro_name=distro.name,
+            build_type=metadata.build_type,
             build_inputs=build_inputs,
             propagated_build_inputs=propagated_build_inputs,
             check_inputs=check_inputs,
