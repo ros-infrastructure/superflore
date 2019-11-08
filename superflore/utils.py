@@ -731,7 +731,10 @@ def get_distro_condition_context(distro_name: str) -> Dict[str, str]:
     """
     index = get_cached_index()
     distro = index.distributions[distro_name]
-    context = {'ROS_DISTRO': distro_name}
+    context = {
+        'ROS_DISTRO': distro_name,
+        'ROS_PYTHON_VERSION': distro['python_version']
+    }
     if distro['distribution_type'] == 'ros1':
         context['ROS_VERSION'] = '1'
     elif distro['distribution_type'] == 'ros2':
