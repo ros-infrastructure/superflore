@@ -37,7 +37,7 @@ Gentoo Usage:
 ```
 $ superflore-gen-ebuilds --help
 usage: Deploy ROS packages into Gentoo Linux [-h] [--ros-distro ROS_DISTRO]
-                                             [--all] [--dry-run] [--pr-only]
+                                             [--all] [--dry-run] [--pr-only] [--no-branch]
                                              [--output-repository-path OUTPUT_REPOSITORY_PATH]
                                              [--only ONLY [ONLY ...]]
 
@@ -48,6 +48,7 @@ optional arguments:
   --all                 regenerate all packages in all distros
   --dry-run             run without filing a PR to remote
   --pr-only             ONLY file a PR to remote
+  --no-branch           Do not create a new branch automatically
   --output-repository-path OUTPUT_REPOSITORY_PATH
                         location of the Git repo
   --only ONLY [ONLY ...]
@@ -140,7 +141,7 @@ should be followed to generate the OpenEmbedded recipes for `meta-ros`.
 $ superflore-gen-oe-recipes --help
 usage: Deploy ROS packages into OpenEmbedded Linux [-h]
                                                    [--ros-distro ROS_DISTRO]
-                                                   [--dry-run] [--pr-only]
+                                                   [--dry-run] [--pr-only] [--no-branch]
                                                    [--output-repository-path OUTPUT_REPOSITORY_PATH]
                                                    [--only ONLY [ONLY ...]]
                                                    [--pr-comment PR_COMMENT]
@@ -155,6 +156,7 @@ optional arguments:
                         regenerate packages for the specified distro
   --dry-run             run without filing a PR to remote
   --pr-only             ONLY file a PR to remote
+  --no-branch           Do not create a new branch automatically
   --output-repository-path OUTPUT_REPOSITORY_PATH
                         location of the Git repo
   --only ONLY [ONLY ...]

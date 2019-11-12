@@ -93,7 +93,8 @@ def main():
         overlay = RosMeta(
             _repo,
             not args.output_repository_path,
-            branch='superflore/{}'.format(now),
+            branch=(('superflore/{}'.format(now)) if not args.no_branch
+                    else None),
             org=repo_org,
             repo=repo_name,
             from_branch=args.upstream_branch,
