@@ -64,4 +64,4 @@ class RosMeta(object):
                 'files/*/newer-platform-components.list',
                 'files/*/rosdep-resolve.yaml'
             ),
-        ])
+        ]) + '\n'
