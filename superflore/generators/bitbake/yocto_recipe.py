@@ -322,7 +322,7 @@ class yoctoRecipe(object):
                 for res in results:
                     recipe = self.convert_to_oe_name(res, is_native)
                     dependencies.add(recipe)
-                    system_dependencies.add(self.convert_to_oe_name(res))
+                    system_dependencies.add(recipe)
                     yoctoRecipe.rosdep_cache[dep].add(res)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
