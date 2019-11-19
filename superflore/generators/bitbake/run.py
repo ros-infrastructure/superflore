@@ -77,7 +77,9 @@ def main():
         parser.error('Invalid args! --only requires specifying --ros-distro')
     if not selected_targets:
         selected_targets = get_distros_by_status('active')
-    now = get_utcnow_timestamp_str()
+    now = os.getenv(
+        'SUPERFLORE_GENERATION_DATETIME',
+        get_utcnow_timestamp_str())
     repo_org = 'ros'
     repo_name = 'meta-ros'
     if args.upstream_repo:
