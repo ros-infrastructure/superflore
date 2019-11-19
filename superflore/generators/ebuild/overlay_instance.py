@@ -36,18 +36,21 @@ class RosOverlay(object):
     def commit_changes(self, distro):
         info('Adding changes...')
         self.repo.git.add(self.repo.repo_dir)
-        info('Committing to branch {0}...'.format(self.branch_name))
-        if distro == 'all':
-            commit_msg = 'regenerate all distros, {0}'
-        elif distro:
-            commit_msg = 'regenerate ros-{1}, {0}'
+        if self.repo.git.status('--porcelain') == '':
+            info('Nothing changed; no commit done')
         else:
-            commit_msg = 'rosdistro sync, {0}'
-        timestamp = os.getenv(
-            'SUPERFLORE_GENERATION_DATETIME',
-            time.ctime())
-        commit_msg = commit_msg.format(timestamp, distro)
-        self.repo.git.commit(m='{0}'.format(commit_msg))
+            info('Committing to branch {0}...'.format(self.branch_name))
+            if distro == 'all':
+                commit_msg = 'regenerate all distros, {0}'
+            elif distro:
+                commit_msg = 'regenerate ros-{1}, {0}'
+            else:
+                commit_msg = 'rosdistro sync, {0}'
+            timestamp = os.getenv(
+                'SUPERFLORE_GENERATION_DATETIME',
+                time.ctime())
+            commit_msg = commit_msg.format(timestamp, distro)
+            self.repo.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(
         self, regen_dict, image_owner='allenh1', image_name='ros_gentoo_base'

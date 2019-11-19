@@ -45,8 +45,11 @@ class RosMeta(object):
             'files/{0}/newer-platform-components.list'.format(distro))
         self.repo.git.add(
             'files/{0}/superflore-change-summary.txt'.format(distro))
-        info('Committing to branch {0}...'.format(self.branch_name))
-        self.repo.git.commit(m=commit_msg)
+        if self.repo.git.status('--porcelain') == '':
+            info('Nothing changed; no commit done')
+        else:
+            info('Committing to branch {0}...'.format(self.branch_name))
+            self.repo.git.commit(m=commit_msg)
 
     def pull_request(self, message, distro=None, title=''):
         self.repo.pull_request(message, title, branch=distro)
