@@ -116,6 +116,9 @@ def main():
                     overlay.repo.get_last_hash()
                 )
             )
+            missing_depends = list()
+            to_commit = list()
+            will_file_pr = False
             for pkg in args.only:
                 if pkg in skip_keys:
                     warn("Package '%s' is in skip-keys list, skipping..."
@@ -123,27 +126,37 @@ def main():
                     continue
                 info("Regenerating package '%s'..." % pkg)
                 try:
-                    regenerate_pkg(
+                    ebuild, deps = regenerate_pkg(
                         overlay,
                         pkg,
                         get_distro(args.ros_distro),
                         preserve_existing
                     )
+                    missing_depends.append(missing_depends)
                 except KeyError:
                     err("No package to satisfy key '%s'" % pkg)
-                    sys.exit(1)
+                    continue
+                if ebuild:
+                    to_commit.append(pkg)
+                    will_file_pr = True
+            # if no packages succeeded, exit with error
+            if not will_file_pr:
+                err("No packages generated successfully, exiting.")
+                sys.exit(1)
             # Commit changes and file pull request
             regen_dict = dict()
-            regen_dict[args.ros_distro] = args.only
+            regen_dict[args.ros_distro] = to_commit
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
             if args.dry_run:
                 save_pr(
-                    overlay, args.only, missing_deps=None, comment=pr_comment
+                    overlay,args.only,
+                    missing_deps=missing_depends,
+                    comment=pr_comment
                 )
                 sys.exit(0)
             delta = "Regenerated: '%s'\n" % args.only
-            file_pr(overlay, delta, '', pr_comment)
+            file_pr(overlay, delta, missing_depends, pr_comment)
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
