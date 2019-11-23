@@ -150,7 +150,8 @@ def main():
             overlay.commit_changes(args.ros_distro)
             if args.dry_run:
                 save_pr(
-                    overlay,args.only,
+                    overlay,
+                    args.only,
                     missing_deps=missing_depends,
                     comment=pr_comment
                 )
