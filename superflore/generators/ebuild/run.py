@@ -85,6 +85,7 @@ def main():
             org=repo_org,
             repo=repo_name,
             from_branch=args.upstream_branch,
+            new_branch=(not args.no_branch),
         )
         if not preserve_existing and not args.only:
             pr_comment = pr_comment or (

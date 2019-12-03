@@ -24,14 +24,18 @@ from superflore.utils import rand_ascii_str
 
 class RosOverlay(object):
     def __init__(
-        self, repo_dir, do_clone, org='ros', repo='ros-overlay', from_branch=''
+        self, repo_dir, do_clone, org='ros', repo='ros-overlay',
+        from_branch='', new_branch=True
     ):
         self.repo = RepoInstance(
             org, repo, repo_dir=repo_dir, do_clone=do_clone,
             from_branch=from_branch)
-        self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
-        info('Creating new branch {0}...'.format(self.branch_name))
-        self.repo.create_branch(self.branch_name)
+        if new_branch:
+            self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
+            info('Creating new branch {0}...'.format(self.branch_name))
+            self.repo.create_branch(self.branch_name)
+        else:
+            self.branch_name = None
 
     def commit_changes(self, distro):
         info('Adding changes...')
@@ -39,7 +43,10 @@ class RosOverlay(object):
         if self.repo.git.status('--porcelain') == '':
             info('Nothing changed; no commit done')
         else:
-            info('Committing to branch {0}...'.format(self.branch_name))
+            if self.branch_name:
+                info('Committing to branch {0}...'.format(self.branch_name))
+            else:
+                info('Committing to current branch')
             if distro == 'all':
                 commit_msg = 'regenerate all distros, {0}'
             elif distro:

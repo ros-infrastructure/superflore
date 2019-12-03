@@ -18,13 +18,15 @@ from superflore.utils import info
 
 class RosMeta(object):
     def __init__(
-        self, dir, do_clone, branch, org='ros', repo='meta-ros', from_branch=''
+        self, dir, do_clone, branch, org='ros', repo='meta-ros',
+        from_branch='', branch_name=''
     ):
         self.repo = RepoInstance(
             org, repo, dir, do_clone, from_branch=from_branch)
         self.branch_name = branch
-        info('Creating new branch {0}...'.format(self.branch_name))
-        self.repo.create_branch(self.branch_name)
+        if branch:
+            info('Creating new branch {0}...'.format(self.branch_name))
+            self.repo.create_branch(self.branch_name)
 
     def clean_ros_recipe_dirs(self, distro=None):
         if distro:
@@ -48,7 +50,10 @@ class RosMeta(object):
         if self.repo.git.status('--porcelain') == '':
             info('Nothing changed; no commit done')
         else:
-            info('Committing to branch {0}...'.format(self.branch_name))
+            if self.branch_name:
+                info('Committing to branch {0}...'.format(self.branch_name))
+            else:
+                info('Committing to current branch')
             self.repo.git.commit(m=commit_msg)
 
     def pull_request(self, message, distro=None, title=''):

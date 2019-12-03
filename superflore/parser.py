@@ -41,6 +41,11 @@ def get_parser(tool_tip, is_generator=True, exclude_all=False):
             action='store_true'
         )
         parser.add_argument(
+            '--no-branch',
+            help='Do not create a new branch automatically',
+            action='store_true'
+        )
+        parser.add_argument(
             '--output-repository-path',
             help='location of the Git repo',
             type=str
