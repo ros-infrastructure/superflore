@@ -47,7 +47,7 @@ def generate_installers(
         version = get_pkg_version(distro, pkg, **kwargs)
         percent = '%.1f' % (100 * (float(i) / total))
         try:
-            current, current_info = gen_pkg_func(
+            current, current_info, pkg_name_for_changes = gen_pkg_func(
                 overlay, pkg, distro, preserve_existing, *args
             )
             if not current:
@@ -67,11 +67,11 @@ def generate_installers(
             ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
             succeeded += 1
             if not current_info:
-                changes.append('{0} {1}'.format(pkg, version))
+                changes.append('{0} {1}'.format(pkg_name_for_changes, version))
             elif current_info != version:
                 changes.append(
                     '{0} {1} --> {2}'.format(
-                        pkg, current_info, version
+                        pkg_name_for_changes, current_info, version
                     )
                 )
             installers.append(pkg)
