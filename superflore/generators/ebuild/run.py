@@ -16,6 +16,7 @@ import os
 import sys
 
 from rosinstall_generator.distro import get_distro
+from superflore.exceptions import NoGitHubAuthToken
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
@@ -44,6 +45,9 @@ def main():
     pr_comment = args.pr_comment
     skip_keys = args.skip_keys or []
     selected_targets = None
+    if not args.dry_run:
+        if 'SUPERFLORE_GITHUB_TOKEN' not in os.environ:
+            raise NoGitHubAuthToken()
     if args.pr_only:
         if args.dry_run:
             parser.error('Invalid args! cannot dry-run and file PR')
