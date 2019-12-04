@@ -153,7 +153,6 @@ def main():
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_superflore_datetime_inc(
                     _repo, args.ros_distro, now)
-                yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_newer_platform_components(
                     _repo, args.ros_distro)
@@ -201,7 +200,6 @@ def main():
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_superflore_datetime_inc(
                     _repo, args.ros_distro, now)
-                yoctoRecipe.generate_distro_cache(_repo, args.ros_distro)
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
                 yoctoRecipe.generate_newer_platform_components(
                     _repo, args.ros_distro)

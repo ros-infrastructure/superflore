@@ -41,7 +41,6 @@ class RosMeta(object):
         info('Adding changes...')
         self.repo.git.add('generated-recipes-{0}'.format(distro))
         self.repo.git.add('conf/ros-distro/include/{0}/*.inc'.format(distro))
-        self.repo.git.add('files/{0}/cache.*'.format(distro))
         self.repo.git.add('files/{0}/rosdep-resolve.yaml'.format(distro))
         self.repo.git.add(
             'files/{0}/newer-platform-components.list'.format(distro))
@@ -68,7 +67,6 @@ class RosMeta(object):
         return '\n'.join([
             sep, self.repo.git.status('--porcelain'), sep,
             self.repo.git.diff('conf'), sep, self.repo.git.diff(
-                'files/*/cache.diffme',
                 'files/*/newer-platform-components.list',
                 'files/*/rosdep-resolve.yaml'
             ),

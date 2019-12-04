@@ -32,7 +32,6 @@ import tarfile
 from time import gmtime, strftime
 from urllib.request import urlretrieve
 
-from rosdistro import get_distribution_cache_string, get_index, get_index_url
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 from superflore.PackageMetadata import PackageMetadata
@@ -669,53 +668,6 @@ class yoctoRecipe(object):
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
             err('Failed to write conf {} to disk! {}'.format(conf_path, e))
-            raise e
-
-    @staticmethod
-    def generate_distro_cache(basepath, distro, skip_keys=[]):
-        distro_cache_dir = '{0}/files/{1}/'.format(basepath, distro)
-        distro_cache_path = '{0}cache.yaml'.format(distro_cache_dir)
-        try:
-            index = get_index(get_index_url())
-            yaml_str = get_distribution_cache_string(index, distro)
-            make_dir(distro_cache_dir)
-            with open(distro_cache_path, 'w') as distro_cache_file:
-                distro_cache_file.write('# {}/cache.yaml\n'.format(distro))
-                distro_cache_file.write(yaml_str)
-                ok('Wrote {0}'.format(distro_cache_path))
-        except OSError as e:
-            err('Failed to write distro cache {} to disk! {}'.format(
-                distro_cache_path, e))
-            raise e
-        # Generate a diff'able cache file
-        distro_cache_diff_path = '{}cache.diffme'.format(distro_cache_dir)
-        try:
-            def replace_all_patterns(d, text):
-                for k, v in d.items():
-                    text = re.sub(k, v, text, flags=re.M)
-                return text
-            replacement_table = {
-                r"{([^ }][^ }]*)}": r'[[\1]]',
-                r"{": r"{\n",
-                r"}": r"\n}",
-                r"\[\[": r"{",
-                r"\]\]": r"}",
-                r", ": r",\n",
-                r"^    ": r"-----\n",
-                r"<version>[^<]*</version>": r"",
-                r"><": r">\n<",
-                r"^  ": r"-----\n",
-                r"^(source_repo_package_xmls:)": r"-----\n\1",
-            }
-            with open(distro_cache_diff_path, 'w') as distro_cache_diff_file:
-                distro_cache_diff_file.write(
-                    '# {}/cache.diffme\n'.format(distro))
-                yaml_str = replace_all_patterns(replacement_table, yaml_str)
-                distro_cache_diff_file.write(yaml_str)
-                ok('Wrote {0}'.format(distro_cache_diff_path))
-        except OSError as e:
-            err('Failed to write diffme distro cache {} to disk! {}'.format(
-                distro_cache_diff_path, e))
             raise e
 
     @staticmethod
