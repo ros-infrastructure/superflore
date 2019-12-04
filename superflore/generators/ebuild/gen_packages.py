@@ -75,12 +75,12 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
         )
         overlay.repo.remove_file(manifest_file)
     try:
-        current = gentoo_installer(distro, pkg, has_patches)
+        current = gentoo_ebuild(distro, pkg, has_patches)
         current.ebuild.name = pkg
         current.ebuild.patches = patches
         current.ebuild.is_ros2 = is_ros2
     except Exception as e:
-        err('Failed to generate installer for package {}!'.format(pkg))
+        err('Failed to generate ebuild for package {}!'.format(pkg))
         raise e
     try:
         ebuild_text = current.ebuild_text()
@@ -98,7 +98,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     make_dir(
         "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro.name, pkg)
     )
-    success_msg = 'Successfully generated installer for package'
+    success_msg = 'Successfully generated ebuild for package'
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
 
     try:
@@ -189,7 +189,7 @@ def _gen_ebuild_for_package(
     return pkg_ebuild
 
 
-class gentoo_installer(object):
+class gentoo_ebuild(object):
     def __init__(self, distro, pkg_name, has_patches=False):
         pkg = distro.release_packages[pkg_name]
         repo = distro.repositories[pkg.repository_name].release_repository
