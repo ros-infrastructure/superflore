@@ -117,14 +117,10 @@ def main():
         total_installers = dict()
         total_changes = dict()
         if args.tar_archive_dir:
-            sha256_filename = '%s/sha256_cache.pickle' % args.tar_archive_dir
-            md5_filename = '%s/md5_cache.pickle' % args.tar_archive_dir
+            srcrev_filename = '%s/srcrev_cache.pickle' % args.tar_archive_dir
         else:
-            sha256_filename = None
-            md5_filename = None
-        with TempfileManager(args.tar_archive_dir) as tar_dir,\
-            CacheManager(sha256_filename) as sha256_cache,\
-            CacheManager(md5_filename) as md5_cache:  # noqa
+            srcrev_filename = None
+        with CacheManager(srcrev_filename) as srcrev_cache:
             if args.only:
                 distro = get_distro(args.ros_distro)
                 for pkg in args.only:
@@ -139,9 +135,7 @@ def main():
                             pkg,
                             distro,
                             preserve_existing,
-                            tar_dir,
-                            md5_cache,
-                            sha256_cache,
+                            srcrev_cache,
                             skip_keys=skip_keys,
                         )
                     except KeyError:
@@ -175,9 +169,7 @@ def main():
                         overlay,
                         regenerate_pkg,
                         preserve_existing,
-                        tar_dir,
-                        md5_cache,
-                        sha256_cache,
+                        srcrev_cache,
                         skip_keys,
                         skip_keys=skip_keys,
                         is_oe=True,
@@ -186,7 +178,9 @@ def main():
                 total_installers[adistro] = distro_installers
                 yoctoRecipe.generate_ros_distro_inc(
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
-                        'files/{0}/cache.yaml'.format(args.ros_distro)),
+                        'meta-ros{0}-{1}/files/cache.yaml'.format(
+                            yoctoRecipe._get_ros_version(args.ros_distro),
+                            args.ros_distro)),
                     distro.release_platforms, skip_keys)
                 yoctoRecipe.generate_superflore_datetime_inc(
                     _repo, args.ros_distro, now)
@@ -194,7 +188,8 @@ def main():
                 yoctoRecipe.generate_newer_platform_components(
                     _repo, args.ros_distro)
                 yoctoRecipe.generate_superflore_change_summary(
-                    _repo, args.ros_distro, overlay.get_change_summary())
+                    _repo, args.ros_distro,
+                    overlay.get_change_summary(args.ros_distro))
 
         num_changes = 0
         for distro_name in total_changes:
@@ -202,7 +197,7 @@ def main():
 
         if num_changes == 0:
             info('ROS distro is up to date.')
-            summary = overlay.get_change_summary()
+            summary = overlay.get_change_summary(args.ros_distro)
             if len(summary) == 0:
                 info('Exiting...')
                 clean_up()

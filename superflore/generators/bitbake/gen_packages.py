@@ -33,7 +33,7 @@ org = "Open Source Robotics Foundation"
 
 
 def regenerate_pkg(
-    overlay, pkg, distro, preserve_existing, tar_dir, md5_cache, sha256_cache,
+    overlay, pkg, distro, preserve_existing, srcrev_cache,
     skip_keys
 ):
     pkg_names = get_package_names(distro)[0]
@@ -50,8 +50,9 @@ def regenerate_pkg(
         distro.release_packages[pkg].repository_name)
     recipe = yoctoRecipe.convert_to_oe_name(pkg)
     # check for an existing recipe
-    prefix = '{0}/generated-recipes-{1}/{2}/{3}'.format(
+    prefix = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/{4}'.format(
         repo_dir,
+        yoctoRecipe._get_ros_version(distro.name),
         distro.name,
         component_name,
         recipe,
@@ -69,7 +70,7 @@ def regenerate_pkg(
         previous_version = existing[idx_version:].rstrip('.bb')
     try:
         current = oe_recipe(
-            distro, pkg, tar_dir, md5_cache, sha256_cache, skip_keys
+            distro, pkg, srcrev_cache, skip_keys
         )
     except InvalidPackage as e:
         err('Invalid package: ' + str(e))
@@ -90,21 +91,24 @@ def regenerate_pkg(
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     make_dir(
-        "{0}/generated-recipes-{1}/{2}".format(
+        "{0}/meta-ros{1}-{2}/generated-recipes/{3}".format(
             repo_dir,
+            yoctoRecipe._get_ros_version(distro.name),
             distro.name,
             component_name
         )
     )
     success_msg = 'Successfully generated recipe for package'
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
-    recipe_file_name = '{0}/generated-recipes-{1}/{2}/{3}_{4}.bb'.format(
-        repo_dir,
-        distro.name,
-        component_name,
-        recipe,
-        version
-    )
+    recipe_file_name = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/' \
+        '{4}_{5}.bb'.format(
+            repo_dir,
+            yoctoRecipe._get_ros_version(distro.name),
+            distro.name,
+            component_name,
+            recipe,
+            version
+        )
     try:
         with open('{0}'.format(recipe_file_name), "w") as recipe_file:
             ok('Writing recipe {0}'.format(recipe_file_name))
@@ -120,7 +124,7 @@ def regenerate_pkg(
 
 def _gen_recipe_for_package(
     distro, pkg_name, pkg, repo, ros_pkg,
-    pkg_rosinstall, tar_dir, md5_cache, sha256_cache, skip_keys
+    pkg_rosinstall, srcrev_cache, skip_keys
 ):
     pkg_names = get_package_names(distro)
     pkg_dep_walker = DependencyWalker(distro,
@@ -148,9 +152,7 @@ def _gen_recipe_for_package(
         pkg_xml,
         distro,
         src_uri,
-        tar_dir,
-        md5_cache,
-        sha256_cache,
+        srcrev_cache,
         skip_keys,
     )
     # add build dependencies
@@ -182,7 +184,7 @@ def _gen_recipe_for_package(
 
 class oe_recipe(object):
     def __init__(
-        self, distro, pkg_name, tar_dir, md5_cache, sha256_cache, skip_keys
+        self, distro, pkg_name, srcrev_cache, skip_keys
     ):
         pkg = distro.release_packages[pkg_name]
         repo = distro.repositories[pkg.repository_name].release_repository
@@ -194,7 +196,7 @@ class oe_recipe(object):
 
         self.recipe = _gen_recipe_for_package(
             distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall,
-            tar_dir, md5_cache, sha256_cache, skip_keys
+            srcrev_cache, skip_keys
         )
 
     def recipe_text(self):

@@ -25,12 +25,9 @@
 
 from collections import defaultdict
 import hashlib
-import os.path
 import re
 from subprocess import DEVNULL, PIPE, Popen
-import tarfile
 from time import gmtime, strftime
-from urllib.request import urlretrieve
 
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
@@ -67,7 +64,7 @@ class yoctoRecipe(object):
 
     def __init__(
         self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
-        tar_dir, md5_cache, sha256_cache, skip_keys
+        srcrev_cache, skip_keys
     ):
         self.component = component_name
         yoctoRecipe.max_component_name = max(
@@ -113,27 +110,12 @@ class yoctoRecipe(object):
         self.tdepends = set()
         self.tdepends_external = set()
         self.license_line = None
-        self.archive_name = None
         self.license_md5 = None
-        self.tar_dir = tar_dir
-        if self.getArchiveName() not in md5_cache or \
-           self.getArchiveName() not in sha256_cache:
-            self.downloadArchive()
-            md5_cache[self.getArchiveName()] = hashlib.md5(
-                open(self.getArchiveName(), 'rb').read()).hexdigest()
-            sha256_cache[self.getArchiveName()] = hashlib.sha256(
-                open(self.getArchiveName(), 'rb').read()).hexdigest()
-        self.src_sha256 = sha256_cache[self.getArchiveName()]
-        self.src_md5 = md5_cache[self.getArchiveName()]
+        if self.src_uri not in srcrev_cache:
+            srcrev_cache[self.src_uri] = self.get_srcrev()
+        self.srcrev = srcrev_cache[self.src_uri]
         self.skip_keys = skip_keys
         self.multi_hyphen_re = re.compile('-{2,}')
-
-    def getArchiveName(self):
-        if not self.archive_name:
-            self.archive_name = self.tar_dir + "/" \
-                + self.name.replace('-', '_') + '-' + str(self.version) \
-                + '-' + self.distro + '.tar.gz'
-        return self.archive_name
 
     def get_license_line(self):
         self.license_line = ''
@@ -150,18 +132,70 @@ class yoctoRecipe(object):
                 self.license_md5 = md5.hexdigest()
                 break
 
-    def downloadArchive(self):
-        if os.path.exists(self.getArchiveName()):
-            info("Using cached archive for package '%s'..." % self.name)
-        else:
-            info("Downloading archive version for package '%s' from %s..." %
-                 (self.name, self.src_uri))
-            urlretrieve(self.src_uri, self.getArchiveName())
+    def get_repo_src_uri(self):
+        """
+        Parse out the git repository SRC_URI out of github archive, e.g.
+        github.com/ros2-gbp/ament_lint-release
+        from
+        https://github.com/ros2-gbp/ament_lint-release/archive/release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
+        don't include the protocol, because bitbake git fetcher will use
+        git://...;protocol=https
+        while get_srcrev will need
+        https://...
+        """
+        github_start = 'https://github.com/'
+        structure = self.src_uri.replace(github_start, '')
+        dirs = structure.split('/')
+        return "github.com/%s/%s" % (dirs[0], dirs[1])
 
-    def extractArchive(self):
-        tar = tarfile.open(self.getArchiveName(), "r:gz")
-        tar.extractall()
-        tar.close()
+    def get_repo_branch_name(self):
+        """
+        Parse out the git branch name out of github archive SRC_URI, e.g.
+        release/bouncy/ament_cmake_copyright
+        from
+        https://github.com/ros2-gbp/ament_lint-release/archive/release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
+        """
+        github_start = 'https://github.com/'
+        structure = self.src_uri.replace(github_start, '')
+        dirs = structure.split('/')
+        return '{0}/{1}/{2}'.format(
+            dirs[3], dirs[4], dirs[5]).replace('.tar.gz', '')
+
+    def get_repo_tag_name(self):
+        """
+        Parse out the git tag name out of github archive SRC_URI, e.g.
+        release/bouncy/ament_cmake_copyright/0.5.2-0
+        from
+        https://github.com/ros2-gbp/ament_lint-release/archive/release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
+        """
+        github_start = 'https://github.com/'
+        structure = self.src_uri.replace(github_start, '')
+        dirs = structure.split('/')
+        return '{0}/{1}/{2}/{3}'.format(
+            dirs[3], dirs[4], dirs[5], dirs[6]).replace('.tar.gz', '')
+
+    def get_srcrev(self):
+        # e.g. git ls-remote https://github.com/ros2-gbp/ament_lint-release \
+        #                    release/bouncy/ament_cmake_copyright/0.5.2-0
+        # 48bf1aa1cb083a884fbc8520ced00523255aeaed \
+        #     refs/tags/release/bouncy/ament_cmake_copyright/0.5.2-0
+        # from https://github.com/ros2-gbp/ament_lint-release/archive/ \
+        #     release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
+        from git.cmd import Git
+
+        g = Git()
+        for ref in g.execute(["git",
+                              "ls-remote",
+                              "https://%s" % self.get_repo_src_uri(),
+                              "refs/tags/%s" % self.get_repo_tag_name()
+                              ]).split('\n'):
+            srcrev, tag = ref.split('\t')
+            if tag == "refs/tags/%s" % self.get_repo_tag_name():
+                return srcrev
+        err("Cannot map refs/tags/%s to srcrev in https://%s repository with "
+            "git ls-remote" % (self.get_repo_tag_name(),
+                               self.get_repo_src_uri()))
+        return "INVALID"
 
     def add_build_depend(self, bdepend, internal=True):
         if bdepend not in self.skip_keys:
@@ -217,27 +251,13 @@ class yoctoRecipe(object):
                 if tdepend not in self.tdepends:
                     self.tdepends_external.add(tdepend)
 
-    def get_src_location(self):
-        """
-        Parse out the folder name.
-        TODO(allenh1): add a case for non-GitHub packages,
-        after they are supported.
-        """
-        github_start = 'https://github.com/'
-        structure = self.src_uri.replace(github_start, '')
-        dirs = structure.split('/')
-        return '{0}-{1}-{2}-{3}-{4}'.format(dirs[1], dirs[3],
-                                            dirs[4], dirs[5],
-                                            dirs[6]).replace('.tar.gz', '')
-
     def get_top_inherit_line(self):
-        ret = 'inherit ros_distro_${ROS_DISTRO}\n'
+        ret = 'inherit ros_distro_{0}\n'.format(self.distro)
         ret += 'inherit ros_superflore_generated\n\n'
         return ret
 
     def get_bottom_inherit_line(self):
-        ret = 'inherit ${ROS_COMPONENT_TYPE}_component\n'
-        ret += 'inherit ros_${ROS_BUILD_TYPE}\n'
+        ret = 'inherit ros_${ROS_BUILD_TYPE}\n'
         return ret
 
     def trim_hyphens(self, s):
@@ -463,30 +483,13 @@ class yoctoRecipe(object):
         ret += '${ROS_BUILDTOOL_EXPORT_DEPENDS}"\n\n'
         ret += 'RDEPENDS_${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
         # SRC_URI
-        ret += 'SRC_URI = "' + self.src_uri + ';'
-        ret += 'downloadfilename=${ROS_SP}.tar.gz"\n'
-        ret += 'SRC_URI[md5sum] = "' + self.src_md5 + '"\n'
-        ret += 'SRC_URI[sha256sum] = "' + self.src_sha256 + '"\n'
-        ret += 'S = "${WORKDIR}/'
-        ret += self.get_src_location() + '"\n\n'
-        ret += 'ROS_COMPONENT_TYPE = "${@ros_distro__get_component_type(\''
-        ret += self.oe_component + '\', d)}"\n'
+        ret += '# matches with: ' + self.src_uri + '\n'
+        ret += 'ROS_BRANCH ?= "branch=' + self.get_repo_branch_name() + '"\n'
+        ret += 'SRC_URI = "git://' + self.get_repo_src_uri() + \
+            ';${ROS_BRANCH};protocol=https"\n'
+        ret += 'SRCREV = "' + self.srcrev + '"\n'
+        ret += 'S = "${WORKDIR}/git"\n\n'
         ret += 'ROS_BUILD_TYPE = "' + self.build_type + '"\n'
-        # include
-        ret += '\n# Allow the above settings to be overridden.\n'
-        ret += 'ROS_INCLUDES_TREE := '
-        ret += '"${@ros_superflore_generated__get_includes_tree(\''
-        ret += self.oe_component + '\', d)}"\n'
-        inc_prefix = 'include ${ROS_LAYERDIR}/'
-        component_path = '/' + self.oe_component + '/' + self.oe_component
-        inc_suffix = '_common.inc\n'
-        ret += inc_prefix + '${ROS_INCLUDES_TREE}' + component_path + \
-            inc_suffix
-        ret += inc_prefix + '${ROS_INCLUDES_TREE}' + \
-            component_path + '-${PV}' + inc_suffix
-        path_prefix = inc_prefix + '${ROS_INCLUDES_TREE}/' + self.oe_component
-        ret += path_prefix + '/${BPN}.inc\n'
-        ret += path_prefix + '/${BPN}-${PV}.inc\n'
         # Inherits
         ret += '\n' + self.get_bottom_inherit_line()
         return ret
@@ -499,8 +502,10 @@ class yoctoRecipe(object):
 
     @staticmethod
     def generate_superflore_datetime_inc(basepath, dist, now):
-        datetime_dir = '{}/conf/ros-distro/include/{}/'.format(basepath, dist)
-        datetime_file_name = 'generated-superflore-datetime.inc'
+        datetime_dir = '{0}/meta-ros{1}-{2}/conf/ros-distro/include/{2}/' \
+            'generated/'.format(
+                basepath, yoctoRecipe._get_ros_version(dist), dist)
+        datetime_file_name = 'superflore-datetime.inc'
         datetime_path = '{}{}'.format(datetime_dir, datetime_file_name)
         try:
             make_dir(datetime_dir)
@@ -528,13 +533,16 @@ class yoctoRecipe(object):
     @staticmethod
     def generate_ros_distro_inc(
             basepath, distro, version, platforms, skip_keys=[]):
-        conf_dir = '{}/conf/ros-distro/include/{}/'.format(basepath, distro)
-        conf_file_name = 'generated-ros-distro.inc'
+        conf_dir = '{0}/meta-ros{1}-{2}/conf/ros-distro/include/{2}/' \
+                    'generated/'.format(
+                        basepath, yoctoRecipe._get_ros_version(distro), distro)
+        conf_file_name = 'superflore-ros-distro.inc'
         conf_path = '{}{}'.format(conf_dir, conf_file_name)
         try:
             make_dir(conf_dir)
             with open(conf_path, 'w') as conf_file:
-                conf_file.write('# {}/{}\n'.format(distro, conf_file_name))
+                conf_file.write('# {}/generated/{}\n'.format(
+                    distro, conf_file_name))
                 conf_file.write('# Generated by superflore -- DO NOT EDIT')
                 conf_file.write(
                     ' (except ROS_DISTRO_METADATA_VERSION_REVISION)\n#\n')
@@ -672,7 +680,8 @@ class yoctoRecipe(object):
 
     @staticmethod
     def generate_rosdep_resolve(basepath, distro):
-        rosdep_resolve_dir = '{0}/files/{1}/'.format(basepath, distro)
+        rosdep_resolve_dir = '{0}/meta-ros{1}-{2}/files/{2}/generated/'.format(
+            basepath, yoctoRecipe._get_ros_version(distro), distro)
         rosdep_resolve_path = '{0}rosdep-resolve.yaml'.format(
             rosdep_resolve_dir)
         try:
@@ -692,7 +701,8 @@ class yoctoRecipe(object):
 
     @staticmethod
     def generate_superflore_change_summary(basepath, distro, change_summary):
-        change_summary_dir = '{0}/files/{1}/'.format(basepath, distro)
+        change_summary_dir = '{0}/meta-ros{1}-{2}/files/{2}/generated/'.format(
+            basepath, yoctoRecipe._get_ros_version(distro), distro)
         change_summary_path = '{0}superflore-change-summary.txt'.format(
             change_summary_dir)
         try:
@@ -709,7 +719,10 @@ class yoctoRecipe(object):
 
     @staticmethod
     def generate_newer_platform_components(basepath, distro):
-        newer_sys_comps_dir = '{0}/files/{1}/'.format(basepath, distro)
+        newer_sys_comps_dir = '{0}/meta-ros{1}-{2}/files/{2}/' \
+                              'generated/'.format(
+                                  basepath,
+                                  yoctoRecipe._get_ros_version(distro), distro)
         newer_sys_comps_path = '{0}newer-platform-components.list'.format(
             newer_sys_comps_dir)
         ros_version = yoctoRecipe._get_ros_version(distro)
