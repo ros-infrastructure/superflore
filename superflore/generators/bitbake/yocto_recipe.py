@@ -634,8 +634,12 @@ class yoctoRecipe(object):
                     + 'tools.\n')
                 conf_file.write(
                     yoctoRecipe.generate_multiline_variable(
-                        'ROS_SUPERFLORE_GENERATED_BUILDTOOLS',
+                        'ROS_SUPERFLORE_GENERATED_BUILDTOOLS_%s' %
+                        distro.upper(),
                         yoctoRecipe.generated_native_recipes) + '\n')
+                conf_file.write('ROS_SUPERFLORE_GENERATED_BUILDTOOLS_append ='
+                                ' " ${ROS_SUPERFLORE_GENERATED_BUILDTOOLS_%s}"'
+                                '\n\n' % distro.upper())
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
                     'ROS_SUPERFLORE_GENERATED_PLATFORM_PACKAGE_DEPENDENCIES',
                     yoctoRecipe.platform_deps))
