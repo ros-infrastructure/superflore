@@ -558,7 +558,7 @@ class yoctoRecipe(object):
                 conf_file.write(
                     '\nROS_SUPERFLORE_PROGRAM_VERSION = "{}"\n'
                     .format(get_superflore_version()))
-                conf_file.write('ROS_SUPERFLORE_GENERATION_SCHEME = "1"\n')
+                conf_file.write('ROS_SUPERFLORE_GENERATION_SCHEME = "2"\n')
                 ros_version = yoctoRecipe._get_ros_version(distro)
                 conf_file.write(
                     '\nROS_DISTRO_TYPE = "ros{}"\n'.format(ros_version))
