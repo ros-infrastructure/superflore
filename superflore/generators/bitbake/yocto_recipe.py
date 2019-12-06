@@ -713,7 +713,8 @@ class yoctoRecipe(object):
             make_dir(change_summary_dir)
             with open(change_summary_path, 'w') as change_summary_file:
                 change_summary_file.write(
-                    '{}/superflore-change-summary.txt\n'.format(distro))
+                    '{}/generated/superflore-change-summary.txt\n'.format(
+                        distro))
                 change_summary_file.write(change_summary)
                 ok('Wrote {0}'.format(change_summary_path))
         except OSError as e:
