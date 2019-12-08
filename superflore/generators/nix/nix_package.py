@@ -15,7 +15,7 @@ from superflore.PackageMetadata import PackageMetadata
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.nix.nix_derivation import NixDerivation, NixLicense
 from superflore.utils import info, get_pkg_version, warn, resolve_dep, \
-    get_distro_condition_context
+    get_distro_condition_context, retry_on_exception
 
 
 class NixPackage:
@@ -69,7 +69,8 @@ class NixPackage:
         # Fallback to the standard method of fetching package.xml
         if package_xml is None:
             warn("failed to extract package.xml from archive")
-            package_xml = ros_pkg.get_package_xml(distro.name)
+            package_xml = retry_on_exception(ros_pkg.get_package_xml,
+                                             distro.name)
 
         metadata = PackageMetadata(package_xml)
 
