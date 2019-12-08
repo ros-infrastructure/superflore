@@ -27,7 +27,6 @@ from textwrap import dedent
 from time import gmtime, strftime
 from typing import Iterable
 
-from superflore.exceptions import UnknownLicense
 from superflore.utils import get_license
 
 
@@ -60,7 +59,7 @@ class NixLicense:
             name = get_license(name)
             self.name = self._LICENSE_MAP[name]
             self.custom = False
-        except (KeyError, UnknownLicense):
+        except KeyError:
             self.name = name
             self.custom = True
 
