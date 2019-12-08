@@ -49,7 +49,7 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
 
     if preserve_existing and existing:
         ok("derivation for package '{}' up to date, skipping...".format(pkg))
-        return None, []
+        return None, [], None
 
     try:
         current = NixPackage(pkg, distro, tar_dir, sha256_cache, all_pkgs)
@@ -65,10 +65,10 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
         unresolved = current.unresolved_dependencies
         for dep in unresolved:
             err(" unresolved: \"{}\"".format(dep))
-        return None, unresolved
+        return None, unresolved, None
     except NoPkgXml:
         err("Could not fetch pkg!")
-        return None, []
+        return None, [], None
     except Exception as e:
         err('Failed to generate derivation for package {}!'.format(pkg))
         raise e
@@ -80,7 +80,7 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
     except Exception as e:
         err("Failed to write derivation to disk!")
         raise e
-    return current, []
+    return current, [], normalized_pkg
 
 
 def regenerate_pkg_set(overlay, distro_name: str, pkg_names: Iterable[str]):

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import time
 
 from superflore.repo_instance import RepoInstance
@@ -21,24 +22,42 @@ from superflore.utils import rand_ascii_str
 
 class NixRosOverlay(object):
     def __init__(self, repo_dir, do_clone, org='lopsided98',
-                 repo='nix-ros-overlay'):
-        self.repo = RepoInstance(org, repo, repo_dir, do_clone)
-        self.branch_name = 'nix-bot-%s' % rand_ascii_str()
-        info('Creating new branch {0}...'.format(self.branch_name))
-        self.repo.create_branch(self.branch_name)
+                 repo='nix-ros-overlay', from_branch='', new_branch=True):
+        self.repo = RepoInstance(org, repo, repo_dir, do_clone,
+            from_branch=from_branch)
+        if new_branch:
+            self.branch_name = 'nix-bot-%s' % rand_ascii_str()
+            info('Creating new branch {0}...'.format(self.branch_name))
+            self.repo.create_branch(self.branch_name)
+        else:
+            self.branch_name = None
 
     def commit_changes(self, distro):
         info('Adding changes...')
         if distro == 'all':
             commit_msg = 'regenerate all distros, {0}'
             self.repo.git.add('*/*/default.nix')
+            self.repo.git.add('*/generated.nix')
         else:
             commit_msg = 'regenerate ros-{1}, {0}'
             self.repo.git.add(distro)
-        commit_msg = commit_msg.format(time.ctime(), distro)
-        info('Committing to branch {0}...'.format(self.branch_name))
-        self.repo.git.commit(m=commit_msg)
+        if self.repo.git.status('--porcelain') == '':
+            info('Nothing changed; no commit done')
+        else:
+            timestamp = os.getenv(
+                'SUPERFLORE_GENERATION_DATETIME',
+                time.ctime())
+            commit_msg = commit_msg.format(timestamp, distro)
+            if self.branch_name:
+                info('Committing to branch {0}...'.format(self.branch_name))
+            else:
+                info('Committing to current branch')
+            self.repo.git.commit(m=commit_msg)
 
-    def pull_request(self, message, distro=None):
-        pr_title = 'rosdistro sync, {0}'.format(time.ctime())
-        self.repo.pull_request(message, pr_title, branch=distro)
+    def pull_request(self, message, distro=None, title=''):
+        if not title:
+            timestamp = os.getenv(
+                'SUPERFLORE_GENERATION_DATETIME',
+                time.ctime())
+            title = 'rosdistro sync, {0}'.format(timestamp)
+        self.repo.pull_request(message, title, branch=self.branch_name)
