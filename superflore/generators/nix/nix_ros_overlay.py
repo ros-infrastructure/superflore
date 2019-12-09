@@ -39,7 +39,7 @@ class NixRosOverlay(object):
             self.repo.git.add('*/*/default.nix')
             self.repo.git.add('*/generated.nix')
         else:
-            commit_msg = 'regenerate ros-{1}, {0}'
+            commit_msg = 'regenerate rosPackages.{1}, {0}'
             self.repo.git.add(distro)
         if self.repo.git.status('--porcelain') == '':
             info('Nothing changed; no commit done')
@@ -60,4 +60,5 @@ class NixRosOverlay(object):
                 'SUPERFLORE_GENERATION_DATETIME',
                 time.ctime())
             title = 'rosdistro sync, {0}'.format(timestamp)
-        self.repo.pull_request(message, title, branch=self.branch_name)
+        self.repo.pull_request(message, title, branch=self.branch_name,
+            fork=False)

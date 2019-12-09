@@ -150,8 +150,9 @@ def main():
                 delta = "Regenerated: '%s'\n" % args.only
                 overlay.add_generated_files(args.ros_distro)
                 commit_msg = '\n'.join([get_pr_text(
-                    title + '\n' + pr_comment.replace(
-                        '**superflore**', 'superflore'), markup=''), delta])
+                    comment=title + '\n' + pr_comment.replace(
+                        '**superflore**', 'superflore'),
+                    markup=''), delta])
                 overlay.commit_changes(args.ros_distro, commit_msg)
                 if args.dry_run:
                     save_pr(overlay, args.only, '', pr_comment, title=title)
@@ -216,7 +217,8 @@ def main():
                 args.ros_distro,
                 now)
         commit_msg = '\n'.join([get_pr_text(
-            title + '\n' + pr_comment.replace('**superflore**', 'superflore'),
+            comment=title + '\n' +
+            pr_comment.replace('**superflore**', 'superflore'),
             markup=''), delta])
         overlay.commit_changes(args.ros_distro, commit_msg)
         delta = gen_delta_msg(total_changes)
