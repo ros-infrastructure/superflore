@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import re
 from typing import Iterable, Dict
 
 from rosdistro import DistributionFile
@@ -24,10 +25,12 @@ from superflore.generators.nix.nix_package_set import NixPackageSet
 from superflore.utils import err
 from superflore.utils import make_dir
 from superflore.utils import ok
+from superflore.utils import warn
 
 org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
+_version_regex = re.compile(r"version\s*=\s*\"([^\"]*)\"")
 
 def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
                    preserve_existing: bool, tar_dir: str,
@@ -46,10 +49,23 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
 
     # check for an existing package
     existing = os.path.exists(package_file)
+    previous_version = None
 
     if preserve_existing and existing:
         ok("derivation for package '{}' up to date, skipping...".format(pkg))
         return None, [], None
+
+    if existing:
+        with open(package_file, 'r') as f:
+            existing_derivation = f.read()
+        version_match = _version_regex.search(existing_derivation)
+        if version_match:
+            try:
+                previous_version = version_match.group(1)
+            except IndexError:
+                pass
+        if not previous_version:
+            warn("Failed to extract previous package version")
 
     try:
         current = NixPackage(pkg, distro, tar_dir, sha256_cache, all_pkgs)
@@ -80,7 +96,7 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
     except Exception as e:
         err("Failed to write derivation to disk!")
         raise e
-    return current, [], normalized_pkg
+    return current, previous_version, normalized_pkg
 
 
 def regenerate_pkg_set(overlay, distro_name: str, pkg_names: Iterable[str]):

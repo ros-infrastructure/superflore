@@ -92,30 +92,31 @@ class RepoInstance(object):
         """
         self.git.rebase(i=target)
 
-    def pull_request(self, message, title, branch='master', remote='origin'):
-        info('Forking repository if a fork does not exist...')
+    def pull_request(self, message, title, branch='master', fork=True):
         self.github = Github(os.environ['SUPERFLORE_GITHUB_TOKEN'])
         self.gh_user = self.github.get_user()
         self.gh_upstream = self.github.get_repo(
-            '%s/%s' % (
-                self.repo_owner, self.repo_name
-            )
+            '{}/{}'.format(self.repo_owner, self.repo_name)
         )
-        # TODO(allenh1): Don't fork if you're authorized for repo
-        forked_repo = self.gh_user.create_fork(self.gh_upstream)
-        info('Pushing changes to fork...')
-        self.git.remote('add', 'github', forked_repo.html_url)
+        if fork:
+            info('Forking repository if a fork does not exist...')
+            pr_repo = self.gh_user.create_fork(self.gh_upstream)
+            pr_head = '{}:{}'.format(self.gh_user.login, self.branch or branch)
+        else:
+            pr_repo = self.gh_upstream
+            pr_head = self.branch or branch
+        info('Pushing changes to repo...')
+        self.git.remote('add', 'github', pr_repo.html_url)
         retry_on_exception(
             self.git.push, '-u', 'github', self.branch or branch,
             retry_msg='Could not push', error_msg='Error during push',
             sleep_secs=0.0,
         )
         info('Filing pull-request...')
-        pr_head = '%s:%s' % (self.gh_user.login, self.branch)
         pr = self.gh_upstream.create_pull(
             title=title,
             body=message,
-            base=self.from_branch or branch,
+            base=self.from_branch,
             head=pr_head
         )
         ok('Successfully filed a pull request.')
