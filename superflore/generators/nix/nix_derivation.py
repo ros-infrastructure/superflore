@@ -27,7 +27,7 @@ import urllib.parse
 from operator import attrgetter
 from textwrap import dedent
 from time import gmtime, strftime
-from typing import Iterable
+from typing import Iterable, Set
 
 from superflore.utils import get_license
 
@@ -80,11 +80,11 @@ class NixDerivation:
                  description: str, licenses: Iterable[NixLicense],
                  distro_name: str,
                  build_type: str,
-                 build_inputs: Iterable[str] = tuple(),
-                 propagated_build_inputs: Iterable[str] = tuple(),
-                 check_inputs: Iterable[str] = tuple(),
-                 native_build_inputs: Iterable[str] = tuple(),
-                 propagated_native_build_inputs: Iterable[str] = tuple()
+                 build_inputs: Set[str] = set(),
+                 propagated_build_inputs: Set[str] = set(),
+                 check_inputs: Set[str] = set(),
+                 native_build_inputs: Set[str] = set(),
+                 propagated_native_build_inputs: Set[str] = set()
                  ) -> None:
         self.name = name
         self.version = version
@@ -99,12 +99,12 @@ class NixDerivation:
         self.distro_name = distro_name
         self.build_type = build_type
 
-        self.build_inputs = set(build_inputs)
-        self.propagated_build_inputs = set(propagated_build_inputs)
-        self.check_inputs = set(check_inputs)
-        self.native_build_inputs = set(native_build_inputs)
+        self.build_inputs = build_inputs
+        self.propagated_build_inputs = propagated_build_inputs
+        self.check_inputs = check_inputs
+        self.native_build_inputs = native_build_inputs
         self.propagated_native_build_inputs = \
-            set(propagated_native_build_inputs)
+            propagated_native_build_inputs
 
     @staticmethod
     def _to_nix_list(it: Iterable[str]) -> str:
@@ -130,12 +130,12 @@ class NixDerivation:
             license_name)
 
         ret += '{ lib, buildRosPackage, fetchurl, ' + \
-               ', '.join(set(map(self._to_nix_parameter,
+               ', '.join(sorted(set(map(self._to_nix_parameter,
                                  self.build_inputs |
-                                 self.check_inputs |
                                  self.propagated_build_inputs |
+                                 self.check_inputs |
                                  self.native_build_inputs |
-                                 self.propagated_native_build_inputs))) + ' }:'
+                                 self.propagated_native_build_inputs)))) + ' }:'
 
         ret += dedent('''
         buildRosPackage {{
@@ -160,23 +160,23 @@ class NixDerivation:
 
         if self.build_inputs:
             ret += "  buildInputs = {};\n" \
-                .format(self._to_nix_list(self.build_inputs))
+                .format(self._to_nix_list(sorted(self.build_inputs)))
 
         if self.check_inputs:
             ret += "  checkInputs = {};\n" \
-                .format(self._to_nix_list(self.check_inputs))
+                .format(self._to_nix_list(sorted(self.check_inputs)))
 
         if self.propagated_build_inputs:
             ret += "  propagatedBuildInputs = {};\n" \
-                .format(self._to_nix_list(self.propagated_build_inputs))
+                .format(self._to_nix_list(sorted(self.propagated_build_inputs)))
 
         if self.native_build_inputs:
             ret += "  nativeBuildInputs = {};\n" \
-                .format(self._to_nix_list(self.native_build_inputs))
+                .format(self._to_nix_list(sorted(self.native_build_inputs)))
 
         if self.propagated_native_build_inputs:
             ret += "  propagatedNativeBuildInputs = {};\n".format(
-                self._to_nix_list(self.propagated_native_build_inputs))
+                self._to_nix_list(sorted(self.propagated_native_build_inputs)))
 
         ret += dedent('''
           meta = {{
