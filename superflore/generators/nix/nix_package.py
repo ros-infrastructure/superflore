@@ -87,9 +87,17 @@ class NixPackage:
 
         self.unresolved_dependencies = set()
 
-        build_inputs = self._resolve_dependencies(build_deps)
-        propagated_build_inputs = self._resolve_dependencies(exec_deps | buildtool_export_deps | build_export_deps)
+        build_inputs = set(self._resolve_dependencies(build_deps))
+        # buildtool_export_depends should probably be
+        # propagatedNativeBuildInputs, but that causes many build failures.
+        # Either ROS packages don't use it correctly or it doesn't map well to
+        # Nix.
+        propagated_build_inputs = self._resolve_dependencies(exec_deps | build_export_deps | buildtool_export_deps)
+        build_inputs -= propagated_build_inputs
+
         check_inputs = self._resolve_dependencies(test_deps)
+        check_inputs -= build_inputs
+
         native_build_inputs = self._resolve_dependencies(buildtool_deps)
 
         self._derivation = NixDerivation(
@@ -106,9 +114,9 @@ class NixPackage:
             check_inputs=check_inputs,
             native_build_inputs=native_build_inputs)
 
-    def _resolve_dependencies(self, deps: Iterable[str]) -> Iterable[str]:
-        return itertools.chain.from_iterable(
-            map(self._resolve_dependency, deps))
+    def _resolve_dependencies(self, deps: Iterable[str]) -> Set[str]:
+        return set(itertools.chain.from_iterable(
+            map(self._resolve_dependency, deps)))
 
     def _resolve_dependency(self, d: str) -> Iterable[str]:
         try:
