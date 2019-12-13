@@ -116,8 +116,8 @@ def main():
                     overlay.repo.get_last_hash()
                 )
             )
-            missing_depends = list()
-            to_commit = list()
+            missing_depends = set()
+            to_commit = set()
             will_file_pr = False
             for pkg in args.only:
                 if pkg in skip_keys:
@@ -132,7 +132,7 @@ def main():
                         get_distro(args.ros_distro),
                         preserve_existing
                     )
-                    missing_depends.append(missing_depends)
+                    missing_depends.append(deps)
                 except KeyError:
                     err("No package to satisfy key '%s'" % pkg)
                     continue
