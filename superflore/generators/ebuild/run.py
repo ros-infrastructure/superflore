@@ -126,18 +126,20 @@ def main():
                     continue
                 info("Regenerating package '%s'..." % pkg)
                 try:
-                    ebuild, deps = regenerate_pkg(
+                    ebuild, deps, version = regenerate_pkg(
                         overlay,
                         pkg,
                         get_distro(args.ros_distro),
                         preserve_existing
                     )
-                    missing_depends.append(deps)
+                    if not ebuild:
+                        for dep in deps:
+                            missing_depends.add(dep)
                 except KeyError:
                     err("No package to satisfy key '%s'" % pkg)
                     continue
                 if ebuild:
-                    to_commit.append(pkg)
+                    to_commit.add(pkg)
                     will_file_pr = True
             # if no packages succeeded, exit with error
             if not will_file_pr:
@@ -152,12 +154,12 @@ def main():
                 save_pr(
                     overlay,
                     args.only,
-                    missing_deps=missing_depends,
+                    missing_deps=gen_missing_deps_msg(missing_depends),
                     comment=pr_comment
                 )
                 sys.exit(0)
             delta = "Regenerated: '%s'\n" % args.only
-            file_pr(overlay, delta, missing_depends, pr_comment)
+            file_pr(overlay, delta, gen_missing_deps_msg(missing_depends), pr_comment)
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
