@@ -159,7 +159,12 @@ def main():
                 )
                 sys.exit(0)
             delta = "Regenerated: '%s'\n" % args.only
-            file_pr(overlay, delta, gen_missing_deps_msg(missing_depends), pr_comment)
+            file_pr(
+                overlay,
+                delta,
+                gen_missing_deps_msg(missing_depends),
+                pr_comment
+            )
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
