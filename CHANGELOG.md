@@ -1,5 +1,60 @@
 # Change Log
 
+## [v0.3.1](https://github.com/ros-infrastructure/superflore/tree/v0.3.1) (2019-12-17)
+[Full Changelog](https://github.com/ros-infrastructure/superflore/compare/v0.3.0...v0.3.1)
+
+**Implemented enhancements:**
+
+- Fix bitbake parsing errors when some meta-ros1-\* layer is included together with some meta-ros2-\* layer [\#260](https://github.com/ros-infrastructure/superflore/issues/260)
+- Allow to re-generate the recipes without creating new branch [\#248](https://github.com/ros-infrastructure/superflore/issues/248)
+- Change use of \# in generated commit messages to ==... or --... on the next line [\#228](https://github.com/ros-infrastructure/superflore/issues/228)
+- Use "recipe"/"ebuild" instead of "installer" in log messages [\#226](https://github.com/ros-infrastructure/superflore/issues/226)
+- superflore-gen-oe-recipes: Change operation when --only is specified [\#224](https://github.com/ros-infrastructure/superflore/issues/224)
+- Change how platform packages without a mapping in rosdep/\*.yaml are handled for OpenEmbedded [\#223](https://github.com/ros-infrastructure/superflore/issues/223)
+- Update README.md for superflore-gen-oe-recipes [\#219](https://github.com/ros-infrastructure/superflore/issues/219)
+- yocto\_recipe.py: bump ROS\_SUPERFLORE\_GENERATION\_SCHEME [\#261](https://github.com/ros-infrastructure/superflore/pull/261) ([shr-project](https://github.com/shr-project))
+- repo\_instance: initialize gh\_upstream only when creating pull request \(\#246\) [\#247](https://github.com/ros-infrastructure/superflore/pull/247) ([shr-project](https://github.com/shr-project))
+-  Use "ebuild"/"recipe" instead of "installer" \(\#226\) [\#243](https://github.com/ros-infrastructure/superflore/pull/243) ([herb-kuta-lge](https://github.com/herb-kuta-lge))
+- Upgrade CI [\#241](https://github.com/ros-infrastructure/superflore/pull/241) ([allenh1](https://github.com/allenh1))
+- Include -native pkgs in list of OpenEmbedded platform dependencies \(\#230\) [\#237](https://github.com/ros-infrastructure/superflore/pull/237) ([herb-kuta-lge](https://github.com/herb-kuta-lge))
+- Show OpenEmbedded recipe names in commit and PR messages \(\#225\) [\#235](https://github.com/ros-infrastructure/superflore/pull/235) ([herb-kuta-lge](https://github.com/herb-kuta-lge))
+- Update license classifier. [\#221](https://github.com/ros-infrastructure/superflore/pull/221) ([tfoote](https://github.com/tfoote))
+- Adjust PR message stating how superflore was executed [\#214](https://github.com/ros-infrastructure/superflore/pull/214) ([andre-rosa](https://github.com/andre-rosa))
+- Retry pushing when wrong credentials are provided or there's an error [\#208](https://github.com/ros-infrastructure/superflore/pull/208) ([andre-rosa](https://github.com/andre-rosa))
+- Change Back to apt-get for CI [\#201](https://github.com/ros-infrastructure/superflore/pull/201) ([allenh1](https://github.com/allenh1))
+- Change to Personal Email [\#200](https://github.com/ros-infrastructure/superflore/pull/200) ([allenh1](https://github.com/allenh1))
+- Fix CI [\#199](https://github.com/ros-infrastructure/superflore/pull/199) ([allenh1](https://github.com/allenh1))
+
+**Fixed bugs:**
+
+- superflore-change-summary.txt doesn't end with a newline [\#242](https://github.com/ros-infrastructure/superflore/issues/242)
+- Ebuild continues to generate despite dependency resolution failures [\#229](https://github.com/ros-infrastructure/superflore/issues/229)
+- Change use of \\# in generated commit messages to ==... or --... on the next line [\#228](https://github.com/ros-infrastructure/superflore/issues/228)
+- superflore-gen-oe-recipes: Change operation when --only is specified [\#224](https://github.com/ros-infrastructure/superflore/issues/224)
+
+**Closed issues:**
+
+- Implement Superflore OE Recipe Generation Scheme r44 [\#255](https://github.com/ros-infrastructure/superflore/issues/255)
+- Don't write cache.yaml and cache.diffme files from superflore [\#252](https://github.com/ros-infrastructure/superflore/issues/252)
+- Create new commit when bitbake installer changes some other files without changing any generated recipes [\#250](https://github.com/ros-infrastructure/superflore/issues/250)
+- Allow to run superflore with --dry-run without SUPERFLORE\_GITHUB\_TOKEN [\#246](https://github.com/ros-infrastructure/superflore/issues/246)
+- Only issue a commit if there are changes [\#245](https://github.com/ros-infrastructure/superflore/issues/245)
+- CI uses EOL Ubuntu release 'trusty' [\#239](https://github.com/ros-infrastructure/superflore/issues/239)
+- Allow the timestamp associated with the superflore run to be overridden [\#231](https://github.com/ros-infrastructure/superflore/issues/231)
+- superflore-gen-oe-recipes: -native packages are missing from the list of platform package dependencies [\#230](https://github.com/ros-infrastructure/superflore/issues/230)
+- superflore-gen-oe-recipes: Don't create a commit when ROS\_DISTRO-cache.yaml hasn't changed [\#227](https://github.com/ros-infrastructure/superflore/issues/227)
+- superflore-gen-oe-recipes: Show recipe names instead of ROS package names in commit and PR messsages [\#225](https://github.com/ros-infrastructure/superflore/issues/225)
+- Don't output missing dependencies for OpenEmbedded [\#217](https://github.com/ros-infrastructure/superflore/issues/217)
+- Allow customizing the PR title [\#215](https://github.com/ros-infrastructure/superflore/issues/215)
+- PR message stating how superflore was executed needs adjustment [\#213](https://github.com/ros-infrastructure/superflore/issues/213)
+- \[OpenEmbedded\] Use branch based on UTC timestamp instead of random characters [\#211](https://github.com/ros-infrastructure/superflore/issues/211)
+- Make markdown output optional on PR and commit descriptions [\#209](https://github.com/ros-infrastructure/superflore/issues/209)
+- Superflore aborts if wrong credentials are passed when pushing [\#207](https://github.com/ros-infrastructure/superflore/issues/207)
+- Update OpenEmbedded support up to spec r36 [\#204](https://github.com/ros-infrastructure/superflore/issues/204)
+- Update OpenEmbedded support up to spec r35 [\#202](https://github.com/ros-infrastructure/superflore/issues/202)
+
+# Change Log
+
 ## [v0.3.0](https://github.com/ros-infrastructure/superflore/tree/v0.3.0) (2019-06-11)
 [Full Changelog](https://github.com/ros-infrastructure/superflore/compare/v0.1.0...v0.3.0)
 
