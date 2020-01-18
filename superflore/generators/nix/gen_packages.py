@@ -42,7 +42,7 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
 
     normalized_pkg = NixPackage.normalize_name(pkg)
 
-    package_dir = os.path.join(overlay.repo.repo_dir, distro.name,
+    package_dir = os.path.join(overlay.repo.repo_dir, 'distros', distro.name,
                                normalized_pkg)
     package_file = os.path.join(package_dir, 'default.nix')
     make_dir(package_dir)
@@ -100,7 +100,7 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
 
 
 def regenerate_pkg_set(overlay, distro_name: str, pkg_names: Iterable[str]):
-    distro_dir = os.path.join(overlay.repo.repo_dir, distro_name)
+    distro_dir = os.path.join(overlay.repo.repo_dir, 'distros', distro_name)
     overlay_file = os.path.join(distro_dir, 'generated.nix')
     make_dir(distro_dir)
 
