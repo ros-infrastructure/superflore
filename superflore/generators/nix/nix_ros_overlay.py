@@ -36,11 +36,11 @@ class NixRosOverlay(object):
         info('Adding changes...')
         if distro == 'all':
             commit_msg = 'regenerate all distros, {0}'
-            self.repo.git.add('*/*/default.nix')
-            self.repo.git.add('*/generated.nix')
+            self.repo.git.add('distros/*/*/default.nix')
+            self.repo.git.add('distros/*/generated.nix')
         else:
             commit_msg = 'regenerate rosPackages.{1}, {0}'
-            self.repo.git.add(distro)
+            self.repo.git.add('distros/' + distro)
         if self.repo.git.status('--porcelain') == '':
             info('Nothing changed; no commit done')
         else:
