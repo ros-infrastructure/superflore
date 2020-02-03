@@ -142,7 +142,10 @@ def main():
                 # Commit changes and file pull request
                 title =\
                     '{{{0}}} Selected recipes generated from '\
-                    '{0}-cache.yaml as of {1}\n'.format(args.ros_distro, now)
+                    'files/{0}/generated/cache.yaml '\
+                    'as of {1}\n'.format(
+                            args.ros_distro,
+                            now)
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 delta = "Regenerated: '%s'\n" % args.only
@@ -176,7 +179,8 @@ def main():
                 total_installers[adistro] = distro_installers
                 yoctoRecipe.generate_ros_distro_inc(
                     _repo, args.ros_distro, overlay.get_file_revision_logs(
-                        'meta-ros{0}-{1}/files/cache.yaml'.format(
+                        'meta-ros{0}-{1}/files/{1}/generated/cache.yaml'
+                        .format(
                             yoctoRecipe._get_ros_version(args.ros_distro),
                             args.ros_distro)),
                     distro.release_platforms, skip_keys)
@@ -207,8 +211,10 @@ def main():
         # remove duplicates
         delta = gen_delta_msg(total_changes, markup='')
         # Commit changes and file pull request
-        title = '{{{0}}} Sync to {0}-cache.yaml as of {1}\n'.format(
-            args.ros_distro, now)
+        title = '{{{0}}} Sync to files/{0}/generated/'\
+            'cache.yaml as of {1}\n'.format(
+                args.ros_distro,
+                now)
         commit_msg = '\n'.join([get_pr_text(
             title + '\n' + pr_comment.replace('**superflore**', 'superflore'),
             markup=''), delta])
