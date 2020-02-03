@@ -29,16 +29,23 @@ class RosMeta(object):
             info('Creating new branch {0}...'.format(self.branch_name))
             self.repo.create_branch(self.branch_name)
 
-    def clean_ros_recipe_dirs(self, distro=None):
-        if distro:
-            info(
-                'Cleaning up meta-ros{}-{}/generated-recipes directory...'
-                .format(yoctoRecipe._get_ros_version(distro), distro))
-            self.repo.git.rm('-rf', 'meta-ros{}-{}/generated-recipes'.format(
-                yoctoRecipe._get_ros_version(distro), distro))
-        else:
-            info('Cleaning up generated-recipes directories...')
-            self.repo.git.rm('-rf', 'generated-recipes')
+    def clean_ros_recipe_dirs(self, distro):
+        # superflore-change-summary.txt is no longer being generated since:
+        # https://github.com/ros-infrastructure/superflore/pull/273
+        # but remove it here to make sure it gets deleted when new distro
+        # release is being generated
+        files = 'meta-ros{0}-{1}/generated-recipes '\
+                'meta-ros{0}-{1}/conf/ros-distro/include/{1}/generated '\
+                'meta-ros{0}-{1}/files/{1}/generated/'\
+                'newer-platform-components.list '\
+                'meta-ros{0}-{1}/files/{1}/generated/rosdep-resolve.yaml '\
+                'meta-ros{0}-{1}/files/{1}/generated/'\
+                'superflore-change-summary.txt '.format(
+                    yoctoRecipe._get_ros_version(distro), distro)
+        info(
+            'Cleaning up:\n{0}'
+            .format(files))
+        self.repo.git.rm('-rf', '--ignore-unmatch', files)
 
     def commit_changes(self, distro, commit_msg):
         info('Commit changes...')
