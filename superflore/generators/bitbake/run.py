@@ -158,6 +158,7 @@ def main():
                 ok('Successfully synchronized repositories!')
                 sys.exit(0)
 
+            overlay.clean_ros_recipe_dirs(args.ros_distro)
             for adistro in selected_targets:
                 yoctoRecipe.reset()
                 distro = get_distro(adistro)

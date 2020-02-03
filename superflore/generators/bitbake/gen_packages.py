@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
 import os
 
 from catkin_pkg.package import InvalidPackage
@@ -28,6 +27,7 @@ from superflore.utils import get_pkg_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import retry_on_exception
+from superflore.utils import warn
 
 org = "Open Source Robotics Foundation"
 
@@ -49,22 +49,58 @@ def regenerate_pkg(
     component_name = yoctoRecipe.convert_to_oe_name(
         distro.release_packages[pkg].repository_name)
     recipe = yoctoRecipe.convert_to_oe_name(pkg)
-    # check for an existing recipe
-    prefix = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/{4}'.format(
-        repo_dir,
+    # check for an existing recipe which was removed by clean_ros_recipe_dirs
+    prefix = 'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb'.format(
         yoctoRecipe._get_ros_version(distro.name),
         distro.name,
-        component_name,
-        recipe,
+        recipe
     )
-    existing = glob.glob('{}_*.bb'.format(prefix))
+    existing = overlay.repo.git.status('--porcelain', '--', prefix)
+    if existing:
+        # The git status --porcelain output will look like this:
+        # D  meta-ros2-eloquent/generated-recipes/variants/ros-base_0.8.3-1.bb
+        # we want just the path with filename
+        if len(existing.split('\n')) > 1:
+            warn('More than 1 recipe was output by "git status --porcelain '
+                 'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
+                 .format(
+                     yoctoRecipe._get_ros_version(distro.name),
+                     distro.name,
+                     recipe,
+                     existing))
+        if existing.split()[0] != 'D':
+            err('Unexpected output from "git status --porcelain '
+                'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
+                .format(
+                    yoctoRecipe._get_ros_version(distro.name),
+                    distro.name,
+                    recipe,
+                    existing))
+
+        existing = existing.split()[1]
+    else:
+        # If it isn't shown in git status, it could still exist as normal
+        # unchanged file when --only option is being used
+        import glob
+        existing = glob.glob('{0}/{1}'.format(repo_dir, prefix))
+        if existing:
+            if len(existing) > 1:
+                err('More than 1 recipe was output by "git status '
+                    '--porcelain '
+                    'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
+                    .format(
+                        yoctoRecipe._get_ros_version(distro.name),
+                        distro.name,
+                        recipe,
+                        existing))
+            existing = existing[0]
+
     previous_version = None
     if preserve_existing and existing:
         ok("recipe for package '%s' up to date, skipping..." % pkg)
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     elif existing:
-        existing = existing[0]
         overlay.repo.remove_file(existing, True)
         idx_version = existing.rfind('_') + len('_')
         previous_version = existing[idx_version:].rstrip('.bb')
