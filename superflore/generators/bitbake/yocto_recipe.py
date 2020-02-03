@@ -581,10 +581,12 @@ class yoctoRecipe(object):
                     'ROS_SUPERFLORE_GENERATION_NOT_POSSIBLE',
                     yoctoRecipe.not_generated_recipes) + '\n')
                 conf_file.write(
-                    '# Number of commits that will be returned by'
-                    + ' "git log files/ROS_DISTRO-cache.yaml" when the '
-                    + 'generated files are committed. This is\n# used for the'
-                    + ' fourth version field of DISTRO_VERSION.\n')
+                    '# Number of commits that will be returned by '
+                    '"git log meta-ros{0}-{1}/files/{1}/generated/'
+                    'cache.yaml" when the\n# generated files are committed. '
+                    'This is used for the fourth version field of '
+                    'DISTRO_VERSION.\n'
+                    .format(yoctoRecipe._get_ros_version(distro), distro))
                 version = 1 if not version else len(version.splitlines()) + 1
                 conf_file.write(
                     'ROS_NUM_CACHE_YAML_COMMITS = "{}"'.format(version)
