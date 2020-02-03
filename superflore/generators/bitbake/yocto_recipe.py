@@ -703,25 +703,6 @@ class yoctoRecipe(object):
             raise e
 
     @staticmethod
-    def generate_superflore_change_summary(basepath, distro, change_summary):
-        change_summary_dir = '{0}/meta-ros{1}-{2}/files/{2}/generated/'.format(
-            basepath, yoctoRecipe._get_ros_version(distro), distro)
-        change_summary_path = '{0}superflore-change-summary.txt'.format(
-            change_summary_dir)
-        try:
-            make_dir(change_summary_dir)
-            with open(change_summary_path, 'w') as change_summary_file:
-                change_summary_file.write(
-                    '{}/generated/superflore-change-summary.txt\n'.format(
-                        distro))
-                change_summary_file.write(change_summary)
-                ok('Wrote {0}'.format(change_summary_path))
-        except OSError as e:
-            err('Failed to write change summary {} to disk! {}'.format(
-                change_summary_path, e))
-            raise e
-
-    @staticmethod
     def generate_newer_platform_components(basepath, distro):
         newer_sys_comps_dir = '{0}/meta-ros{1}-{2}/files/{2}/' \
                               'generated/'.format(

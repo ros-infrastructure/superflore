@@ -41,21 +41,7 @@ class RosMeta(object):
             self.repo.git.rm('-rf', 'generated-recipes')
 
     def commit_changes(self, distro, commit_msg):
-        info('Adding changes...')
-        self.repo.git.add('meta-ros{0}-{1}/generated-recipes'.format(
-            yoctoRecipe._get_ros_version(distro), distro))
-        self.repo.git.add('meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
-                          'generated/*.inc'.format(
-                              yoctoRecipe._get_ros_version(distro), distro))
-        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
-                          'rosdep-resolve.yaml'.format(
-                              yoctoRecipe._get_ros_version(distro), distro))
-        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
-                          'newer-platform-components.list'.format(
-                              yoctoRecipe._get_ros_version(distro), distro))
-        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
-                          'superflore-change-summary.txt'.format(
-                              yoctoRecipe._get_ros_version(distro), distro))
+        info('Commit changes...')
         if self.repo.git.status('--porcelain') == '':
             info('Nothing changed; no commit done')
         else:
@@ -71,20 +57,34 @@ class RosMeta(object):
     def get_file_revision_logs(self, *file_path):
         return self.repo.git.log('--oneline', '--', *file_path)
 
-    def get_change_summary(self, distro):
+    def add_generated_files(self, distro):
+        info('Adding changes...')
         self.repo.git.add('meta-ros{0}-{1}/generated-recipes'.format(
             yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add('meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
+                          'generated/*.inc'.format(
+                              yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
+                          'rosdep-resolve.yaml'.format(
+                              yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
+                          'newer-platform-components.list'.format(
+                              yoctoRecipe._get_ros_version(distro), distro))
+
+    def get_change_summary(self, distro):
         sep = '-' * 5
         return '\n'.join([
             sep,
             self.repo.git.status('--porcelain'),
             sep,
             self.repo.git.diff(
+                'HEAD',
                 'meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
                 'generated/*.inc'.format(
                     yoctoRecipe._get_ros_version(distro), distro)),
             sep,
             self.repo.git.diff(
+                'HEAD',
                 'meta-ros{0}-{1}/files/{1}/generated/'
                 'newer-platform-components.list'.format(
                     yoctoRecipe._get_ros_version(distro), distro),
