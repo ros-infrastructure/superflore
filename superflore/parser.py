@@ -16,7 +16,9 @@ import argparse
 
 
 # set up a parser and return it
-def get_parser(tool_tip, is_generator=True, exclude_all=False):
+def get_parser(
+    tool_tip, is_generator=True, exclude_all=False, require_dryrun=False
+):
     parser = argparse.ArgumentParser(tool_tip)
     if is_generator:
         parser.add_argument(
@@ -33,6 +35,7 @@ def get_parser(tool_tip, is_generator=True, exclude_all=False):
         parser.add_argument(
             '--dry-run',
             help='run without filing a PR to remote',
+            required=require_dryrun,
             action="store_true"
         )
         parser.add_argument(

@@ -17,7 +17,6 @@ import sys
 
 from rosinstall_generator.distro import get_distro
 from superflore.CacheManager import CacheManager
-from superflore.exceptions import NoGitHubAuthToken
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_pkg
 from superflore.generators.bitbake.ros_meta import RosMeta
@@ -45,7 +44,9 @@ def main():
     overlay = None
     preserve_existing = True
     parser = get_parser(
-        'Deploy ROS packages into OpenEmbedded Linux', exclude_all=True)
+        'Deploy ROS packages into OpenEmbedded Linux',
+        exclude_all=True,
+        require_dryrun=True)
     parser.add_argument(
         '--tar-archive-dir',
         help='location to store archived packages',
@@ -55,9 +56,6 @@ def main():
     pr_comment = args.pr_comment
     skip_keys = set(args.skip_keys) if args.skip_keys else set()
     selected_targets = None
-    if not args.dry_run:
-        if 'SUPERFLORE_GITHUB_TOKEN' not in os.environ:
-            raise NoGitHubAuthToken()
     if args.pr_only:
         if args.dry_run:
             parser.error('Invalid args! cannot dry-run and file PR')

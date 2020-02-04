@@ -143,7 +143,7 @@ should be followed to generate the OpenEmbedded recipes for `meta-ros`.
 $ superflore-gen-oe-recipes --help
 usage: Deploy ROS packages into OpenEmbedded Linux [-h]
                                                    [--ros-distro ROS_DISTRO]
-                                                   [--dry-run] [--pr-only] [--no-branch]
+                                                   --dry-run [--pr-only] [--no-branch]
                                                    [--output-repository-path OUTPUT_REPOSITORY_PATH]
                                                    [--only ONLY [ONLY ...]]
                                                    [--pr-comment PR_COMMENT]
@@ -189,8 +189,12 @@ This command will clone the `ros/meta-ros` repo into a subfolder under
 distro, commit them, and issue a pull request for `ros/meta-ros`. The
 `--ros-distro` flag must be supplied.
 
-If you don't want to issue a PR for `ros/meta-ros`, you should add
-the `--dry-run` flag. You can issue the PR later by using the `--pr-only` flag.
+Generating bitbake recipes without specifying `--dry-run` is not
+supported. This is because it is almost inevitable that
+changes to the metadata under recipes-bbappend will be required.
+Only when these have been made and the images build and pass
+the sanity test should a pull request be created.
+You can issue the PR later by using the `--pr-only` flag.
 
 If you want to use an existing repo instead of cloning one, specify
 `--output-repository-path OUTPUT_REPOSITORY_PATH`.
