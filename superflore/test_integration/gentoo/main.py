@@ -23,7 +23,7 @@ import yaml
 def main():
     tester = GentooBuilder()
     parser = argparse.ArgumentParser(
-        'Check if ROS packages are building for Gentoo Linux'
+        description='Check if ROS packages are building for Gentoo Linux'
     )
     parser.add_argument(
         '--ros-distro',

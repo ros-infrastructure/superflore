@@ -38,15 +38,16 @@ Gentoo Usage:
 ### Generating Gentoo Ebuilds
 ```
 $ superflore-gen-ebuilds -h
-usage: Deploy ROS packages into Gentoo Linux [-h] [--ros-distro ROS_DISTRO]
-                                             [--all] [--dry-run] [--pr-only]
-                                             [--no-branch]
-                                             [--output-repository-path OUTPUT_REPOSITORY_PATH]
-                                             [--only ONLY [ONLY ...]]
-                                             [--pr-comment PR_COMMENT]
-                                             [--upstream-repo UPSTREAM_REPO]
-                                             [--upstream-branch UPSTREAM_BRANCH]
-                                             [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
+usage: superflore-gen-ebuilds [-h] [--ros-distro ROS_DISTRO] [--all]
+                              [--dry-run] [--pr-only] [--no-branch]
+                              [--output-repository-path OUTPUT_REPOSITORY_PATH]
+                              [--only ONLY [ONLY ...]]
+                              [--pr-comment PR_COMMENT]
+                              [--upstream-repo UPSTREAM_REPO]
+                              [--upstream-branch UPSTREAM_BRANCH]
+                              [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
+
+Deploy ROS packages into Gentoo Linux
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -74,11 +75,12 @@ optional arguments:
 ### Testing Gentoo Ebuilds
 ```
 $ superflore-check-ebuilds -h
-usage: Check if ROS packages are building for Gentoo Linux [-h]
-                                                           [--ros-distro ROS_DISTRO [ROS_DISTRO ...]]
-                                                           [--pkgs PKGS [PKGS ...]]
-                                                           [-f F] [-v]
-                                                           [--log-file LOG_FILE]
+usage: superflore-check-ebuilds [-h]
+                                [--ros-distro ROS_DISTRO [ROS_DISTRO ...]]
+                                [--pkgs PKGS [PKGS ...]] [-f F] [-v]
+                                [--log-file LOG_FILE]
+
+Check if ROS packages are building for Gentoo Linux
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -146,16 +148,17 @@ should be followed to generate the OpenEmbedded recipes for `meta-ros`.
 
 ```
 $ superflore-gen-oe-recipes -h
-usage: Deploy ROS packages into OpenEmbedded Linux [-h] --ros-distro
-                                                   ROS_DISTRO --dry-run
-                                                   [--pr-only] [--no-branch]
-                                                   [--output-repository-path OUTPUT_REPOSITORY_PATH]
-                                                   [--only ONLY [ONLY ...]]
-                                                   [--pr-comment PR_COMMENT]
-                                                   [--upstream-repo UPSTREAM_REPO]
-                                                   [--upstream-branch UPSTREAM_BRANCH]
-                                                   [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
-                                                   [--tar-archive-dir TAR_ARCHIVE_DIR]
+usage: superflore-gen-oe-recipes [-h] --ros-distro ROS_DISTRO --dry-run
+                                 [--pr-only] [--no-branch]
+                                 [--output-repository-path OUTPUT_REPOSITORY_PATH]
+                                 [--only ONLY [ONLY ...]]
+                                 [--pr-comment PR_COMMENT]
+                                 [--upstream-repo UPSTREAM_REPO]
+                                 [--upstream-branch UPSTREAM_BRANCH]
+                                 [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
+                                 [--tar-archive-dir TAR_ARCHIVE_DIR]
+
+Deploy ROS packages into OpenEmbedded Linux
 
 optional arguments:
   -h, --help            show this help message and exit

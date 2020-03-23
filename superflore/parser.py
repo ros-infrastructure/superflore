@@ -21,7 +21,7 @@ def get_parser(
     require_dryrun=False,
     require_rosdistro=False
 ):
-    parser = argparse.ArgumentParser(tool_tip)
+    parser = argparse.ArgumentParser(description=tool_tip)
     if is_generator:
         parser.add_argument(
             '--ros-distro',
