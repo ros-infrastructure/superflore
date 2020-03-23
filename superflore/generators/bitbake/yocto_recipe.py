@@ -754,7 +754,7 @@ class yoctoRecipe(object):
                 newer_sys_comps_file.write(txt_output)
                 ok('Wrote {0}'.format(newer_sys_comps_path))
         except (OSError, RuntimeError) as e:
-            err('Failed to write change summary {} to disk! {}'.format(
+            err('Failed to write {0} to disk! {1}'.format(
                 newer_sys_comps_path, e))
             raise e
 
