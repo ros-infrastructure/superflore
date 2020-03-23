@@ -28,7 +28,6 @@ from superflore.utils import clean_up
 from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
-from superflore.utils import get_distros_by_status
 from superflore.utils import get_pr_text
 from superflore.utils import get_utcnow_timestamp_str
 from superflore.utils import info
@@ -42,10 +41,10 @@ from superflore.utils import warn
 def main():
     os.environ["ROS_OS_OVERRIDE"] = "openembedded"
     overlay = None
-    preserve_existing = True
     parser = get_parser(
         'Deploy ROS packages into OpenEmbedded Linux',
         exclude_all=True,
+        require_rosdistro=True,
         require_dryrun=True)
     parser.add_argument(
         '--tar-archive-dir',
@@ -55,7 +54,6 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     skip_keys = set(args.skip_keys) if args.skip_keys else set()
-    selected_targets = None
     if args.pr_only:
         if args.dry_run:
             parser.error('Invalid args! cannot dry-run and file PR')
@@ -71,14 +69,13 @@ def main():
             err('Failed to file PR!')
             err('reason: {0}'.format(e))
             sys.exit(1)
-    elif args.ros_distro:
-        warn('"{0}" distro detected...'.format(args.ros_distro))
-        selected_targets = [args.ros_distro]
-        preserve_existing = False
-    elif args.only:
-        parser.error('Invalid args! --only requires specifying --ros-distro')
-    if not selected_targets:
-        selected_targets = get_distros_by_status('active')
+    warn('"{0}" distro detected...'.format(args.ros_distro))
+    """
+    No longer supporting generation for multiple targets, but left the code in
+    place to handle them in case it might be needed again in the future.
+    """
+    selected_targets = [args.ros_distro]
+    preserve_existing = args.only
     now = os.getenv(
         'SUPERFLORE_GENERATION_DATETIME',
         get_utcnow_timestamp_str())

@@ -142,8 +142,10 @@ should be followed to generate the OpenEmbedded recipes for `meta-ros`.
 ```
 $ superflore-gen-oe-recipes --help
 usage: Deploy ROS packages into OpenEmbedded Linux [-h]
-                                                   [--ros-distro ROS_DISTRO]
-                                                   --dry-run [--pr-only] [--no-branch]
+                                                   --ros-distro ROS_DISTRO
+                                                   --dry-run
+                                                   [--pr-only]
+                                                   [--no-branch]
                                                    [--output-repository-path OUTPUT_REPOSITORY_PATH]
                                                    [--only ONLY [ONLY ...]]
                                                    [--pr-comment PR_COMMENT]
