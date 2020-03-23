@@ -17,13 +17,16 @@ import argparse
 
 # set up a parser and return it
 def get_parser(
-    tool_tip, is_generator=True, exclude_all=False, require_dryrun=False
+    tool_tip, is_generator=True, exclude_all=False,
+    require_dryrun=False,
+    require_rosdistro=False
 ):
     parser = argparse.ArgumentParser(tool_tip)
     if is_generator:
         parser.add_argument(
             '--ros-distro',
             help='regenerate packages for the specified distro',
+            required=require_rosdistro,
             type=str
         )
         if not exclude_all:
