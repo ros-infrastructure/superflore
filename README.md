@@ -37,11 +37,16 @@ Gentoo Usage:
 
 ### Generating Gentoo Ebuilds
 ```
-$ superflore-gen-ebuilds --help
+$ superflore-gen-ebuilds -h
 usage: Deploy ROS packages into Gentoo Linux [-h] [--ros-distro ROS_DISTRO]
-                                             [--all] [--dry-run] [--pr-only] [--no-branch]
+                                             [--all] [--dry-run] [--pr-only]
+                                             [--no-branch]
                                              [--output-repository-path OUTPUT_REPOSITORY_PATH]
                                              [--only ONLY [ONLY ...]]
+                                             [--pr-comment PR_COMMENT]
+                                             [--upstream-repo UPSTREAM_REPO]
+                                             [--upstream-branch UPSTREAM_BRANCH]
+                                             [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -62,7 +67,7 @@ optional arguments:
                         https://github.com/<owner>/<repository>
   --upstream-branch UPSTREAM_BRANCH
                         branch of the upstream repository
-  --skip-keys SKIP_KEYS
+  --skip-keys SKIP_KEYS [SKIP_KEYS ...]
                         packages to skip during regeneration
 ```
 
@@ -140,12 +145,10 @@ OpenEmbedded Usage:
 should be followed to generate the OpenEmbedded recipes for `meta-ros`.
 
 ```
-$ superflore-gen-oe-recipes --help
-usage: Deploy ROS packages into OpenEmbedded Linux [-h]
-                                                   --ros-distro ROS_DISTRO
-                                                   --dry-run
-                                                   [--pr-only]
-                                                   [--no-branch]
+$ superflore-gen-oe-recipes -h
+usage: Deploy ROS packages into OpenEmbedded Linux [-h] --ros-distro
+                                                   ROS_DISTRO --dry-run
+                                                   [--pr-only] [--no-branch]
                                                    [--output-repository-path OUTPUT_REPOSITORY_PATH]
                                                    [--only ONLY [ONLY ...]]
                                                    [--pr-comment PR_COMMENT]
