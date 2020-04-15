@@ -42,7 +42,7 @@ def main():
     os.environ["ROS_OS_OVERRIDE"] = "openembedded"
     overlay = None
     parser = get_parser(
-        'Deploy ROS packages into OpenEmbedded Linux',
+        'Generate OpenEmbedded recipes for ROS packages',
         exclude_all=True,
         require_rosdistro=True,
         require_dryrun=True)

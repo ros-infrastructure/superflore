@@ -158,7 +158,7 @@ usage: superflore-gen-oe-recipes [-h] --ros-distro ROS_DISTRO --dry-run
                                  [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
                                  [--tar-archive-dir TAR_ARCHIVE_DIR]
 
-Deploy ROS packages into OpenEmbedded Linux
+Generate OpenEmbedded recipes for ROS packages
 
 optional arguments:
   -h, --help            show this help message and exit
