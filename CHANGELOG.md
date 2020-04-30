@@ -1,5 +1,33 @@
 # Change Log
 
+## [v0.3.2](https://github.com/ros-infrastructure/superflore/tree/v0.3.2) (2020-04-30)
+
+[Full Changelog](https://github.com/ros-infrastructure/superflore/compare/v0.3.1...v0.3.2)
+
+**Implemented enhancements:**
+
+- Use "git describe" to append a local version label [\#262](https://github.com/ros-infrastructure/superflore/pull/262) ([shr-project](https://github.com/shr-project))
+
+**Fixed bugs:**
+
+- superflore-gen-oe-recipes: Wrong path used to calculate ROS\_NUM\_CACHE\_YAML\_COMMITS  [\#264](https://github.com/ros-infrastructure/superflore/issues/264)
+
+**Closed issues:**
+
+- superflore-gen-oe-recipes: Stop generating superfore-change-summary.txt [\#274](https://github.com/ros-infrastructure/superflore/issues/274)
+
+**Merged pull requests:**
+
+- parser.py: Show program name in usage message instead of description [\#275](https://github.com/ros-infrastructure/superflore/pull/275) ([shr-project](https://github.com/shr-project))
+- bitbake:  Drop generation of superfore-change-summary.txt; fix exception message [\#273](https://github.com/ros-infrastructure/superflore/pull/273) ([shr-project](https://github.com/shr-project))
+- bitbake/run.py: Require --ros-distro [\#272](https://github.com/ros-infrastructure/superflore/pull/272) ([shr-project](https://github.com/shr-project))
+- bitbake: Drop year from Copyright lines in generated files [\#270](https://github.com/ros-infrastructure/superflore/pull/270) ([shr-project](https://github.com/shr-project))
+- bitbake: Fix path to cache.yaml in various places [\#269](https://github.com/ros-infrastructure/superflore/pull/269) ([shr-project](https://github.com/shr-project))
+- yocto\_recipe.py: Correct path in superflore-datetime.inc [\#268](https://github.com/ros-infrastructure/superflore/pull/268) ([shr-project](https://github.com/shr-project))
+- yocto\_recipe.py: Use sensible default for \<build\_type\> when not ROS 1 [\#267](https://github.com/ros-infrastructure/superflore/pull/267) ([shr-project](https://github.com/shr-project))
+- bitbake: Don't create a pull request [\#266](https://github.com/ros-infrastructure/superflore/pull/266) ([shr-project](https://github.com/shr-project))
+- superflore-gen-oe-recipes: Delete all generated files when regenerating all recipes [\#265](https://github.com/ros-infrastructure/superflore/pull/265) ([shr-project](https://github.com/shr-project))
+
 ## [v0.3.1](https://github.com/ros-infrastructure/superflore/tree/v0.3.1) (2019-12-17)
 [Full Changelog](https://github.com/ros-infrastructure/superflore/compare/v0.3.0...v0.3.1)
 
