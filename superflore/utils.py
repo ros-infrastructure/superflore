@@ -17,10 +17,12 @@ import errno
 import os
 import random
 import re
+import shutil
 import string
 import sys
 import time
 from typing import Dict
+import urllib.request
 
 from pkg_resources import DistributionNotFound, get_distribution
 from superflore.exceptions import UnknownPlatform
@@ -787,6 +789,19 @@ def url_to_repo_org(url):
         )
     url = url.replace('https://github.com/', '').split('/')
     return url[0], url[1]
+
+
+def download_file(url, filename):
+    # GitLab returns 403 when using the default urllib User-Agent
+    request = urllib.request.Request(url, headers={
+        'User-Agent': 'superflore/{}'.format(get_superflore_version())
+    })
+    try:
+        with urllib.request.urlopen(request) as response, open(filename, 'wb') as file:
+            shutil.copyfileobj(response, file)
+    except Exception as e:
+        os.remove(filename)
+        raise e
 
 
 def retry_on_exception(callback, *args, max_retries=5, num_retry=0,

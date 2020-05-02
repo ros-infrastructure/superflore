@@ -82,9 +82,6 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
         for dep in unresolved:
             err(" unresolved: \"{}\"".format(dep))
         return None, unresolved, None
-    except NoPkgXml:
-        err("Could not fetch pkg!")
-        return None, [], None
     except Exception as e:
         err('Failed to generate derivation for package {}!'.format(pkg))
         raise e
