@@ -4,18 +4,18 @@ import os
 import re
 import tarfile
 from typing import Dict, Iterable, Set
-from urllib.request import urlretrieve
 
 from rosdistro import DistributionFile
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.rosdistro import RosPackage
 from rosinstall_generator.distro import _generate_rosinstall
 
-from superflore.PackageMetadata import PackageMetadata
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.nix.nix_derivation import NixDerivation, NixLicense
-from superflore.utils import info, get_pkg_version, warn, resolve_dep, \
-    get_distro_condition_context, retry_on_exception
+from superflore.PackageMetadata import PackageMetadata
+from superflore.utils import (download_file, get_distro_condition_context,
+                              get_pkg_version, info, resolve_dep,
+                              retry_on_exception, warn)
 
 
 class NixPackage:
@@ -49,7 +49,9 @@ class NixPackage:
         else:
             info("downloading archive version for package '{}'..."
                  .format(name))
-            urlretrieve(src_uri, archive_path)
+            retry_on_exception(download_file, src_uri, archive_path,
+                               retry_msg="network error downloading '{}'".format(src_uri),
+                               error_msg="failed to download archive for '{}'".format(name))
             downloaded_archive = True
 
         if downloaded_archive or archive_path not in sha256_cache:
