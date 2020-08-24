@@ -800,7 +800,10 @@ def download_file(url, filename):
         with urllib.request.urlopen(request) as response, open(filename, 'wb') as file:
             shutil.copyfileobj(response, file)
     except Exception as e:
-        os.remove(filename)
+        try:
+            os.remove(filename)
+        except Exception as re:
+            warn('failed to remove: {}: {}'.format(filename, re))
         raise e
 
 
