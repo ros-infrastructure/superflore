@@ -29,7 +29,7 @@ def main():
 
     tester = NixBuilder()
     parser = argparse.ArgumentParser(
-        'Check if ROS packages are building with Nix'
+        description='Check if ROS packages are building with Nix'
     )
     parser.add_argument(
         '--ros-distro',
