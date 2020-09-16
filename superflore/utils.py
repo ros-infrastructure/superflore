@@ -16,7 +16,6 @@ from datetime import datetime
 import errno
 import os
 import random
-import re
 import string
 import sys
 import time
@@ -146,67 +145,547 @@ def trim_string(string, length=80):
 
 
 def get_license(lic):
-    bsd_re = '^(BSD)((.)*([124]))?'
-    gpl_re = '((([^L])*(GPL)([^0-9]*))|'\
-        '(GNU(.)*GENERAL(.)*PUBLIC(.)*LICENSE([^0-9])*))([0-9])?'
-    lgpl_re = '(((LGPL)([^0-9]*))|'\
-        '(GNU(.)*Lesser(.)*Public(.)*License([^0-9])*))([0-9]?\\.[0-9])?'
-    apache_re = '^(Apache)((.)*(1\\.0|1\\.1|2\\.0|2))?'
-    cc_re = '^(Creative(.)?Commons)((.)*)'
-    cc_nc_nd_re = '^((Creative(.)?Commons)|CC)((.)*)' +\
-                  '((Non(.)?Commercial)|NC)((.)*)((No(.)?Derivatives)|ND)'
-    cc_by_nc_sa_re = '^(CC(.)?BY(.)?NC(.)?SA(.)?)'
-    moz_re = '^(Mozilla)((.)*(1\\.1))?'
-    boost_re = '^(Boost)((.)*([1]))?'
-    pub_dom_re = '^(Public(.)?Domain)'
-    mit_re = '^MIT'
-    f = re.IGNORECASE
+    """
+    Temporary import the license modification from catkin_pkg validation.
 
-    if re.search(apache_re, lic, f):
-        version = re.search(apache_re, lic, f).group(4)
-        if version:
-            return 'Apache-%.1f' % (float(version))
-        return 'Apache-1.0'
-    elif re.search(bsd_re, lic, f):
-        version = re.search(bsd_re, lic, f).group(4)
-        if version:
-            return 'BSD-{0}'.format(version)
-        return 'BSD'
-    elif re.search(lgpl_re, lic, f):
-        version = re.search(lgpl_re, lic, f)
-        grp = len(version.groups())
-        version = version.group(grp)
-        if version:
-            return 'LGPL-{0}'.format(version)
-        return 'LGPL-2'
-    elif re.search(gpl_re, lic, f):
-        version = re.search(gpl_re, lic, f)
-        grp = len(version.groups())
-        version = version.group(grp)
-        if version:
-            return 'GPL-{0}'.format(version)
-        return 'GPL-1'
-    elif re.search(moz_re, lic, f):
-        version = re.search(moz_re, lic, f).group(4)
-        if version:
-            return 'MPL-{0}'.format(version)
-        return 'MPL-2.0'
-    elif re.search(mit_re, lic, f):
-        return 'MIT'
-    elif re.search(cc_nc_nd_re, lic, f):
-        return 'CC-BY-NC-ND-4.0'
-    elif re.search(cc_by_nc_sa_re, lic, f):
-        return 'CC-BY-NC-SA-4.0'
-    elif re.search(cc_re, lic, f):
-        return 'CC-BY-SA-3.0'
-    elif re.search(boost_re, lic, f):
-        return 'Boost-1.0'
-    elif re.search(pub_dom_re, lic, f):
-        return 'public_domain'
-    else:
-        warn('Could not match license "{0}". Passing it through...'.format(
-            lic))
+    Once all active ROS packages are updated to have more reasonble license
+    values, this whole function can be dropped and the value should be the
+    same as what package.xml says.
+    """
+    def is_valid_spdx_identifier(lic):
+        """
+        Checks if the license is already one of valid SPDX Identifiers from
+        https://spdx.org/licenses/
+
+        The list was created with:
+        cat doc/spdx-3.10-2020-08-03.csv | cut -f 2 | grep -v ^Identifier$ \
+            | sed 's/^/"/g; s/$/",/g' | xargs --delimiter='\n'
+        """
+
+        return lic in ["0BSD",
+                       "AAL",
+                       "Abstyles",
+                       "Adobe-2006",
+                       "Adobe-Glyph",
+                       "ADSL",
+                       "AFL-1.1",
+                       "AFL-1.2",
+                       "AFL-2.0",
+                       "AFL-2.1",
+                       "AFL-3.0",
+                       "Afmparse",
+                       "AGPL-1.0-only",
+                       "AGPL-1.0-or-later",
+                       "AGPL-3.0-only",
+                       "AGPL-3.0-or-later",
+                       "Aladdin",
+                       "AMDPLPA",
+                       "AML",
+                       "AMPAS",
+                       "ANTLR-PD",
+                       "Apache-1.0",
+                       "Apache-1.1",
+                       "Apache-2.0",
+                       "APAFML",
+                       "APL-1.0",
+                       "APSL-1.0",
+                       "APSL-1.1",
+                       "APSL-1.2",
+                       "APSL-2.0",
+                       "Artistic-1.0",
+                       "Artistic-1.0-cl8",
+                       "Artistic-1.0-Perl",
+                       "Artistic-2.0",
+                       "Bahyph",
+                       "Barr",
+                       "Beerware",
+                       "BitTorrent-1.0",
+                       "BitTorrent-1.1",
+                       "blessing",
+                       "BlueOak-1.0.0",
+                       "Borceux",
+                       "BSD-1-Clause",
+                       "BSD-2-Clause",
+                       "BSD-2-Clause-Patent",
+                       "BSD-2-Clause-Views",
+                       "BSD-3-Clause",
+                       "BSD-3-Clause-Attribution",
+                       "BSD-3-Clause-Clear",
+                       "BSD-3-Clause-LBNL",
+                       "BSD-3-Clause-No-Nuclear-License",
+                       "BSD-3-Clause-No-Nuclear-License-2014",
+                       "BSD-3-Clause-No-Nuclear-Warranty",
+                       "BSD-3-Clause-Open-MPI",
+                       "BSD-4-Clause",
+                       "BSD-4-Clause-UC",
+                       "BSD-Protection",
+                       "BSD-Source-Code",
+                       "BSL-1.0",
+                       "bzip2-1.0.5",
+                       "bzip2-1.0.6",
+                       "CAL-1.0",
+                       "CAL-1.0-Combined-Work-Exception",
+                       "Caldera",
+                       "CATOSL-1.1",
+                       "CC-BY-1.0",
+                       "CC-BY-2.0",
+                       "CC-BY-2.5",
+                       "CC-BY-3.0",
+                       "CC-BY-3.0-AT",
+                       "CC-BY-4.0",
+                       "CC-BY-NC-1.0",
+                       "CC-BY-NC-2.0",
+                       "CC-BY-NC-2.5",
+                       "CC-BY-NC-3.0",
+                       "CC-BY-NC-4.0",
+                       "CC-BY-NC-ND-1.0",
+                       "CC-BY-NC-ND-2.0",
+                       "CC-BY-NC-ND-2.5",
+                       "CC-BY-NC-ND-3.0",
+                       "CC-BY-NC-ND-3.0-IGO",
+                       "CC-BY-NC-ND-4.0",
+                       "CC-BY-NC-SA-1.0",
+                       "CC-BY-NC-SA-2.0",
+                       "CC-BY-NC-SA-2.5",
+                       "CC-BY-NC-SA-3.0",
+                       "CC-BY-NC-SA-4.0",
+                       "CC-BY-ND-1.0",
+                       "CC-BY-ND-2.0",
+                       "CC-BY-ND-2.5",
+                       "CC-BY-ND-3.0",
+                       "CC-BY-ND-4.0",
+                       "CC-BY-SA-1.0",
+                       "CC-BY-SA-2.0",
+                       "CC-BY-SA-2.5",
+                       "CC-BY-SA-3.0",
+                       "CC-BY-SA-3.0-AT",
+                       "CC-BY-SA-4.0",
+                       "CC-PDDC",
+                       "CC0-1.0",
+                       "CDDL-1.0",
+                       "CDDL-1.1",
+                       "CDLA-Permissive-1.0",
+                       "CDLA-Sharing-1.0",
+                       "CECILL-1.0",
+                       "CECILL-1.1",
+                       "CECILL-2.0",
+                       "CECILL-2.1",
+                       "CECILL-B",
+                       "CECILL-C",
+                       "CERN-OHL-1.1",
+                       "CERN-OHL-1.2",
+                       "CERN-OHL-P-2.0",
+                       "CERN-OHL-S-2.0",
+                       "CERN-OHL-W-2.0",
+                       "ClArtistic",
+                       "CNRI-Jython",
+                       "CNRI-Python",
+                       "CNRI-Python-GPL-Compatible",
+                       "Condor-1.1",
+                       "copyleft-next-0.3.0",
+                       "copyleft-next-0.3.1",
+                       "CPAL-1.0",
+                       "CPL-1.0",
+                       "CPOL-1.02",
+                       "Crossword",
+                       "CrystalStacker",
+                       "CUA-OPL-1.0",
+                       "Cube",
+                       "curl",
+                       "D-FSL-1.0",
+                       "diffmark",
+                       "DOC",
+                       "Dotseqn",
+                       "DSDP",
+                       "dvipdfm",
+                       "ECL-1.0",
+                       "ECL-2.0",
+                       "EFL-1.0",
+                       "EFL-2.0",
+                       "eGenix",
+                       "Entessa",
+                       "EPICS",
+                       "EPL-1.0",
+                       "EPL-2.0",
+                       "ErlPL-1.1",
+                       "etalab-2.0",
+                       "EUDatagrid",
+                       "EUPL-1.0",
+                       "EUPL-1.1",
+                       "EUPL-1.2",
+                       "Eurosym",
+                       "Fair",
+                       "Frameworx-1.0",
+                       "FreeImage",
+                       "FSFAP",
+                       "FSFUL",
+                       "FSFULLR",
+                       "FTL",
+                       "GFDL-1.1-invariants-only",
+                       "GFDL-1.1-invariants-or-later",
+                       "GFDL-1.1-no-invariants-only",
+                       "GFDL-1.1-no-invariants-or-later",
+                       "GFDL-1.1-only",
+                       "GFDL-1.1-or-later",
+                       "GFDL-1.2-invariants-only",
+                       "GFDL-1.2-invariants-or-later",
+                       "GFDL-1.2-no-invariants-only",
+                       "GFDL-1.2-no-invariants-or-later",
+                       "GFDL-1.2-only",
+                       "GFDL-1.2-or-later",
+                       "GFDL-1.3-invariants-only",
+                       "GFDL-1.3-invariants-or-later",
+                       "GFDL-1.3-no-invariants-only",
+                       "GFDL-1.3-no-invariants-or-later",
+                       "GFDL-1.3-only",
+                       "GFDL-1.3-or-later",
+                       "Giftware",
+                       "GL2PS",
+                       "Glide",
+                       "Glulxe",
+                       "GLWTPL",
+                       "gnuplot",
+                       "GPL-1.0-only",
+                       "GPL-1.0-or-later",
+                       "GPL-2.0-only",
+                       "GPL-2.0-or-later",
+                       "GPL-3.0-only",
+                       "GPL-3.0-or-later",
+                       "gSOAP-1.3b",
+                       "HaskellReport",
+                       "Hippocratic-2.1",
+                       "HPND",
+                       "HPND-sell-variant",
+                       "IBM-pibs",
+                       "ICU",
+                       "IJG",
+                       "ImageMagick",
+                       "iMatix",
+                       "Imlib2",
+                       "Info-ZIP",
+                       "Intel",
+                       "Intel-ACPI",
+                       "Interbase-1.0",
+                       "IPA",
+                       "IPL-1.0",
+                       "ISC",
+                       "JasPer-2.0",
+                       "JPNIC",
+                       "JSON",
+                       "LAL-1.2",
+                       "LAL-1.3",
+                       "Latex2e",
+                       "Leptonica",
+                       "LGPL-2.0-only",
+                       "LGPL-2.0-or-later",
+                       "LGPL-2.1-only",
+                       "LGPL-2.1-or-later",
+                       "LGPL-3.0-only",
+                       "LGPL-3.0-or-later",
+                       "LGPLLR",
+                       "Libpng",
+                       "libpng-2.0",
+                       "libselinux-1.0",
+                       "libtiff",
+                       "LiLiQ-P-1.1",
+                       "LiLiQ-R-1.1",
+                       "LiLiQ-Rplus-1.1",
+                       "Linux-OpenIB",
+                       "LPL-1.0",
+                       "LPL-1.02",
+                       "LPPL-1.0",
+                       "LPPL-1.1",
+                       "LPPL-1.2",
+                       "LPPL-1.3a",
+                       "LPPL-1.3c",
+                       "MakeIndex",
+                       "MirOS",
+                       "MIT",
+                       "MIT-0",
+                       "MIT-advertising",
+                       "MIT-CMU",
+                       "MIT-enna",
+                       "MIT-feh",
+                       "MITNFA",
+                       "Motosoto",
+                       "mpich2",
+                       "MPL-1.0",
+                       "MPL-1.1",
+                       "MPL-2.0",
+                       "MPL-2.0-no-copyleft-exception",
+                       "MS-PL",
+                       "MS-RL",
+                       "MTLL",
+                       "MulanPSL-1.0",
+                       "MulanPSL-2.0",
+                       "Multics",
+                       "Mup",
+                       "NASA-1.3",
+                       "Naumen",
+                       "NBPL-1.0",
+                       "NCGL-UK-2.0",
+                       "NCSA",
+                       "Net-SNMP",
+                       "NetCDF",
+                       "Newsletr",
+                       "NGPL",
+                       "NIST-PD",
+                       "NIST-PD-fallback",
+                       "NLOD-1.0",
+                       "NLPL",
+                       "Nokia",
+                       "NOSL",
+                       "Noweb",
+                       "NPL-1.0",
+                       "NPL-1.1",
+                       "NPOSL-3.0",
+                       "NRL",
+                       "NTP",
+                       "NTP-0",
+                       "O-UDA-1.0",
+                       "OCCT-PL",
+                       "OCLC-2.0",
+                       "ODbL-1.0",
+                       "ODC-By-1.0",
+                       "OFL-1.0",
+                       "OFL-1.0-no-RFN",
+                       "OFL-1.0-RFN",
+                       "OFL-1.1",
+                       "OFL-1.1-no-RFN",
+                       "OFL-1.1-RFN",
+                       "OGC-1.0",
+                       "OGL-Canada-2.0",
+                       "OGL-UK-1.0",
+                       "OGL-UK-2.0",
+                       "OGL-UK-3.0",
+                       "OGTSL",
+                       "OLDAP-1.1",
+                       "OLDAP-1.2",
+                       "OLDAP-1.3",
+                       "OLDAP-1.4",
+                       "OLDAP-2.0",
+                       "OLDAP-2.0.1",
+                       "OLDAP-2.1",
+                       "OLDAP-2.2",
+                       "OLDAP-2.2.1",
+                       "OLDAP-2.2.2",
+                       "OLDAP-2.3",
+                       "OLDAP-2.4",
+                       "OLDAP-2.5",
+                       "OLDAP-2.6",
+                       "OLDAP-2.7",
+                       "OLDAP-2.8",
+                       "OML",
+                       "OpenSSL",
+                       "OPL-1.0",
+                       "OSET-PL-2.1",
+                       "OSL-1.0",
+                       "OSL-1.1",
+                       "OSL-2.0",
+                       "OSL-2.1",
+                       "OSL-3.0",
+                       "Parity-6.0.0",
+                       "Parity-7.0.0",
+                       "PDDL-1.0",
+                       "PHP-3.0",
+                       "PHP-3.01",
+                       "Plexus",
+                       "PolyForm-Noncommercial-1.0.0",
+                       "PolyForm-Small-Business-1.0.0",
+                       "PostgreSQL",
+                       "PSF-2.0",
+                       "psfrag",
+                       "psutils",
+                       "Python-2.0",
+                       "Qhull",
+                       "QPL-1.0",
+                       "Rdisc",
+                       "RHeCos-1.1",
+                       "RPL-1.1",
+                       "RPL-1.5",
+                       "RPSL-1.0",
+                       "RSA-MD",
+                       "RSCPL",
+                       "Ruby",
+                       "SAX-PD",
+                       "Saxpath",
+                       "SCEA",
+                       "Sendmail",
+                       "Sendmail-8.23",
+                       "SGI-B-1.0",
+                       "SGI-B-1.1",
+                       "SGI-B-2.0",
+                       "SHL-0.5",
+                       "SHL-0.51",
+                       "SimPL-2.0",
+                       "SISSL",
+                       "SISSL-1.2",
+                       "Sleepycat",
+                       "SMLNJ",
+                       "SMPPL",
+                       "SNIA",
+                       "Spencer-86",
+                       "Spencer-94",
+                       "Spencer-99",
+                       "SPL-1.0",
+                       "SSH-OpenSSH",
+                       "SSH-short",
+                       "SSPL-1.0",
+                       "SugarCRM-1.1.3",
+                       "SWL",
+                       "TAPR-OHL-1.0",
+                       "TCL",
+                       "TCP-wrappers",
+                       "TMate",
+                       "TORQUE-1.1",
+                       "TOSL",
+                       "TU-Berlin-1.0",
+                       "TU-Berlin-2.0",
+                       "UCL-1.0",
+                       "Unicode-DFS-2015",
+                       "Unicode-DFS-2016",
+                       "Unicode-TOU",
+                       "Unlicense",
+                       "UPL-1.0",
+                       "Vim",
+                       "VOSTROM",
+                       "VSL-1.0",
+                       "W3C",
+                       "W3C-19980720",
+                       "W3C-20150513",
+                       "Watcom-1.0",
+                       "Wsuipa",
+                       "WTFPL",
+                       "X11",
+                       "Xerox",
+                       "XFree86-1.1",
+                       "xinetd",
+                       "Xnet",
+                       "xpp",
+                       "XSkat",
+                       "YPL-1.0",
+                       "YPL-1.1",
+                       "Zed",
+                       "Zend-2.0",
+                       "Zimbra-1.3",
+                       "Zimbra-1.4",
+                       "Zlib",
+                       "zlib-acknowledgement",
+                       "ZPL-1.1",
+                       "ZPL-2.0",
+                       "ZPL-2.1"]
+
+    def map_license_to_spdx(lic):
+        """
+        Map some commonly used license values to one of valid SPDX Identifiers
+        from https://spdx.org/licenses/
+
+        This is mapping only whatever value is listed in package.xml without
+        any knowledge about the actual license used in the source files - it
+        can map only the clear unambiguous cases (while triggering an warning)
+        The rest needs to be fixed in package.xml, so it will trigger an error
+
+        This is similar to what e.g. Openembedded is doing in:
+        http://git.openembedded.org/openembedded-core/tree/meta/conf/licenses.conf
+        """
+        return {
+            'Apache License Version 2.0': 'Apache-2.0',
+            'Apachi 2': 'Apache-2.0',
+            'Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)': 'Apache-2.0',  # noqa: E501
+            'Apache v2': 'Apache-2.0',
+            'Apache v2.0': 'Apache-2.0',
+            'Apache2.0': 'Apache-2.0',
+            'APACHE2.0': 'Apache-2.0',
+            'Apache2': 'Apache-2.0',
+            'Apache License, Version 2.0': 'Apache-2.0',
+            'Apache 2': 'Apache-2.0',
+            'Apache 2.0': 'Apache-2.0',
+            'Apache License 2.0': 'Apache-2.0',
+            'LGPL v2': 'LGPL-2.0-only',
+            'LGPL v2.1 or later': 'LGPL-2.1-or-later',
+            'LGPL v2.1': 'LGPL-2.1-only',
+            'LGPL-2.1': 'LGPL-2.1-only',
+            'LGPLv2.1': 'LGPL-2.1-only',
+            'GNU Lesser Public License 2.1': 'LGPL-2.1-only',
+            'LGPL3': 'LGPL-3.0-only',
+            'LGPLv3': 'LGPL-3.0-only',
+            'GPL-2.0': 'GPL-2.0-only',
+            'GPLv2': 'GPL-2.0-only',
+            'GNU General Public License v2.0': 'GPL-2.0-only',
+            'GNU GPL v3.0': 'GPL-3.0-only',
+            'GPL v3': 'GPL-3.0-only',
+            'GPLv3': 'GPL-3.0-only',
+            'ECL2.0': 'EPL-2.0',
+            'Eclipse Public License 2.0': 'EPL-2.0',
+            'Mozilla Public License Version 1.1': 'MPL-1.1',
+            'Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International Public License': 'CC-BY-NC-ND-4.0',  # noqa: E501
+            'CreativeCommons-Attribution-NonCommercial-NoDerivatives-4.0': 'CC-BY-NC-ND-4.0',  # noqa: E501
+            'CreativeCommons-Attribution-NonCommercial-ShareAlike-4.0-International': 'CC-BY-NC-SA-4.0',  # noqa: E501
+            'CC BY-NC-SA 4.0': 'CC-BY-NC-SA-4.0',
+            'CreativeCommons-by-nc-4.0': 'CC-BY-NC-4.0',
+            'CreativeCommons-by-nc-sa-2.0': 'CC-BY-NC-SA-2.0',
+            'Creative Commons BY-NC-ND 3.0': 'CC-BY-NC-ND-3.0',
+            'BSD 3-clause Clear License': 'BSD-2-Clause',
+            'BSD 3-clause. See license attached': 'BSD-2-Clause',
+            'BSD 2-Clause License': 'BSD-2-Clause',
+            'BSD2': 'BSD-2-Clause',
+            'BSD-3': 'BSD-3-Clause',
+            'BSD 3-Clause': 'BSD-3-Clause',
+            'Boost Software License 1.0': 'BSL-1.0',
+            'Boost': 'BSL-1.0',
+            'Boost Software License, Version 1.0': 'BSL-1.0',
+            'Boost Software License': 'BSL-1.0',
+            'BSL1.0': 'BSL-1.0',
+            'MIT License': 'MIT',
+            'zlib License': 'Zlib',
+            'zlib': 'Zlib'
+        }.get(lic, None)
+
+    def map_license_to_more_common_format(lic):
+        """
+        These aren't SPDX Identifiers, but lets unify them to use at least
+        similar format.
+        """
+        return {
+            "Check author's website": 'Check-authors-website',
+            'proprietary': 'Proprietary',
+            'Public Domain': 'PD',
+            'Public domain': 'PD',
+            'TODO': 'TODO-CATKIN-PACKAGE-LICENSE'
+        }.get(lic, None)
+
+    def map_license_to_ampersand_separated_list(lic):
+        """
+        Check if the license tag contains multiple license values.
+
+        Show warning about using multiple license tags when the
+        value is one of the listed.
+        """
+        return {
+            'LGPLv2.1, modified BSD': 'LGPL-2.1-only & modified BSD',
+            'Lesser GPL and Apache License': 'Lesser GPL & Apache License',
+            'BSD,GPL because of list.h; other files released under BSD,GPL': 'BSD & GPL because of list.h & other files released under BSD & GPL',  # noqa: E501
+            'GPL because of list.h; other files released under BSD': 'GPL because of list.h & other files released under BSD',  # noqa: E501
+            'BSD, some icons are licensed under the GNU Lesser General Public License (LGPL) or Creative Commons Attribution-Noncommercial 3.0 License': 'BSD & some icons are licensed under LGPL or CC-BY-NC-3.0',  # noqa: E501
+            'BSD,LGPL,LGPL (amcl)': 'BSD & LGPL & LGPL (amcl)',
+            'BSD, GPL': 'BSD & GPL',
+            'BSD, Apache 2.0': 'BSD & Apache-2.0',
+            'BSD, LGPL': 'BSD & LGPL',
+            'BSD,LGPL,Apache 2.0': 'BSD & LGPL & Apache-2.0'
+         }.get(lic, None)
+
+    if is_valid_spdx_identifier(lic):
         return lic
+    common = map_license_to_more_common_format(lic)
+    if common:
+        lic = common
+    multiple = map_license_to_ampersand_separated_list(lic)
+    if multiple:
+        lic = multiple
+    spdx = map_license_to_spdx(lic)
+    if spdx:
+        lic = spdx
+    return lic
 
 
 def resolve_dep(pkg, os, distro=None):
