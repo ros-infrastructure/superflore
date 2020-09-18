@@ -25,7 +25,6 @@
 
 from collections import defaultdict
 import hashlib
-import re
 from subprocess import DEVNULL, PIPE, Popen
 
 from superflore.exceptions import NoPkgXml
@@ -126,7 +125,6 @@ class yoctoRecipe(object):
             srcrev_cache[self.src_uri] = self.get_srcrev()
         self.srcrev = srcrev_cache[self.src_uri]
         self.skip_keys = skip_keys
-        self.multi_hyphen_re = re.compile('-{2,}')
 
     def get_license_line(self):
         self.license_line = ''
@@ -271,14 +269,6 @@ class yoctoRecipe(object):
         ret = 'inherit ros_${ROS_BUILD_TYPE}\n'
         return ret
 
-    def trim_hyphens(self, s):
-        return self.multi_hyphen_re.sub('-', s)
-
-    def translate_license(self, lic):
-        conversion_table = {ord(' '): '-', ord('/'): '-', ord(':'): '-',
-                            ord('+'): '-', ord('('): '-', ord(')'): '-'}
-        return self.trim_hyphens(lic.translate(conversion_table))
-
     @staticmethod
     def modify_name_if_native(dep, is_native):
         """
@@ -412,12 +402,17 @@ class yoctoRecipe(object):
         # license
         self.get_license_line()
         if isinstance(self.license, str):
-            ret += 'LICENSE = "%s"\n' % self.translate_license(
-                get_license(self.license))
+            oe_lic = get_license(self.license)
+            if oe_lic != self.license:
+                ret += '# Original license in package.xml:\n'
+                ret += '#         "' + self.license + '"\n'
         elif isinstance(self.license, list):
-            ret += 'LICENSE = "'
-            ret += ' & '.join([self.translate_license(
-                get_license(lic)) for lic in self.license]) + '"\n'
+            oe_lic = ' & '.join([get_license(lic) for lic in self.license])
+            if oe_lic != ' & '.join(self.license):
+                ret += '# Original license in package.xml, joined with '
+                ret += '"&" when multiple license tags were used:\n'
+                ret += '#         "' + ' & '.join(self.license) + '"\n'
+        ret += 'LICENSE = "' + oe_lic + '"\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
         ret += ';endline='

@@ -16,6 +16,7 @@ from datetime import datetime
 import errno
 import os
 import random
+import re
 import string
 import sys
 import time
@@ -674,6 +675,12 @@ def get_license(lic):
             'BSD,LGPL,Apache 2.0': 'BSD & LGPL & Apache-2.0'
          }.get(lic, None)
 
+    def translate_license(lic):
+        conversion_table = {ord(' '): '-', ord('/'): '-', ord(':'): '-',
+                            ord('+'): '-', ord('('): '-', ord(')'): '-'}
+        multi_hyphen_re = re.compile('-{2,}')
+        return multi_hyphen_re.sub('-', lic.translate(conversion_table))
+
     if is_valid_spdx_identifier(lic):
         return lic
     common = map_license_to_more_common_format(lic)
@@ -685,7 +692,7 @@ def get_license(lic):
     spdx = map_license_to_spdx(lic)
     if spdx:
         lic = spdx
-    return lic
+    return translate_license(lic)
 
 
 def resolve_dep(pkg, os, distro=None):
