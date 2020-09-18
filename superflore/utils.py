@@ -145,7 +145,7 @@ def trim_string(string, length=80):
     return string[:length - len(end_string)] + end_string
 
 
-def get_license(l):
+def get_license(lic):
     bsd_re = '^(BSD)((.)*([124]))?'
     gpl_re = '((([^L])*(GPL)([^0-9]*))|'\
         '(GNU(.)*GENERAL(.)*PUBLIC(.)*LICENSE([^0-9])*))([0-9])?'
@@ -162,50 +162,51 @@ def get_license(l):
     mit_re = '^MIT'
     f = re.IGNORECASE
 
-    if re.search(apache_re, l, f):
-        version = re.search(apache_re, l, f).group(4)
+    if re.search(apache_re, lic, f):
+        version = re.search(apache_re, lic, f).group(4)
         if version:
             return 'Apache-%.1f' % (float(version))
         return 'Apache-1.0'
-    elif re.search(bsd_re, l, f):
-        version = re.search(bsd_re, l, f).group(4)
+    elif re.search(bsd_re, lic, f):
+        version = re.search(bsd_re, lic, f).group(4)
         if version:
             return 'BSD-{0}'.format(version)
         return 'BSD'
-    elif re.search(lgpl_re, l, f):
-        version = re.search(lgpl_re, l, f)
+    elif re.search(lgpl_re, lic, f):
+        version = re.search(lgpl_re, lic, f)
         grp = len(version.groups())
         version = version.group(grp)
         if version:
             return 'LGPL-{0}'.format(version)
         return 'LGPL-2'
-    elif re.search(gpl_re, l, f):
-        version = re.search(gpl_re, l, f)
+    elif re.search(gpl_re, lic, f):
+        version = re.search(gpl_re, lic, f)
         grp = len(version.groups())
         version = version.group(grp)
         if version:
             return 'GPL-{0}'.format(version)
         return 'GPL-1'
-    elif re.search(moz_re, l, f):
-        version = re.search(moz_re, l, f).group(4)
+    elif re.search(moz_re, lic, f):
+        version = re.search(moz_re, lic, f).group(4)
         if version:
             return 'MPL-{0}'.format(version)
         return 'MPL-2.0'
-    elif re.search(mit_re, l, f):
+    elif re.search(mit_re, lic, f):
         return 'MIT'
-    elif re.search(cc_nc_nd_re, l, f):
+    elif re.search(cc_nc_nd_re, lic, f):
         return 'CC-BY-NC-ND-4.0'
-    elif re.search(cc_by_nc_sa_re, l, f):
+    elif re.search(cc_by_nc_sa_re, lic, f):
         return 'CC-BY-NC-SA-4.0'
-    elif re.search(cc_re, l, f):
+    elif re.search(cc_re, lic, f):
         return 'CC-BY-SA-3.0'
-    elif re.search(boost_re, l, f):
+    elif re.search(boost_re, lic, f):
         return 'Boost-1.0'
-    elif re.search(pub_dom_re, l, f):
+    elif re.search(pub_dom_re, lic, f):
         return 'public_domain'
     else:
-        warn('Could not match license "{0}". Passing it through...'.format(l))
-        return l
+        warn('Could not match license "{0}". Passing it through...'.format(
+            lic))
+        return lic
 
 
 def resolve_dep(pkg, os, distro=None):
