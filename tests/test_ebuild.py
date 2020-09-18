@@ -211,4 +211,4 @@ class TestEbuildOutput(unittest.TestCase):
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         # grab the license line
         license_line = [line for line in got_text.split('\n') if "LICENSE" in line][0]
-        self.assertEqual(license_line, 'LICENSE="( BSD LGPL-2 Apache-2.0 )"')
+        self.assertEqual(license_line, 'LICENSE="( BSD LGPL Apache-2.0 )"')
