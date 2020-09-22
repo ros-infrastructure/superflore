@@ -695,7 +695,8 @@ class yoctoRecipe(object):
                 rosdep_resolve_file.write(
                     '# {}/rosdep-resolve.yaml\n'.format(distro))
                 cache_as_dict_of_list = {
-                    k: list(v) for k, v in yoctoRecipe.rosdep_cache.items()}
+                    k: sorted(list(v)) for k, v in
+                    yoctoRecipe.rosdep_cache.items()}
                 rosdep_resolve_file.write(yaml.dump(
                     cache_as_dict_of_list, default_flow_style=False))
                 ok('Wrote {0}'.format(rosdep_resolve_path))
