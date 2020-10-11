@@ -564,7 +564,7 @@ class yoctoRecipe(object):
                 conf_file.write('ROS_VERSION = "{}"\n'.format(ros_version))
                 conf_file.write('# DO NOT OVERRIDE ROS_PYTHON_VERSION\n')
                 ros_python_version = 3
-                if ros_version == 1:
+                if distro == 'melodic':
                     ros_python_version = 2
                 conf_file.write(
                     'ROS_PYTHON_VERSION = "{}"\n\n'.format(ros_python_version))

@@ -195,7 +195,8 @@ $ superflore-gen-oe-recipes --ros-distro ROS_DISTRO
 This command will clone the `ros/meta-ros` repo into a subfolder under
 `/tmp/superflore`, generate the recipes and other files for the specified
 distro, commit them, and issue a pull request for `ros/meta-ros`. The
-`--ros-distro` flag must be supplied.
+`--ros-distro` flag must be supplied. ROS 1 distros prior to "melodic" are
+not supported.
 
 Generating bitbake recipes without specifying `--dry-run` is not
 supported. This is because it is almost inevitable that
