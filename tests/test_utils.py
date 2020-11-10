@@ -117,15 +117,15 @@ class TestUtils(unittest.TestCase):
         ret = get_license('Mozilla Public License Version 1.1')
         self.assertEqual(ret, 'MPL-1.1')
         ret = get_license('Mozilla Public License')
-        self.assertEqual(ret, 'Mozilla Public License')
+        self.assertEqual(ret, 'Mozilla-Public-License')
         ret = get_license('BSD License 2.0')
-        self.assertEqual(ret, 'BSD License 2.0')
+        self.assertEqual(ret, 'BSD-License-2.0')
         ret = get_license('MIT')
         self.assertEqual(ret, 'MIT')
         ret = get_license('Creative Commons')
-        self.assertEqual(ret, 'Creative Commons')
+        self.assertEqual(ret, 'Creative-Commons')
         ret = get_license('United States Government Purpose')
-        self.assertEqual(ret, 'United States Government Purpose')
+        self.assertEqual(ret, 'United-States-Government-Purpose')
 
     def test_delta_msg(self):
         """Test the delta message generated for the PR"""
