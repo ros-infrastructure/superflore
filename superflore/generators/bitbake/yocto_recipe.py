@@ -506,6 +506,16 @@ class yoctoRecipe(object):
         return 2 if distro in ['melodic'] else 3
 
     @staticmethod
+    def _get_condition_context(distro):
+        context = dict()
+        context["ROS_OS_OVERRIDE"] = "openembedded"
+        context["ROS_DISTRO"] = distro
+        context["ROS_VERSION"] = str(yoctoRecipe._get_ros_version(distro))
+        context["ROS_PYTHON_VERSION"] = str(
+            yoctoRecipe._get_ros_python_version(distro))
+        return context
+
+    @staticmethod
     def generate_superflore_datetime_inc(basepath, dist, now):
         datetime_dir = '{0}/meta-ros{1}-{2}/conf/ros-distro/include/{2}/' \
             'generated/'.format(
@@ -569,7 +579,7 @@ class yoctoRecipe(object):
                 conf_file.write('# DO NOT OVERRIDE ROS_PYTHON_VERSION\n')
                 conf_file.write(
                     'ROS_PYTHON_VERSION = "{}"\n\n'.format(
-                    yoctoRecipe._get_ros_python_version(distro)))
+                        yoctoRecipe._get_ros_python_version(distro)))
                 oe_skip_keys = map(
                     lambda skip_key: yoctoRecipe.convert_to_oe_name(skip_key),
                     skip_keys

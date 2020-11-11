@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from catkin_pkg.package import InvalidPackage
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
@@ -163,8 +161,10 @@ def _gen_recipe_for_package(
     pkg_rosinstall, srcrev_cache, skip_keys
 ):
     pkg_names = get_package_names(distro)
-    pkg_dep_walker = DependencyWalker(distro,
-                                      evaluate_condition_context=os.environ)
+    pkg_dep_walker = DependencyWalker(
+        distro,
+        evaluate_condition_context=yoctoRecipe._get_condition_context(
+            distro.name))
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_build_export_deps = pkg_dep_walker.get_depends(

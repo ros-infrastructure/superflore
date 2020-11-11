@@ -39,7 +39,6 @@ from superflore.utils import warn
 
 
 def main():
-    os.environ["ROS_OS_OVERRIDE"] = "openembedded"
     overlay = None
     parser = get_parser(
         'Generate OpenEmbedded recipes for ROS packages',
@@ -162,6 +161,7 @@ def main():
             for adistro in selected_targets:
                 yoctoRecipe.reset()
                 distro = get_distro(adistro)
+
                 distro_installers, _, distro_changes =\
                     generate_installers(
                         distro,
