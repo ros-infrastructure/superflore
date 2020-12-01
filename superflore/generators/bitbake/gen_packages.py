@@ -37,7 +37,9 @@ def regenerate_pkg(
     pkg_names = get_package_names(distro)[0]
     if pkg not in pkg_names:
         yoctoRecipe.not_generated_recipes.add(pkg)
-        raise RuntimeError("Unknown package '%s'" % pkg)
+        raise RuntimeError("Unknown package '%s' available packages"
+                           " in selected distro: %s" %
+                           (pkg, get_package_names(distro)))
     try:
         version = get_pkg_version(distro, pkg, is_oe=True)
     except KeyError as ke:

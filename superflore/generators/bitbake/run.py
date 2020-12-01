@@ -16,6 +16,7 @@ import os
 import sys
 
 from rosinstall_generator.distro import get_distro
+from rosinstall_generator.distro import get_package_names
 from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_pkg
@@ -133,7 +134,9 @@ def main():
                             skip_keys=skip_keys,
                         )
                     except KeyError:
-                        err("No package to satisfy key '%s'" % pkg)
+                        err("No package to satisfy key '%s' available "
+                            "packages in selected distro: %s" %
+                            (pkg, get_package_names(distro)))
                         sys.exit(1)
                 # Commit changes and file pull request
                 title =\
