@@ -129,7 +129,7 @@ def main():
                             overlay,
                             pkg,
                             distro,
-                            preserve_existing,
+                            False,  # preserve_existing
                             srcrev_cache,
                             skip_keys=skip_keys,
                         )
@@ -148,6 +148,7 @@ def main():
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 delta = "Regenerated: '%s'\n" % args.only
+                overlay.add_generated_files(args.ros_distro)
                 commit_msg = '\n'.join([get_pr_text(
                     title + '\n' + pr_comment.replace(
                         '**superflore**', 'superflore'), markup=''), delta])
