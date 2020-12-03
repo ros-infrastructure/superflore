@@ -97,7 +97,8 @@ class yoctoRecipe(object):
             self.license = None
             self.homepage = None
             self.build_type = 'catkin' if \
-                yoctoRecipe._get_ros_version(distro) == 1 else 'ament_cmake'
+                yoctoRecipe._get_ros_version(distro.name) == 1 \
+                else 'ament_cmake'
             self.maintainer = "OSRF"
         self.depends = set()
         self.depends_external = set()
