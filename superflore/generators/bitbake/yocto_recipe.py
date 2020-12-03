@@ -77,7 +77,9 @@ class yoctoRecipe(object):
         self.pkg_xml = pkg_xml
         self.author = None
         if self.pkg_xml:
-            pkg_fields = PackageMetadata(pkg_xml)
+            pkg_fields = PackageMetadata(
+                pkg_xml,
+                yoctoRecipe._get_condition_context(distro.name))
             maintainer_name = pkg_fields.upstream_name
             maintainer_email = pkg_fields.upstream_email
             author_name = pkg_fields.author_name
