@@ -62,7 +62,7 @@ class yoctoRecipe(object):
     max_component_name = 0
 
     def __init__(
-        self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
+        self, component_name, num_pkgs, pkg_name, pkg_xml, rosdistro, src_uri,
         srcrev_cache, skip_keys
     ):
         self.component = component_name
@@ -71,15 +71,15 @@ class yoctoRecipe(object):
         self.oe_component = yoctoRecipe.convert_to_oe_name(component_name)
         self.num_pkgs = num_pkgs
         self.name = pkg_name
-        self.distro = distro.name
-        self.version = get_pkg_version(distro, pkg_name, is_oe=True)
+        self.distro = rosdistro.name
+        self.version = get_pkg_version(rosdistro, pkg_name, is_oe=True)
         self.src_uri = src_uri
         self.pkg_xml = pkg_xml
         self.author = None
         if self.pkg_xml:
             pkg_fields = PackageMetadata(
                 pkg_xml,
-                yoctoRecipe._get_condition_context(distro.name))
+                yoctoRecipe._get_condition_context(rosdistro.name))
             maintainer_name = pkg_fields.upstream_name
             maintainer_email = pkg_fields.upstream_email
             author_name = pkg_fields.author_name
@@ -105,7 +105,7 @@ class yoctoRecipe(object):
             self.license = None
             self.homepage = None
             self.build_type = 'catkin' if \
-                yoctoRecipe._get_ros_version(distro.name) == 1 \
+                yoctoRecipe._get_ros_version(rosdistro.name) == 1 \
                 else 'ament_cmake'
             self.maintainer = "OSRF"
         self.depends = set()

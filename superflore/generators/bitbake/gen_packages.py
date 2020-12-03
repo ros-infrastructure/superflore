@@ -31,28 +31,28 @@ org = "Open Source Robotics Foundation"
 
 
 def regenerate_pkg(
-    overlay, pkg, distro, preserve_existing, srcrev_cache,
+    overlay, pkg, rosdistro, preserve_existing, srcrev_cache,
     skip_keys
 ):
-    pkg_names = get_package_names(distro)[0]
+    pkg_names = get_package_names(rosdistro)[0]
     if pkg not in pkg_names:
         yoctoRecipe.not_generated_recipes.add(pkg)
         raise RuntimeError("Unknown package '%s' available packages"
                            " in selected distro: %s" %
-                           (pkg, get_package_names(distro)))
+                           (pkg, get_package_names(rosdistro)))
     try:
-        version = get_pkg_version(distro, pkg, is_oe=True)
+        version = get_pkg_version(rosdistro, pkg, is_oe=True)
     except KeyError as ke:
         yoctoRecipe.not_generated_recipes.add(pkg)
         raise ke
     repo_dir = overlay.repo.repo_dir
     component_name = yoctoRecipe.convert_to_oe_name(
-        distro.release_packages[pkg].repository_name)
+        rosdistro.release_packages[pkg].repository_name)
     recipe = yoctoRecipe.convert_to_oe_name(pkg)
     # check for an existing recipe which was removed by clean_ros_recipe_dirs
     prefix = 'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb'.format(
-        yoctoRecipe._get_ros_version(distro.name),
-        distro.name,
+        yoctoRecipe._get_ros_version(rosdistro.name),
+        rosdistro.name,
         recipe
     )
     existing = overlay.repo.git.status('--porcelain', '--', prefix)
@@ -64,16 +64,16 @@ def regenerate_pkg(
             warn('More than 1 recipe was output by "git status --porcelain '
                  'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
                  .format(
-                     yoctoRecipe._get_ros_version(distro.name),
-                     distro.name,
+                     yoctoRecipe._get_ros_version(rosdistro.name),
+                     rosdistro.name,
                      recipe,
                      existing))
         if existing.split()[0] != 'D':
             err('Unexpected output from "git status --porcelain '
                 'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
                 .format(
-                    yoctoRecipe._get_ros_version(distro.name),
-                    distro.name,
+                    yoctoRecipe._get_ros_version(rosdistro.name),
+                    rosdistro.name,
                     recipe,
                     existing))
 
@@ -89,8 +89,8 @@ def regenerate_pkg(
                     '--porcelain '
                     'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
                     .format(
-                        yoctoRecipe._get_ros_version(distro.name),
-                        distro.name,
+                        yoctoRecipe._get_ros_version(rosdistro.name),
+                        rosdistro.name,
                         recipe,
                         existing))
             existing = existing[0]
@@ -106,7 +106,7 @@ def regenerate_pkg(
         previous_version = existing[idx_version:].rstrip('.bb')
     try:
         current = oe_recipe(
-            distro, pkg, srcrev_cache, skip_keys
+            rosdistro, pkg, srcrev_cache, skip_keys
         )
     except InvalidPackage as e:
         err('Invalid package: ' + str(e))
@@ -129,8 +129,8 @@ def regenerate_pkg(
     make_dir(
         "{0}/meta-ros{1}-{2}/generated-recipes/{3}".format(
             repo_dir,
-            yoctoRecipe._get_ros_version(distro.name),
-            distro.name,
+            yoctoRecipe._get_ros_version(rosdistro.name),
+            rosdistro.name,
             component_name
         )
     )
@@ -139,8 +139,8 @@ def regenerate_pkg(
     recipe_file_name = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/' \
         '{4}_{5}.bb'.format(
             repo_dir,
-            yoctoRecipe._get_ros_version(distro.name),
-            distro.name,
+            yoctoRecipe._get_ros_version(rosdistro.name),
+            rosdistro.name,
             component_name,
             recipe,
             version
@@ -159,14 +159,14 @@ def regenerate_pkg(
 
 
 def _gen_recipe_for_package(
-    distro, pkg_name, pkg, repo, ros_pkg,
+    rosdistro, pkg_name, pkg, repo, ros_pkg,
     pkg_rosinstall, srcrev_cache, skip_keys
 ):
-    pkg_names = get_package_names(distro)
+    pkg_names = get_package_names(rosdistro)
     pkg_dep_walker = DependencyWalker(
-        distro,
+        rosdistro,
         evaluate_condition_context=yoctoRecipe._get_condition_context(
-            distro.name))
+            rosdistro.name))
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
     pkg_build_export_deps = pkg_dep_walker.get_depends(
@@ -179,7 +179,7 @@ def _gen_recipe_for_package(
 
     # parse through package xml
     err_msg = 'Failed to fetch metadata for package {}'.format(pkg_name)
-    pkg_xml = retry_on_exception(ros_pkg.get_package_xml, distro.name,
+    pkg_xml = retry_on_exception(ros_pkg.get_package_xml, rosdistro.name,
                                  retry_msg='Could not get package xml!',
                                  error_msg=err_msg)
 
@@ -188,7 +188,7 @@ def _gen_recipe_for_package(
         len(ros_pkg.repository.package_names),
         pkg_name,
         pkg_xml,
-        distro,
+        rosdistro,
         src_uri,
         srcrev_cache,
         skip_keys,
@@ -222,10 +222,10 @@ def _gen_recipe_for_package(
 
 class oe_recipe(object):
     def __init__(
-        self, distro, pkg_name, srcrev_cache, skip_keys
+        self, rosdistro, pkg_name, srcrev_cache, skip_keys
     ):
-        pkg = distro.release_packages[pkg_name]
-        repo = distro.repositories[pkg.repository_name].release_repository
+        pkg = rosdistro.release_packages[pkg_name]
+        repo = rosdistro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
 
         pkg_rosinstall = _generate_rosinstall(
@@ -233,7 +233,7 @@ class oe_recipe(object):
         )
 
         self.recipe = _gen_recipe_for_package(
-            distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall,
+            rosdistro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall,
             srcrev_cache, skip_keys
         )
 
