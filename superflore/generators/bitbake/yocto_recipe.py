@@ -91,7 +91,15 @@ class yoctoRecipe(object):
             self.license = pkg_fields.upstream_license
             self.description = pkg_fields.description
             self.homepage = pkg_fields.homepage
-            self.build_type = pkg_fields.build_type
+            pkg_build_type = pkg_fields.build_type
+            if pkg_build_type == 'catkin' and \
+               yoctoRecipe._get_ros_version(rosdistro.name) == 2:
+                err("Package " + pkg_name + " either doesn't have <export>"
+                    "<build_type> element at all or it's set to 'catkin'"
+                    " which isn't a valid option for ROS 2; changing it to"
+                    " 'ament_cmake'")
+                pkg_build_type = 'ament_cmake'
+            self.build_type = pkg_build_type
         else:
             self.description = ''
             self.license = None
