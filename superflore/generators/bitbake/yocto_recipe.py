@@ -373,13 +373,15 @@ class yoctoRecipe(object):
                     yoctoRecipe.rosdep_cache[dep].add(res)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
-                unresolved_name = UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX\
-                    + dep + '}'
-                recipe = self.convert_to_oe_name(unresolved_name, is_native)
+                oe_dep = self.convert_to_oe_name(dep, is_native)
+                recipe = UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX\
+                    + oe_dep + '}'
                 dependencies.add(recipe)
                 system_dependencies.add(recipe)
                 # Never add -native.
-                rosdep_name = self.convert_to_oe_name(unresolved_name, False)
+                rosdep_dep = self.convert_to_oe_name(dep, False)
+                rosdep_name = UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX\
+                    + rosdep_dep + '}'
                 yoctoRecipe.rosdep_cache[dep].add(rosdep_name)
                 info('Unresolved external dependency add: ' + recipe)
 
