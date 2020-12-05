@@ -42,8 +42,8 @@ from superflore.utils import ok
 from superflore.utils import resolve_dep
 import yaml
 
-UNRESOLVED_PLATFORM_PKG_PREFIX = 'ROS_UNRESOLVED_PLATFORM_PKG_'
-UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX = '${'+UNRESOLVED_PLATFORM_PKG_PREFIX
+UNRESOLVED_DEP_PREFIX = 'ROS_UNRESOLVED_PLATFORM_PKG_'
+UNRESOLVED_DEP_REF_PREFIX = '${'+UNRESOLVED_DEP_PREFIX
 
 
 class yoctoRecipe(object):
@@ -285,7 +285,7 @@ class yoctoRecipe(object):
         If the name is for an unresolved platform package, move the "-native"
         inside the "}" so that it's part of the variable name.
         """
-        if dep.startswith(UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX):
+        if dep.startswith(UNRESOLVED_DEP_REF_PREFIX):
             return dep[0:-len('}')] + ('-native}' if is_native else '}')
         else:
             return dep + ('-native' if is_native else '')
@@ -374,13 +374,13 @@ class yoctoRecipe(object):
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
                 oe_dep = self.convert_to_oe_name(dep, is_native)
-                recipe = UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX\
+                recipe = UNRESOLVED_DEP_REF_PREFIX\
                     + oe_dep + '}'
                 dependencies.add(recipe)
                 system_dependencies.add(recipe)
                 # Never add -native.
                 rosdep_dep = self.convert_to_oe_name(dep, False)
-                rosdep_name = UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX\
+                rosdep_name = UNRESOLVED_DEP_REF_PREFIX\
                     + rosdep_dep + '}'
                 yoctoRecipe.rosdep_cache[dep].add(rosdep_name)
                 info('Unresolved external dependency add: ' + recipe)
@@ -685,21 +685,17 @@ class yoctoRecipe(object):
                     + ' they are added, override\n# the settings in'
                     + ' ros-distro.inc .\n')
                 """
-                Drop trailing "}" so that "..._foo-native" sorts after
-                "..._foo".
+                Drop UNRESOLVED_DEP_REF_PREFIX and trailing "}"
+                so that "..._foo-native" sorts after "..._foo".
                 """
-                unresolved = [p[0:-1] for p in yoctoRecipe.platform_deps
-                              if p.startswith(
-                                UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX)]
-                for p in sorted(unresolved):
-                    """
-                    PN is last underscore-separated field. NB the trailing '}'
-                    has already been removed.
-                    """
-                    pn = p.split('_')[-1]
+                unresolved = [
+                    p[len(UNRESOLVED_DEP_REF_PREFIX):-1]
+                    for p in yoctoRecipe.platform_deps if p.startswith(
+                        UNRESOLVED_DEP_REF_PREFIX)]
+                for dep in sorted(unresolved):
                     conf_file.write(
-                        UNRESOLVED_PLATFORM_PKG_PREFIX + pn + ' = "UNRESOLVED-'
-                        + pn + '"\n')
+                        UNRESOLVED_DEP_PREFIX + dep + ' = "UNRESOLVED-'
+                        + dep + '"\n')
 
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
