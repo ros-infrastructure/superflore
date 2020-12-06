@@ -42,7 +42,7 @@ from superflore.utils import ok
 from superflore.utils import resolve_dep
 import yaml
 
-UNRESOLVED_DEP_PREFIX = 'ROS_UNRESOLVED_PLATFORM_PKG_'
+UNRESOLVED_DEP_PREFIX = 'ROS_UNRESOLVED_DEP-'
 UNRESOLVED_DEP_REF_PREFIX = '${'+UNRESOLVED_DEP_PREFIX
 
 
@@ -694,8 +694,8 @@ class yoctoRecipe(object):
                         UNRESOLVED_DEP_REF_PREFIX)]
                 for dep in sorted(unresolved):
                     conf_file.write(
-                        UNRESOLVED_DEP_PREFIX + dep + ' = "UNRESOLVED-'
-                        + dep + '"\n')
+                        UNRESOLVED_DEP_PREFIX + dep + ' = "' +
+                        UNRESOLVED_DEP_PREFIX + dep + '"\n')
 
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
