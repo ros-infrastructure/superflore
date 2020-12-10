@@ -161,13 +161,13 @@ class Ebuild(object):
         # license -- only add if valid
         if len(self.upstream_license) == 1:
             self.upstream_license = [
-                l.replace(', ', ' ') for l in self.upstream_license
+                lic.replace(', ', ' ') for lic in self.upstream_license
             ]
             split = self.upstream_license[0].split(',')
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
                 ret += 'LICENSE="( '
-                ret += ' '.join([get_license(l.strip()) for l in split])
+                ret += ' '.join([get_license(lic.strip()) for lic in split])
                 ret += ' )"\n'
             else:
                 ret += "LICENSE=\""

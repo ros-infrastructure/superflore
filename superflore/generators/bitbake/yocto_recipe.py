@@ -77,7 +77,9 @@ class yoctoRecipe(object):
         self.pkg_xml = pkg_xml
         self.author = None
         if self.pkg_xml:
-            pkg_fields = PackageMetadata(pkg_xml)
+            pkg_fields = PackageMetadata(
+                pkg_xml,
+                yoctoRecipe._get_condition_context(distro.name))
             maintainer_name = pkg_fields.upstream_name
             maintainer_email = pkg_fields.upstream_email
             author_name = pkg_fields.author_name
@@ -263,10 +265,10 @@ class yoctoRecipe(object):
     def trim_hyphens(self, s):
         return self.multi_hyphen_re.sub('-', s)
 
-    def translate_license(self, l):
+    def translate_license(self, lic):
         conversion_table = {ord(' '): '-', ord('/'): '-', ord(':'): '-',
                             ord('+'): '-', ord('('): '-', ord(')'): '-'}
-        return self.trim_hyphens(l.translate(conversion_table))
+        return self.trim_hyphens(lic.translate(conversion_table))
 
     @staticmethod
     def modify_name_if_native(dep, is_native):
@@ -404,7 +406,7 @@ class yoctoRecipe(object):
         elif isinstance(self.license, list):
             ret += 'LICENSE = "'
             ret += ' & '.join([self.translate_license(
-                get_license(l)) for l in self.license]) + '"\n'
+                get_license(lic)) for lic in self.license]) + '"\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
         ret += ';endline='

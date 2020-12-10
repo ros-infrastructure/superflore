@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-
 from catkin_pkg.package import parse_package_string
 
 
 class PackageMetadata:
-    def __init__(self, pkg_xml):
+    def __init__(self, pkg_xml, evaluate_condition_context=None):
         self.upstream_email = None
         self.upstream_name = None
         self.homepage = 'https://wiki.ros.org'
         pkg = parse_package_string(pkg_xml)
+        if evaluate_condition_context:
+            pkg.evaluate_conditions(evaluate_condition_context)
         self.upstream_license = pkg.licenses
         self.description = pkg.description
         if 'website' in [url.type for url in pkg.urls]:
@@ -49,11 +49,4 @@ class PackageMetadata:
         self.member_of_groups = [
             group.name for group in pkg.member_of_groups
         ]
-        tag_remover = re.compile('<.*?>')
-        build_type = [
-            re.sub(tag_remover, '', str(e))
-            for e in pkg.exports if 'build_type' in str(e)
-        ]
-        self.build_type = 'catkin'
-        if build_type:
-            self.build_type = build_type[0]
+        self.build_type = pkg.get_build_type()
