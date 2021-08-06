@@ -60,7 +60,11 @@ class RosOverlay(object):
             self.repo.git.commit(m='{0}'.format(commit_msg))
 
     def regenerate_manifests(
-        self, regen_dict, image_owner='allenh1', image_name='ros_gentoo_base'
+        self,
+        regen_dict,
+        image_owner='allenh1',
+        image_name='ros_gentoo_base',
+        split_limit=1000
     ):
         info(
             "Pulling docker image '%s/%s:latest'..." % (
@@ -76,16 +80,31 @@ class RosOverlay(object):
             '/root/.gnupg'
         )
         dock.map_directory(self.repo.repo_dir, '/tmp/ros-overlay')
-        for key in regen_dict.keys():
-            for pkg in regen_dict[key]:
-                pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(key, pkg)
-                dock.add_bash_command('cd {0}'.format(pkg_dir))
-                dock.add_bash_command('repoman manifest')
-        try:
-            dock.run(show_cmd=True)
-        except docker.errors.ContainerError:
-            print(dock.log)
-            raise
+        for distro in regen_dict.keys():
+            chunk_list = []
+            chunk_count = 0
+            pkg_list = regen_dict[distro]
+            while len(pkg_list) > 0:
+                current_chunk = list()
+                for x in range(split_limit):
+                    if len(pkg_list) > 0:
+                        current_chunk.append(pkg_list.pop())
+                    else:
+                        break
+                chunk_list.append(current_chunk)
+            info("Regeneration list consists of '%d' chunks" % len(chunk_list))
+            info("key_lists: '%s'" % chunk_list)
+            for chunk in chunk_list:
+                for pkg in chunk:
+                    pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(distro, pkg)
+                    dock.add_bash_command('cd {0}'.format(pkg_dir))
+                    dock.add_bash_command('repoman manifest')
+                try:
+                    dock.run(show_cmd=True)
+                    dock.clear_commands()
+                except docker.errors.ContainerError:
+                    print(dock.log)
+                    raise
 
     def pull_request(self, message, overlay=None, title=''):
         if not title:
