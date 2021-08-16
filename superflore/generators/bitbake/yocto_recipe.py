@@ -488,7 +488,7 @@ class yoctoRecipe(object):
         ret += ' staged should this package appear in another\'s DEPENDS.\n'
         ret += 'DEPENDS += "${ROS_EXPORT_DEPENDS} '
         ret += '${ROS_BUILDTOOL_EXPORT_DEPENDS}"\n\n'
-        ret += 'RDEPENDS_${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
+        ret += 'RDEPENDS:${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
         # SRC_URI
         ret += '# matches with: ' + self.src_uri + '\n'
         ret += 'ROS_BRANCH ?= "branch=' + self.get_repo_branch_name() + '"\n'
