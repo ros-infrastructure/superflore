@@ -26,7 +26,7 @@ jobs:
           sudo apt-key add /tmp/ros.asc
           sudo apt-get update -qq
           sudo apt-get install dpkg -y
-          sudo apt-get install -y python-rosdep
+          sudo apt-get install -y python3-rosdep
           pip install -r requirements.txt
       - name: Run tests
         run: |
