@@ -67,7 +67,7 @@ install_requires = [
 
 setup(
     name='superflore',
-    version=append_local_version_label('0.3.2'),
+    version=append_local_version_label('0.3.3'),
     packages=find_packages(exclude=['tests', 'tests.*']),
     author='Hunter L. Allen',
     author_email='hunterlallen@protonmail.com',
