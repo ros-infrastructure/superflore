@@ -40,21 +40,21 @@ class NixLicense:
     _LICENSE_MAP = {
         'Apache-2.0': 'asl20',
         'ASL 2.0': 'asl20',
-        'BSD': 'bsdOriginal',
+        'Boost-1.0': 'boost',
         'BSD-2': 'bsd2',
-        'LGPL-2': 'lgpl2',
-        'LGPL-2.1': 'lgpl21',
-        'LGPL-3': 'lgpl3',
+        'BSD': 'bsdOriginal',
+        'CC-BY-NC-SA-4.0': 'cc-by-nc-sa-40',
         'GPL-1': 'gpl1',
         'GPL-2': 'gpl2',
         'GPL-3': 'gpl3',
+        'LGPL-2.1': 'lgpl21',
+        'LGPL-2': 'lgpl2',
+        'LGPL-3': 'lgpl3',
+        'MIT': 'mit',
         'MPL-1.0': 'mpl10',
         'MPL-1.1': 'mpl11',
         'MPL-2.0': 'mpl20',
-        'MIT': 'mit',
-        'CC-BY-NC-SA-4.0': 'cc-by-nc-sa-40',
-        'Boost-1.0': 'boost',
-        'public_domain': 'publicDomain'
+        'public_domain': 'publicDomain',
     }
 
     def __init__(self, name):
