@@ -14,7 +14,7 @@ from superflore.exceptions import UnresolvedDependency
 from superflore.generators.nix.nix_derivation import NixDerivation, NixLicense
 from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import (download_file, get_distro_condition_context,
-                              get_pkg_version, info, resolve_dep,
+                              get_distros, get_pkg_version, info, resolve_dep,
                               retry_on_exception, warn)
 
 
@@ -74,7 +74,8 @@ class NixPackage:
             package_xml = retry_on_exception(ros_pkg.get_package_xml,
                                              distro.name)
 
-        metadata = PackageMetadata(package_xml)
+        metadata = PackageMetadata(
+            package_xml, NixPackage._get_condition_context(distro.name))
 
         dep_walker = DependencyWalker(distro,
                                       get_distro_condition_context(
@@ -128,6 +129,26 @@ class NixPackage:
         except UnresolvedDependency:
             self.unresolved_dependencies.add(d)
             return tuple()
+
+    @staticmethod
+    def _get_ros_version(distro):
+        distros = get_distros()
+        return 2 if distro not in distros \
+            else int(distros[distro]['distribution_type'][len('ros'):])
+
+    @staticmethod
+    def _get_ros_python_version(distro):
+        return 2 if distro in ['melodic'] else 3
+
+    @staticmethod
+    def _get_condition_context(distro):
+        context = dict()
+        context["ROS_OS_OVERRIDE"] = "nixos"
+        context["ROS_DISTRO"] = distro
+        context["ROS_VERSION"] = str(NixPackage._get_ros_version(distro))
+        context["ROS_PYTHON_VERSION"] = str(
+            NixPackage._get_ros_python_version(distro))
+        return context
 
     @staticmethod
     def normalize_name(name: str) -> str:
