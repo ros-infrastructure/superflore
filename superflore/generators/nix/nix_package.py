@@ -90,18 +90,20 @@ class NixPackage:
 
         self.unresolved_dependencies = set()
 
-        build_inputs = set(self._resolve_dependencies(build_deps))
-        # buildtool_export_depends should probably be
-        # propagatedNativeBuildInputs, but that causes many build failures.
-        # Either ROS packages don't use it correctly or it doesn't map well to
-        # Nix.
+        # buildtool_depends are added to buildInputs and nativeBuildInputs. Some
+        # (such as CMake) have binaries that need to run at build time (and
+        # therefore need to be in nativeBuildInputs. Others (such as
+        # ament_cmake_*) need to be added to CMAKE_PREFIX_PATH and therefore
+        # need to be in buildInputs. There is no easy way to distinguish these
+        # two cases, so they are added to both, which generally works fine.
+        build_inputs = set(self._resolve_dependencies(build_deps | buildtool_deps))
         propagated_build_inputs = self._resolve_dependencies(exec_deps | build_export_deps | buildtool_export_deps)
         build_inputs -= propagated_build_inputs
 
         check_inputs = self._resolve_dependencies(test_deps)
         check_inputs -= build_inputs
 
-        native_build_inputs = self._resolve_dependencies(buildtool_deps)
+        native_build_inputs = self._resolve_dependencies(buildtool_deps | buildtool_export_deps)
 
         self._derivation = NixDerivation(
             name=normalized_name,
