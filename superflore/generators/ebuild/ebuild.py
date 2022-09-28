@@ -138,12 +138,13 @@ class Ebuild(object):
         # EAPI=<eapi>
         ret = self.get_license_line(distributor, license_text)
         ret += self.get_eapi_line()
+
         if self.python_3 and not self.is_ros2:
             # enable python 2.7 and python 3.5
             ret += self.get_python_compat(['2_7', '3_5', '3_6'])
-        elif self.python_3:
-            # only use 3.5, 3.6 for ROS 2
-            ret += self.get_python_compat(['3_5', '3_6'])
+        elif self.python_3 or (self.distro == 'noetic'):
+            # only use 3.5 - 3.9 for ROS 2 or noetic
+            ret += self.get_python_compat(['3_5', '3_6', '3_7', '3_8', '3_9'])
         else:
             # fallback to python 2.7
             ret += self.get_python_compat(['2_7'])
@@ -161,13 +162,13 @@ class Ebuild(object):
         # license -- only add if valid
         if len(self.upstream_license) == 1:
             self.upstream_license = [
-                lic.replace(', ', ' ') for lic in self.upstream_license
+                l.replace(', ', ' ') for l in self.upstream_license
             ]
             split = self.upstream_license[0].split(',')
             if len(split) > 1:
                 # they did something like "BSD,GPL,blah"
                 ret += 'LICENSE="( '
-                ret += ' '.join([get_license(lic.strip()) for lic in split])
+                ret += ' '.join([get_license(l.strip()) for l in split])
                 ret += ' )"\n'
             else:
                 ret += "LICENSE=\""
