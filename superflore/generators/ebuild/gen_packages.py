@@ -121,7 +121,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
 
 
 def _gen_metadata_for_package(
-    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
+    distro, pkg_name, repo, ros_pkg, pkg_rosinstall
 ):
     pkg_metadata_xml = metadata_xml()
     try:
@@ -201,7 +201,7 @@ class gentoo_ebuild(object):
 
         self.metadata_xml =\
             _gen_metadata_for_package(distro, pkg_name,
-                                      pkg, repo, ros_pkg, pkg_rosinstall)
+                                      repo, ros_pkg, pkg_rosinstall)
         self.ebuild =\
             _gen_ebuild_for_package(distro, pkg_name,
                                     pkg, repo, ros_pkg, pkg_rosinstall)
