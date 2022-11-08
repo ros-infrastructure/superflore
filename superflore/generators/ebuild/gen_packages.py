@@ -120,6 +120,32 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     return current, previous_version, pkg
 
 
+def _package_condition_context(rosdistro_name):
+    distro_properties = get_distros()[rosdistro_name]
+    ros_version = None
+    if distro_properties['distribution_type'] == 'ros2':
+        ros_version = '2'
+    elif distro_properties['distribution_type'] == 'ros1':
+        ros_version = '1'
+    else:
+        err("Superflore does not handle the distribution type '{}'".format(
+            distro_properties['distribution_type']))
+        raise 'Invalid distribution_type for {}'.format(rosdistro_name)
+    ros_python_version = None
+    if distro_properties['python_version'] == 3:
+        ros_python_version = '3'
+    elif distro_properties['python_version'] == 2:
+        ros_python_version = '2'
+    else:
+        err("Superflore does not handle the python version '{}'".format(
+            distro_properties['python_version']))
+        raise 'Invalid python_version for {}'.format(rosdistro_name)
+    return {
+            'ROS_DISTRO': rosdistro_name,
+            'ROS_VERSION': ros_version,
+            'ROS_PYTHON_VERSION': ros_python_version}
+
+
 def _gen_metadata_for_package(
     distro, pkg_name, repo, ros_pkg, pkg_rosinstall
 ):
@@ -129,7 +155,8 @@ def _gen_metadata_for_package(
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
-    pkg = PackageMetadata(pkg_xml)
+    package_condition_context = _package_condition_context(distro.name)
+    pkg = PackageMetadata(pkg_xml, evaluate_condition_context=package_condition_context)
     pkg_metadata_xml.upstream_email = pkg.upstream_email
     pkg_metadata_xml.upstream_name = pkg.upstream_name
     pkg_metadata_xml.longdescription = pkg.longdescription
@@ -146,7 +173,8 @@ def _gen_ebuild_for_package(
     pkg_ebuild.distro = distro.name
     pkg_ebuild.src_uri = pkg_rosinstall[0]['tar']['uri']
     pkg_names = get_package_names(distro)
-    pkg_dep_walker = DependencyWalker(distro)
+    package_condition_context = _package_condition_context(distro.name)
+    pkg_dep_walker = DependencyWalker(distro, evaluate_condition_context=package_condition_context)
 
     pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
     pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
@@ -181,7 +209,7 @@ def _gen_ebuild_for_package(
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild
-    pkg = PackageMetadata(pkg_xml)
+    pkg = PackageMetadata(pkg_xml, evaluate_condition_context=package_condition_context)
     pkg_ebuild.upstream_license = pkg.upstream_license
     pkg_ebuild.description = pkg.description
     pkg_ebuild.homepage = pkg.homepage
