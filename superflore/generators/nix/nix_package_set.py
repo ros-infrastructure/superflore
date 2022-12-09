@@ -1,5 +1,5 @@
 from textwrap import dedent
-from time import strftime, gmtime
+from time import gmtime, strftime
 from typing import Iterable
 
 from superflore.generators.nix.nix_package import NixPackage

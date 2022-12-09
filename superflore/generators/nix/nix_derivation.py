@@ -22,12 +22,12 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-import os
-import urllib.parse
 from operator import attrgetter
+import os
 from textwrap import dedent
 from time import gmtime, strftime
 from typing import Iterable, Set
+import urllib.parse
 
 from superflore.utils import get_license
 
@@ -134,11 +134,12 @@ class NixDerivation:
 
         ret += '{ lib, buildRosPackage, fetchurl, ' + \
                ', '.join(sorted(set(map(self._to_nix_parameter,
-                                 self.build_inputs |
-                                 self.propagated_build_inputs |
-                                 self.check_inputs |
-                                 self.native_build_inputs |
-                                 self.propagated_native_build_inputs)))) + ' }:'
+                                        self.build_inputs |
+                                        self.propagated_build_inputs |
+                                        self.check_inputs |
+                                        self.native_build_inputs |
+                                        self.propagated_native_build_inputs)))
+                         ) + ' }:'
 
         ret += dedent('''
         buildRosPackage {{
@@ -171,7 +172,8 @@ class NixDerivation:
 
         if self.propagated_build_inputs:
             ret += "  propagatedBuildInputs = {};\n" \
-                .format(self._to_nix_list(sorted(self.propagated_build_inputs)))
+                .format(self._to_nix_list(sorted(
+                    self.propagated_build_inputs)))
 
         if self.native_build_inputs:
             ret += "  nativeBuildInputs = {};\n" \

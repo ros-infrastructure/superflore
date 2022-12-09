@@ -13,12 +13,10 @@
 # limitations under the License.
 import os
 import re
-from typing import Iterable, Dict
+from typing import Dict, Iterable
 
 from rosdistro import DistributionFile
 from rosinstall_generator.distro import get_package_names
-
-from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.nix.nix_package import NixPackage
 from superflore.generators.nix.nix_package_set import NixPackageSet
@@ -31,6 +29,7 @@ org = "Open Source Robotics Foundation"
 org_license = "BSD"
 
 _version_regex = re.compile(r"version\s*=\s*\"([^\"]*)\"")
+
 
 def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
                    preserve_existing: bool, tar_dir: str,

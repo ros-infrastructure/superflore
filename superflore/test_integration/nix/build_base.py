@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from docker.errors import ContainerError
-
 from superflore.docker import Docker
 from superflore.generators.nix.nix_package import NixPackage
 from superflore.utils import err
