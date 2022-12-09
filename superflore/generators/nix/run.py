@@ -78,7 +78,8 @@ def main():
     elif args.only:
         parser.error('Invalid args! --only requires specifying --ros-distro')
     if not selected_targets:
-        selected_targets = get_distros_by_status('active')
+        selected_targets = get_distros_by_status('active') + \
+            get_distros_by_status('rolling')
     repo_org = 'lopsided98'
     repo_name = 'nix-ros-overlay'
     if args.upstream_repo:
