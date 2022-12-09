@@ -14,7 +14,7 @@
 
 import unittest
 
-from superflore.generators.nix.nix_derivation import NixLicense
+from superflore.generators.nix.nix_expression import NixLicense
 
 
 class TestNixLicense(unittest.TestCase):
