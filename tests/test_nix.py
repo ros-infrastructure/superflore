@@ -25,4 +25,8 @@ class TestNixLicense(unittest.TestCase):
 
     def test_unknown_license(self):
         l = NixLicense("some license")
-        self.assertEqual(l.nix_code, '"some license"')
+        self.assertEqual(l.nix_code, '"some-license"')
+
+    def test_public_domain(self):
+        l = NixLicense("Public Domain")
+        self.assertEqual(l.nix_code, 'publicDomain')
