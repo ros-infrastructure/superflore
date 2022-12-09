@@ -797,7 +797,8 @@ def download_file(url, filename):
         'User-Agent': 'superflore/{}'.format(get_superflore_version())
     })
     try:
-        with urllib.request.urlopen(request) as response, open(filename, 'wb') as file:
+        with urllib.request.urlopen(request) as response, \
+                open(filename, 'wb') as file:
             shutil.copyfileobj(response, file)
     except Exception as e:
         try:
