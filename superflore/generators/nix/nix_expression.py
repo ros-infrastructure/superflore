@@ -57,7 +57,7 @@ class NixLicense:
         'MPL-1.0': 'mpl10',
         'MPL-1.1': 'mpl11',
         'MPL-2.0': 'mpl20',
-        'public_domain': 'publicDomain',
+        'PD': 'publicDomain',
     }
 
     def __init__(self, name):
