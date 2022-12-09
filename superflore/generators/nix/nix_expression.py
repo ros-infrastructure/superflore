@@ -77,7 +77,7 @@ class NixLicense:
             return self.name
 
 
-class NixDerivation:
+class NixExpression:
     def __init__(self, name: str, version: str,
                  src_url: str, src_sha256: str,
                  description: str, licenses: Iterable[NixLicense],
@@ -119,7 +119,7 @@ class NixDerivation:
 
     def get_text(self, distributor: str, license_name: str) -> str:
         """
-        Generate the Nix derivation, given the distributor line
+        Generate the Nix expression, given the distributor line
         and the license text.
         """
 

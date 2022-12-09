@@ -10,7 +10,7 @@ from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.rosdistro import RosPackage
 from rosinstall_generator.distro import _generate_rosinstall
 from superflore.exceptions import UnresolvedDependency
-from superflore.generators.nix.nix_derivation import NixDerivation, NixLicense
+from superflore.generators.nix.nix_expression import NixExpression, NixLicense
 from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import (download_file, get_distro_condition_context,
                               get_distros, get_pkg_version, info, resolve_dep,
@@ -110,7 +110,7 @@ class NixPackage:
         native_build_inputs = self._resolve_dependencies(
             buildtool_deps | buildtool_export_deps)
 
-        self._derivation = NixDerivation(
+        self._derivation = NixExpression(
             name=normalized_name,
             version=version,
             src_url=src_uri,
