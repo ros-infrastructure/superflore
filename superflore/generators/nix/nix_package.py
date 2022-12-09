@@ -9,7 +9,6 @@ from rosdistro import DistributionFile
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.rosdistro import RosPackage
 from rosinstall_generator.distro import _generate_rosinstall
-
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.nix.nix_derivation import NixDerivation, NixLicense
 from superflore.PackageMetadata import PackageMetadata
@@ -50,8 +49,10 @@ class NixPackage:
             info("downloading archive version for package '{}'..."
                  .format(name))
             retry_on_exception(download_file, src_uri, archive_path,
-                               retry_msg="network error downloading '{}'".format(src_uri),
-                               error_msg="failed to download archive for '{}'".format(name))
+                               retry_msg="network error downloading '{}'"
+                               .format(src_uri),
+                               error_msg="failed to download archive for '{}'"
+                               .format(name))
             downloaded_archive = True
 
         if downloaded_archive or archive_path not in sha256_cache:
@@ -82,7 +83,8 @@ class NixPackage:
                                           distro.name))
 
         buildtool_deps = dep_walker.get_depends(pkg.name, "buildtool")
-        buildtool_export_deps = dep_walker.get_depends(pkg.name, "buildtool_export")
+        buildtool_export_deps = dep_walker.get_depends(
+            pkg.name, "buildtool_export")
         build_deps = dep_walker.get_depends(pkg.name, "build")
         build_export_deps = dep_walker.get_depends(pkg.name, "build_export")
         exec_deps = dep_walker.get_depends(pkg.name, "exec")
@@ -90,20 +92,23 @@ class NixPackage:
 
         self.unresolved_dependencies = set()
 
-        # buildtool_depends are added to buildInputs and nativeBuildInputs. Some
-        # (such as CMake) have binaries that need to run at build time (and
-        # therefore need to be in nativeBuildInputs. Others (such as
+        # buildtool_depends are added to buildInputs and nativeBuildInputs.
+        # Some (such as CMake) have binaries that need to run at build time
+        # (and therefore need to be in nativeBuildInputs. Others (such as
         # ament_cmake_*) need to be added to CMAKE_PREFIX_PATH and therefore
         # need to be in buildInputs. There is no easy way to distinguish these
         # two cases, so they are added to both, which generally works fine.
-        build_inputs = set(self._resolve_dependencies(build_deps | buildtool_deps))
-        propagated_build_inputs = self._resolve_dependencies(exec_deps | build_export_deps | buildtool_export_deps)
+        build_inputs = set(self._resolve_dependencies(
+            build_deps | buildtool_deps))
+        propagated_build_inputs = self._resolve_dependencies(
+            exec_deps | build_export_deps | buildtool_export_deps)
         build_inputs -= propagated_build_inputs
 
         check_inputs = self._resolve_dependencies(test_deps)
         check_inputs -= build_inputs
 
-        native_build_inputs = self._resolve_dependencies(buildtool_deps | buildtool_export_deps)
+        native_build_inputs = self._resolve_dependencies(
+            buildtool_deps | buildtool_export_deps)
 
         self._derivation = NixDerivation(
             name=normalized_name,

@@ -15,10 +15,9 @@
 import argparse
 import sys
 
-import yaml
-
 from superflore.test_integration.nix.build_base import NixBuilder
 from superflore.utils import get_distros_by_status
+import yaml
 
 
 def main():

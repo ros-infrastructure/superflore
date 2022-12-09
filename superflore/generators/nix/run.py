@@ -16,16 +16,15 @@ import os
 import sys
 
 from rosinstall_generator.distro import get_distro
-
 from superflore.CacheManager import CacheManager
 from superflore.exceptions import NoGitHubAuthToken
-from superflore.TempfileManager import TempfileManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.nix.gen_packages import regenerate_pkg, \
     regenerate_pkg_set
 from superflore.generators.nix.nix_ros_overlay import NixRosOverlay
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
+from superflore.TempfileManager import TempfileManager
 from superflore.utils import clean_up, get_distros_by_status
 from superflore.utils import err
 from superflore.utils import file_pr
