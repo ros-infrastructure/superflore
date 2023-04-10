@@ -50,7 +50,7 @@ class Ebuild(object):
     This is where any necessary variables will be filled.
     """
     def __init__(self):
-        self.eapi = str(6)
+        self.eapi = str(8)
         self.description = ""
         self.homepage = "https://wiki.ros.org"
         self.src_uri = None
@@ -143,7 +143,7 @@ class Ebuild(object):
             ret += self.get_python_compat(['2_7', '3_5', '3_6'])
         elif self.python_3:
             # only use 3.5, 3.6 for ROS 2
-            ret += self.get_python_compat(['3_5', '3_6'])
+            ret += self.get_python_compat(['3_8','3_9' ,'3_10','3_11'])
         else:
             # fallback to python 2.7
             ret += self.get_python_compat(['2_7'])
