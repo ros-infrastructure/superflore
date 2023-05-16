@@ -20,6 +20,7 @@ from superflore.exceptions import NoGitHubAuthToken
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
 from superflore.generators.ebuild.overlay_instance import RosOverlay
+from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
@@ -45,6 +46,11 @@ def main():
     pr_comment = args.pr_comment
     skip_keys = args.skip_keys or []
     selected_targets = None
+
+    if args.license_org:
+        Ebuild.org = args.license_org
+    if args.license_text:
+        Ebuild.org_license = args.license_text
     if not args.dry_run:
         if 'SUPERFLORE_GITHUB_TOKEN' not in os.environ:
             raise NoGitHubAuthToken()

@@ -49,6 +49,9 @@ class Ebuild(object):
     Basic definition of an ebuild.
     This is where any necessary variables will be filled.
     """
+    org = "Open Source Robotics Foundation"
+    org_license = "BSD"
+
     def __init__(self):
         self.eapi = str(6)
         self.description = ""
@@ -101,10 +104,10 @@ class Ebuild(object):
     def add_keyword(self, keyword, stable=False):
         self.keys.append(ebuild_keyword(keyword, stable))
 
-    def get_license_line(self, distributor, license_text):
+    def get_license_line(self):
         ret = "# Copyright " + strftime("%Y", gmtime()) + " "
-        ret += distributor + "\n"
-        ret += "# Distributed under the terms of the " + license_text
+        ret += self.org + "\n"
+        ret += "# Distributed under the terms of the " + self.org_license
         ret += " license\n\n"
         return ret
 
@@ -130,13 +133,13 @@ class Ebuild(object):
         else:
             raise UnknownBuildType(self.build_type)
 
-    def get_ebuild_text(self, distributor, license_text):
+    def get_ebuild_text(self):
         """
         Generate the ebuild in text, given the distributor line
         and the license text.
         """
         # EAPI=<eapi>
-        ret = self.get_license_line(distributor, license_text)
+        ret = self.get_license_line()
         ret += self.get_eapi_line()
         if self.python_3 and not self.is_ros2:
             # enable python 2.7 and python 3.5
