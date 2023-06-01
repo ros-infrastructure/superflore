@@ -39,6 +39,7 @@ from superflore.utils import warn
 
 no_python3 = ['tf']
 
+
 def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     version = get_pkg_version(distro, pkg)
     ebuild_name =\

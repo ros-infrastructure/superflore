@@ -19,8 +19,8 @@ from rosinstall_generator.distro import get_distro
 from superflore.exceptions import NoGitHubAuthToken
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
-from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.generators.ebuild.ebuild import Ebuild
+from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
