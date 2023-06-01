@@ -27,8 +27,6 @@ from superflore.utils import ok
 from superflore.utils import retry_on_exception
 from superflore.utils import warn
 
-org = "Open Source Robotics Foundation"
-
 
 def regenerate_pkg(
     overlay, pkg, rosdistro, preserve_existing, srcrev_cache,
@@ -238,4 +236,4 @@ class oe_recipe(object):
         )
 
     def recipe_text(self):
-        return self.recipe.get_recipe_text(org)
+        return self.recipe.get_recipe_text()
