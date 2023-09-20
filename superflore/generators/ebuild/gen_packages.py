@@ -102,18 +102,20 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
 
     try:
-        ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
+        ebuild_file_path = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
             overlay.repo.repo_dir,
             distro.name, pkg, version
         )
-        ebuild_file = open(ebuild_file, "w")
-        metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
+        with open(ebuild_file_path, "w") as ebuild_file:
+            ebuild_file.write(ebuild_text)
+
+        metadata_file_path = '{0}/ros-{1}/{2}/metadata.xml'.format(
             overlay.repo.repo_dir,
             distro.name, pkg
         )
-        metadata_file = open(metadata_file, "w")
-        ebuild_file.write(ebuild_text)
-        metadata_file.write(metadata_text)
+        with open(metadata_file_path, "w") as metadata_file:
+            metadata_file.write(metadata_text)
+
     except Exception as e:
         err("Failed to write ebuild/metadata to disk!")
         raise e
