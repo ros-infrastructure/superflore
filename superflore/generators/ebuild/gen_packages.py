@@ -152,8 +152,14 @@ def _gen_ebuild_for_package(
     pkg_names = get_package_names(distro)
     pkg_dep_walker = DependencyWalker(distro, evaluate_condition_context=_get_evaluation_context(distro))
 
-    pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
-    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
+    pkg_buildtool_deps = list(set([
+        *pkg_dep_walker.get_depends(pkg_name, "buildtool"),
+        *pkg_dep_walker.get_depends(pkg_name, "buildtool_export"),
+    ]))
+    pkg_build_deps = list(set([
+        *pkg_dep_walker.get_depends(pkg_name, "build"),
+        *pkg_dep_walker.get_depends(pkg_name, "build_export"),
+    ]))
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
     pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, "test")
 
