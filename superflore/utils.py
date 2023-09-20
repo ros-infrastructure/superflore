@@ -715,6 +715,16 @@ def get_distros_by_status(status='active'):
             if t[1].get('distribution_status') == status]
 
 
+def get_ros_version(distro_name):
+    distros = get_distros()
+    return 2 if distro_name not in distros \
+        else int(distros[distro_name]['distribution_type'][len('ros'):])
+
+
+def get_ros_python_version(distro_name):
+    return 2 if distro_name in ['melodic'] else 3
+
+
 def gen_delta_msg(total_changes, markup='*'):
     """Return string of changes for the PR message."""
     delta = ''
