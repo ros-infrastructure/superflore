@@ -49,8 +49,9 @@ class Ebuild(object):
     Basic definition of an ebuild.
     This is where any necessary variables will be filled.
     """
+
     def __init__(self):
-        self.eapi = str(6)
+        self.eapi = str(8)
         self.description = ""
         self.homepage = "https://wiki.ros.org"
         self.src_uri = None
