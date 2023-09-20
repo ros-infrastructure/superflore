@@ -58,7 +58,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     patches = None
     if os.path.exists(patch_path):
         patches = [
-            f for f in glob.glob('%s/*.patch' % patch_path)
+            f for f in glob.glob('*.patch', root_dir=patch_path)
         ]
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % (pkg))

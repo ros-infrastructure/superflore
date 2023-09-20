@@ -232,15 +232,10 @@ class Ebuild(object):
 
         # Patch source if needed.
         if self.has_patches:
-            # TODO(allenh1): explicitly list patches
-            ret += "\nsrc_prepare() {\n"
-            ret += "    cd ${P}\n"
-            ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
-            ret += " EPATCH_SUFFIX=\"patch\" \\\n"
-            ret += "    EPATCH_FORCE=\"yes\" epatch\n"
-            if self.build_type in ['catkin', 'cmake']:
-                ret += "    ros-cmake_src_prepare\n"
-            ret += "}\n"
+            ret += "\nPATCHES=(\n"
+            for patch in self.patches:
+                ret += "    \"${{FILESDIR}}/{}\"\n".format(patch)
+            ret += ")\n"
 
         # source configuration
         if self.name == 'opencv3':
