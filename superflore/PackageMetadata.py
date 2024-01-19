@@ -33,6 +33,11 @@ class PackageMetadata:
             self.homepage = [
                 url.url for url in pkg.urls
             ][0]
+        else:
+            self.homepage = "https://index.ros.org/p/{}/".format(pkg.name)
+            if evaluate_condition_context is not None:
+                distro_name = evaluate_condition_context['ROS_DISTRO']
+                self.homepage += '#{}'.format(distro_name)
         self.longdescription = pkg.description
         self.upstream_email = [
             author.email for author in pkg.maintainers

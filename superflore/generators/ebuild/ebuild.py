@@ -49,8 +49,9 @@ class Ebuild(object):
     Basic definition of an ebuild.
     This is where any necessary variables will be filled.
     """
+
     def __init__(self):
-        self.eapi = str(6)
+        self.eapi = str(8)
         self.description = ""
         self.homepage = "https://wiki.ros.org"
         self.src_uri = None
@@ -140,10 +141,10 @@ class Ebuild(object):
         ret += self.get_eapi_line()
         if self.python_3 and not self.is_ros2:
             # enable python 2.7 and python 3.5
-            ret += self.get_python_compat(['2_7', '3_5', '3_6'])
+            ret += self.get_python_compat(['2_7', '3_10', '3_11'])
         elif self.python_3:
             # only use 3.5, 3.6 for ROS 2
-            ret += self.get_python_compat(['3_5', '3_6'])
+            ret += self.get_python_compat(['3_10', '3_11'])
         else:
             # fallback to python 2.7
             ret += self.get_python_compat(['2_7'])
@@ -231,15 +232,10 @@ class Ebuild(object):
 
         # Patch source if needed.
         if self.has_patches:
-            # TODO(allenh1): explicitly list patches
-            ret += "\nsrc_prepare() {\n"
-            ret += "    cd ${P}\n"
-            ret += "    EPATCH_SOURCE=\"${FILESDIR}\""
-            ret += " EPATCH_SUFFIX=\"patch\" \\\n"
-            ret += "    EPATCH_FORCE=\"yes\" epatch\n"
-            if self.build_type in ['catkin', 'cmake']:
-                ret += "    ros-cmake_src_prepare\n"
-            ret += "}\n"
+            ret += "\nPATCHES=(\n"
+            for patch in self.patches:
+                ret += "    \"${{FILESDIR}}/{}\"\n".format(patch)
+            ret += ")\n"
 
         # source configuration
         if self.name == 'opencv3':

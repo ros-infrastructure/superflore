@@ -27,6 +27,8 @@ from superflore.PackageMetadata import PackageMetadata
 from superflore.utils import err
 from superflore.utils import get_distros
 from superflore.utils import get_pkg_version
+from superflore.utils import get_ros_version
+from superflore.utils import get_ros_python_version
 from superflore.utils import make_dir
 from superflore.utils import ok
 from superflore.utils import retry_on_exception
@@ -50,13 +52,13 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     ebuild_name = overlay.repo.repo_dir + ebuild_name
     patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
-    is_ros2 = get_distros()[distro.name]['distribution_type'] == 'ros2'
+    is_ros2 = get_ros_version(distro.name) == 2
     has_patches = os.path.exists(patch_path)
     pkg_names = get_package_names(distro)[0]
     patches = None
     if os.path.exists(patch_path):
         patches = [
-            f for f in glob.glob('%s/*.patch' % patch_path)
+            f for f in glob.glob('*.patch', root_dir=patch_path)
         ]
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % (pkg))
@@ -102,18 +104,20 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     ok('{0} \'{1}\'.'.format(success_msg, pkg))
 
     try:
-        ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
+        ebuild_file_path = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
             overlay.repo.repo_dir,
             distro.name, pkg, version
         )
-        ebuild_file = open(ebuild_file, "w")
-        metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
+        with open(ebuild_file_path, "w") as ebuild_file:
+            ebuild_file.write(ebuild_text)
+
+        metadata_file_path = '{0}/ros-{1}/{2}/metadata.xml'.format(
             overlay.repo.repo_dir,
             distro.name, pkg
         )
-        metadata_file = open(metadata_file, "w")
-        ebuild_file.write(ebuild_text)
-        metadata_file.write(metadata_text)
+        with open(metadata_file_path, "w") as metadata_file:
+            metadata_file.write(metadata_text)
+
     except Exception as e:
         err("Failed to write ebuild/metadata to disk!")
         raise e
@@ -129,7 +133,7 @@ def _gen_metadata_for_package(
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_metadata_xml
-    pkg = PackageMetadata(pkg_xml)
+    pkg = PackageMetadata(pkg_xml, _get_evaluation_context(distro))
     pkg_metadata_xml.upstream_email = pkg.upstream_email
     pkg_metadata_xml.upstream_name = pkg.upstream_name
     pkg_metadata_xml.longdescription = pkg.longdescription
@@ -146,10 +150,16 @@ def _gen_ebuild_for_package(
     pkg_ebuild.distro = distro.name
     pkg_ebuild.src_uri = pkg_rosinstall[0]['tar']['uri']
     pkg_names = get_package_names(distro)
-    pkg_dep_walker = DependencyWalker(distro)
+    pkg_dep_walker = DependencyWalker(distro, evaluate_condition_context=_get_evaluation_context(distro))
 
-    pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
-    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
+    pkg_buildtool_deps = list(set([
+        *pkg_dep_walker.get_depends(pkg_name, "buildtool"),
+        *pkg_dep_walker.get_depends(pkg_name, "buildtool_export"),
+    ]))
+    pkg_build_deps = list(set([
+        *pkg_dep_walker.get_depends(pkg_name, "build"),
+        *pkg_dep_walker.get_depends(pkg_name, "build_export"),
+    ]))
     pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
     pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, "test")
 
@@ -181,12 +191,20 @@ def _gen_ebuild_for_package(
     except Exception:
         warn("fetch metadata for package {}".format(pkg_name))
         return pkg_ebuild
-    pkg = PackageMetadata(pkg_xml)
+    pkg = PackageMetadata(pkg_xml, _get_evaluation_context(distro))
     pkg_ebuild.upstream_license = pkg.upstream_license
     pkg_ebuild.description = pkg.description
     pkg_ebuild.homepage = pkg.homepage
     pkg_ebuild.build_type = pkg.build_type
     return pkg_ebuild
+
+
+def _get_evaluation_context(distro):
+    return {
+        "ROS_DISTRO": distro.name,
+        "ROS_VERSION": str(get_ros_version(distro.name)),
+        "ROS_PYTHON_VERSION": str(get_ros_python_version(distro.name))
+    }
 
 
 class gentoo_ebuild(object):

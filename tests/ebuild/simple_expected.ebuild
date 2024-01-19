@@ -1,8 +1,8 @@
 # Copyright 2017 Open Source Robotics Foundation
 # Distributed under the terms of the BSD license
 
-EAPI=6
-PYTHON_COMPAT=( python{2_7,3_5,3_6} )
+EAPI=8
+PYTHON_COMPAT=( python{2_7,3_10,3_11} )
 
 inherit ros-cmake
 
