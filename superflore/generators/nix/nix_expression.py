@@ -31,6 +31,8 @@ import urllib.parse
 
 from superflore.utils import get_license
 
+def _sanitize_nix_string(string: str):
+    return string.replace("\\", "\\\\").replace("${", r"\${").replace('"', r'\"')
 
 class NixLicense:
     """
@@ -72,7 +74,7 @@ class NixLicense:
     @property
     def nix_code(self) -> str:
         if self.custom:
-            return '"{}"'.format(self.name)
+            return '"{}"'.format(_sanitize_nix_string(self.name))
         else:
             return self.name
 
