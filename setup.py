@@ -86,6 +86,7 @@ setup(
         'console_scripts': [
             'superflore-gen-ebuilds = superflore.generators.ebuild:main',
             'superflore-gen-oe-recipes = superflore.generators.bitbake:main',
+            'superflore-gen-bst = superflore.generators.buildstream:main',
             'superflore-check-ebuilds = superflore.test_integration.gentoo:main',
         ]
     }

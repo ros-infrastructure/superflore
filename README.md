@@ -7,6 +7,7 @@ Supported Platforms:
 --------------------
  * Gentoo
  * OpenEmbedded
+ * BuildStream
 
 Installation:
 =============
@@ -210,6 +211,68 @@ If you want to use an existing repo instead of cloning one, specify
 
 Note that the `--only` flag currently generates bogus files under `conf` and
 `files`.
+
+
+BuildStream Usage:
+===================
+
+### Generating BuildStream elements
+
+```
+$ superflore-gen-bst -h
+usage: superflore-gen-bst [-h] --ros-distro ROS_DISTRO --dry-run
+                          [--pr-only] [--no-branch]
+                          [--output-repository-path OUTPUT_REPOSITORY_PATH]
+                          [--only ONLY [ONLY ...]]
+                          [--pr-comment PR_COMMENT]
+                          [--upstream-repo UPSTREAM_REPO]
+                          [--upstream-branch UPSTREAM_BRANCH]
+                          [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
+                          [--tar-archive-dir TAR_ARCHIVE_DIR]
+                          [--generated-element-dir GENERATED_ELEMENT_DIR]
+
+Generate BuildStream elements for ROS packages
+
+options:
+  -h, --help            show this help message and exit
+  --ros-distro ROS_DISTRO
+                        regenerate packages for the specified distro
+  --dry-run             run without filing a PR to remote
+  --pr-only             ONLY file a PR to remote
+  --no-branch           Do not create a new branch automatically
+  --output-repository-path OUTPUT_REPOSITORY_PATH
+                        location of the Git repo
+  --only ONLY [ONLY ...]
+                        generate only the specified packages
+  --pr-comment PR_COMMENT
+                        comment to add to the PR
+  --upstream-repo UPSTREAM_REPO
+                        location of the upstream repository as in
+                        https://github.com/<owner>/<repository>
+  --upstream-branch UPSTREAM_BRANCH
+                        branch of the upstream repository
+  --skip-keys SKIP_KEYS [SKIP_KEYS ...]
+                        packages to skip during regeneration
+  --tar-archive-dir TAR_ARCHIVE_DIR
+                        location to store archived packages
+  --generated-element-dir GENERATED_ELEMENT_DIR
+                        directory for generated bst elements
+
+```
+
+Common Usage:
+--------------
+To update the BuildStream elements for a ROS distro, run the following:
+
+```
+$ git clone https://github.com/CodethinkLabs/ros2-bst
+$ git clone https://gitlab.com/freedesktop-sdk/freedesktop-sdk
+$ superflore-gen-bst --ros-distro ROS_DISTRO --output-repository-path ros2-bst --dry-run --only PACKAGE [PACKAGE ...]
+```
+
+This command will generate or update BuildStream elements in `ros2-bst` for
+the specified packages and their internal dependencies of the specified distro,
+using external dependencies defined in `ros2-bst` or `freedesktop-sdk`.
 
 
 F.A.Q.:
