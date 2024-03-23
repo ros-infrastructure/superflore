@@ -30,10 +30,10 @@ class TestNixLicense(unittest.TestCase):
         l = NixLicense("Public Domain")
         self.assertEqual(l.nix_code, 'publicDomain')
 
-    def test_escape_quote(self): 
+    def test_escape_quote(self):
         l = NixLicense(r'license with "quotes" and \backslash" ');
         self.assertEqual(l.nix_code, r'"license-with-\"quotes\"-and-\\backslash"')
-    
-    def test_escape_quote(self): 
+
+    def test_escape_quote(self):
         l = NixLicense('some license with the "${" sequence');
         self.assertEqual(l.nix_code, r'"some-license-with-the-\"\${\"-sequence"')
