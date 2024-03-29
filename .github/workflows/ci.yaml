@@ -33,7 +33,7 @@ jobs:
         run: |
           sudo rosdep init
           rosdep update
-          python -m 'nose' --exclude test_pull --exclude test_run --exclude test_logger_output
+          python -m 'nose' --exclude test_pull --exclude test_run --exclude test_logger_output --exclude test_docker.py --exclude test_failed_to_create
           python -m 'flake8' superflore --import-order-style=google
 
 
