@@ -1,3 +1,24 @@
+# Changelog
+
+## [v0.3.3](https://github.com/ros-infrastructure/superflore/tree/v0.3.3) (2021-11-20)
+
+[Full Changelog](https://github.com/ros-infrastructure/superflore/compare/v0.3.2...v0.3.3)
+
+**Implemented enhancements:**
+
+- Release Version 0.3.2 [\#276](https://github.com/ros-infrastructure/superflore/issues/276)
+
+**Closed issues:**
+
+- License parsing doesn't parse e.g. LGPLv3 correctly [\#271](https://github.com/ros-infrastructure/superflore/issues/271)
+
+**Merged pull requests:**
+
+- Create GitHub Actions CI workflow based on travis job. [\#288](https://github.com/ros-infrastructure/superflore/pull/288) ([nuclearsandwich](https://github.com/nuclearsandwich))
+- Fix parsing of \<exports\>\<build\_type\> with conditionals [\#281](https://github.com/ros-infrastructure/superflore/pull/281) ([shr-project](https://github.com/shr-project))
+- Various improvements to support generating recipes for Noetic [\#280](https://github.com/ros-infrastructure/superflore/pull/280) ([shr-project](https://github.com/shr-project))
+- Improve license parsing [\#279](https://github.com/ros-infrastructure/superflore/pull/279) ([shr-project](https://github.com/shr-project))
+
 # Change Log
 
 ## [v0.3.2](https://github.com/ros-infrastructure/superflore/tree/v0.3.2) (2020-04-30)

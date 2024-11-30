@@ -16,6 +16,7 @@ import os
 import sys
 
 from rosinstall_generator.distro import get_distro
+from rosinstall_generator.distro import get_package_names
 from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_pkg
@@ -39,7 +40,6 @@ from superflore.utils import warn
 
 
 def main():
-    os.environ["ROS_OS_OVERRIDE"] = "openembedded"
     overlay = None
     parser = get_parser(
         'Generate OpenEmbedded recipes for ROS packages',
@@ -129,12 +129,14 @@ def main():
                             overlay,
                             pkg,
                             distro,
-                            preserve_existing,
+                            False,  # preserve_existing
                             srcrev_cache,
                             skip_keys=skip_keys,
                         )
                     except KeyError:
-                        err("No package to satisfy key '%s'" % pkg)
+                        err("No package to satisfy key '%s' available "
+                            "packages in selected distro: %s" %
+                            (pkg, get_package_names(distro)))
                         sys.exit(1)
                 # Commit changes and file pull request
                 title =\
@@ -146,6 +148,7 @@ def main():
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 delta = "Regenerated: '%s'\n" % args.only
+                overlay.add_generated_files(args.ros_distro)
                 commit_msg = '\n'.join([get_pr_text(
                     title + '\n' + pr_comment.replace(
                         '**superflore**', 'superflore'), markup=''), delta])
@@ -162,6 +165,7 @@ def main():
             for adistro in selected_targets:
                 yoctoRecipe.reset()
                 distro = get_distro(adistro)
+
                 distro_installers, _, distro_changes =\
                     generate_installers(
                         distro,

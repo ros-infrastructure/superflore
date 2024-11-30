@@ -45,7 +45,7 @@ class RosMeta(object):
         info(
             'Cleaning up:\n{0}'
             .format(files))
-        self.repo.git.rm('-rf', '--ignore-unmatch', files)
+        self.repo.git.rm('-rf', '--ignore-unmatch', files.split())
 
     def commit_changes(self, distro, commit_msg):
         info('Commit changes...')

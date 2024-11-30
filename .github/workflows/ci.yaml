@@ -1,0 +1,52 @@
+name: superflore-ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['master']
+  pull_request:
+
+jobs:
+    build:
+      strategy:
+        matrix:
+          os: ["ubuntu-20.04", "ubuntu-22.04"]
+          python: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+      name: superflore tests
+      runs-on: ${{matrix.os}}
+      steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{matrix.python}}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{matrix.python}}
+      - name: Install dependencies
+        run: |
+          echo "Set locale"
+          sudo apt update && sudo apt install locales
+          sudo locale-gen en_US en_US.UTF-8
+          sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+          export LANG=en_US.UTF-8
+
+          echo "Enable required repositories"
+          sudo apt install software-properties-common
+          sudo add-apt-repository universe
+
+          sudo apt update && sudo apt install curl -y
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+          sudo apt-get update -qq
+          sudo apt-get install dpkg -y
+          sudo apt-get install -y python3-rosdep
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          sudo rosdep init
+          rosdep update
+          python -m 'nose' --verbose --exclude test_pull --exclude test_run --exclude test_logger_output --exclude test_failed_to_create  --exclude test_generate_installers --ignore-files test_ebuild.py  --ignore-files test_docker.py
+          python -m 'flake8' superflore --import-order-style=google
+
+
+

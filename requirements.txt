@@ -1,4 +1,4 @@
-nose
+pynose
 flake8
 flake8-import-order
 termcolor

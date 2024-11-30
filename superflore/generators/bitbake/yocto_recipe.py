@@ -25,7 +25,6 @@
 
 from collections import defaultdict
 import hashlib
-import re
 from subprocess import DEVNULL, PIPE, Popen
 
 from superflore.exceptions import NoPkgXml
@@ -42,8 +41,8 @@ from superflore.utils import ok
 from superflore.utils import resolve_dep
 import yaml
 
-UNRESOLVED_PLATFORM_PKG_PREFIX = 'ROS_UNRESOLVED_PLATFORM_PKG_'
-UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX = '${'+UNRESOLVED_PLATFORM_PKG_PREFIX
+UNRESOLVED_DEP_PREFIX = 'ROS_UNRESOLVED_DEP-'
+UNRESOLVED_DEP_REF_PREFIX = '${'+UNRESOLVED_DEP_PREFIX
 
 
 class yoctoRecipe(object):
@@ -62,7 +61,7 @@ class yoctoRecipe(object):
     max_component_name = 0
 
     def __init__(
-        self, component_name, num_pkgs, pkg_name, pkg_xml, distro, src_uri,
+        self, component_name, num_pkgs, pkg_name, pkg_xml, rosdistro, src_uri,
         srcrev_cache, skip_keys
     ):
         self.component = component_name
@@ -71,13 +70,15 @@ class yoctoRecipe(object):
         self.oe_component = yoctoRecipe.convert_to_oe_name(component_name)
         self.num_pkgs = num_pkgs
         self.name = pkg_name
-        self.distro = distro.name
-        self.version = get_pkg_version(distro, pkg_name, is_oe=True)
+        self.distro = rosdistro.name
+        self.version = get_pkg_version(rosdistro, pkg_name, is_oe=True)
         self.src_uri = src_uri
         self.pkg_xml = pkg_xml
         self.author = None
         if self.pkg_xml:
-            pkg_fields = PackageMetadata(pkg_xml)
+            pkg_fields = PackageMetadata(
+                pkg_xml,
+                yoctoRecipe._get_condition_context(rosdistro.name))
             maintainer_name = pkg_fields.upstream_name
             maintainer_email = pkg_fields.upstream_email
             author_name = pkg_fields.author_name
@@ -89,13 +90,22 @@ class yoctoRecipe(object):
             self.license = pkg_fields.upstream_license
             self.description = pkg_fields.description
             self.homepage = pkg_fields.homepage
-            self.build_type = pkg_fields.build_type
+            pkg_build_type = pkg_fields.build_type
+            if pkg_build_type == 'catkin' and \
+               yoctoRecipe._get_ros_version(rosdistro.name) == 2:
+                err("Package " + pkg_name + " either doesn't have <export>"
+                    "<build_type> element at all or it's set to 'catkin'"
+                    " which isn't a valid option for ROS 2; changing it to"
+                    " 'ament_cmake'")
+                pkg_build_type = 'ament_cmake'
+            self.build_type = pkg_build_type
         else:
             self.description = ''
             self.license = None
             self.homepage = None
             self.build_type = 'catkin' if \
-                yoctoRecipe._get_ros_version(distro) == 1 else 'ament_cmake'
+                yoctoRecipe._get_ros_version(rosdistro.name) == 1 \
+                else 'ament_cmake'
             self.maintainer = "OSRF"
         self.depends = set()
         self.depends_external = set()
@@ -115,7 +125,6 @@ class yoctoRecipe(object):
             srcrev_cache[self.src_uri] = self.get_srcrev()
         self.srcrev = srcrev_cache[self.src_uri]
         self.skip_keys = skip_keys
-        self.multi_hyphen_re = re.compile('-{2,}')
 
     def get_license_line(self):
         self.license_line = ''
@@ -260,21 +269,13 @@ class yoctoRecipe(object):
         ret = 'inherit ros_${ROS_BUILD_TYPE}\n'
         return ret
 
-    def trim_hyphens(self, s):
-        return self.multi_hyphen_re.sub('-', s)
-
-    def translate_license(self, l):
-        conversion_table = {ord(' '): '-', ord('/'): '-', ord(':'): '-',
-                            ord('+'): '-', ord('('): '-', ord(')'): '-'}
-        return self.trim_hyphens(l.translate(conversion_table))
-
     @staticmethod
     def modify_name_if_native(dep, is_native):
         """
         If the name is for an unresolved platform package, move the "-native"
         inside the "}" so that it's part of the variable name.
         """
-        if dep.startswith(UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX):
+        if dep.startswith(UNRESOLVED_DEP_REF_PREFIX):
             return dep[0:-len('}')] + ('-native}' if is_native else '}')
         else:
             return dep + ('-native' if is_native else '')
@@ -362,13 +363,15 @@ class yoctoRecipe(object):
                     yoctoRecipe.rosdep_cache[dep].add(res)
                     info('External dependency add: ' + recipe)
             except UnresolvedDependency:
-                unresolved_name = UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX\
-                    + dep + '}'
-                recipe = self.convert_to_oe_name(unresolved_name, is_native)
+                oe_dep = self.convert_to_oe_name(dep, is_native)
+                recipe = UNRESOLVED_DEP_REF_PREFIX\
+                    + oe_dep + '}'
                 dependencies.add(recipe)
                 system_dependencies.add(recipe)
                 # Never add -native.
-                rosdep_name = self.convert_to_oe_name(unresolved_name, False)
+                rosdep_dep = self.convert_to_oe_name(dep, False)
+                rosdep_name = UNRESOLVED_DEP_REF_PREFIX\
+                    + rosdep_dep + '}'
                 yoctoRecipe.rosdep_cache[dep].add(rosdep_name)
                 info('Unresolved external dependency add: ' + recipe)
 
@@ -399,12 +402,17 @@ class yoctoRecipe(object):
         # license
         self.get_license_line()
         if isinstance(self.license, str):
-            ret += 'LICENSE = "%s"\n' % self.translate_license(
-                get_license(self.license))
+            oe_lic = get_license(self.license)
+            if oe_lic != self.license:
+                ret += '# Original license in package.xml:\n'
+                ret += '#         "' + self.license + '"\n'
         elif isinstance(self.license, list):
-            ret += 'LICENSE = "'
-            ret += ' & '.join([self.translate_license(
-                get_license(l)) for l in self.license]) + '"\n'
+            oe_lic = ' & '.join([get_license(lic) for lic in self.license])
+            if oe_lic != ' & '.join(self.license):
+                ret += '# Original license in package.xml, joined with '
+                ret += '"&" when multiple license tags were used:\n'
+                ret += '#         "' + ' & '.join(self.license) + '"\n'
+        ret += 'LICENSE = "' + oe_lic + '"\n'
         ret += 'LIC_FILES_CHKSUM = "file://package.xml;beginline='
         ret += str(self.license_line)
         ret += ';endline='
@@ -480,7 +488,7 @@ class yoctoRecipe(object):
         ret += ' staged should this package appear in another\'s DEPENDS.\n'
         ret += 'DEPENDS += "${ROS_EXPORT_DEPENDS} '
         ret += '${ROS_BUILDTOOL_EXPORT_DEPENDS}"\n\n'
-        ret += 'RDEPENDS_${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
+        ret += 'RDEPENDS:${PN} += "${ROS_EXEC_DEPENDS}"' + '\n\n'
         # SRC_URI
         ret += '# matches with: ' + self.src_uri + '\n'
         ret += 'ROS_BRANCH ?= "branch=' + self.get_repo_branch_name() + '"\n'
@@ -498,6 +506,20 @@ class yoctoRecipe(object):
         distros = get_distros()
         return 2 if distro not in distros \
             else int(distros[distro]['distribution_type'][len('ros'):])
+
+    @staticmethod
+    def _get_ros_python_version(distro):
+        return 2 if distro in ['melodic'] else 3
+
+    @staticmethod
+    def _get_condition_context(distro):
+        context = dict()
+        context["ROS_OS_OVERRIDE"] = "openembedded"
+        context["ROS_DISTRO"] = distro
+        context["ROS_VERSION"] = str(yoctoRecipe._get_ros_version(distro))
+        context["ROS_PYTHON_VERSION"] = str(
+            yoctoRecipe._get_ros_python_version(distro))
+        return context
 
     @staticmethod
     def generate_superflore_datetime_inc(basepath, dist, now):
@@ -561,11 +583,9 @@ class yoctoRecipe(object):
                     '\nROS_DISTRO_TYPE = "ros{}"\n'.format(ros_version))
                 conf_file.write('ROS_VERSION = "{}"\n'.format(ros_version))
                 conf_file.write('# DO NOT OVERRIDE ROS_PYTHON_VERSION\n')
-                ros_python_version = 3
-                if ros_version == 1:
-                    ros_python_version = 2
                 conf_file.write(
-                    'ROS_PYTHON_VERSION = "{}"\n\n'.format(ros_python_version))
+                    'ROS_PYTHON_VERSION = "{}"\n\n'.format(
+                        yoctoRecipe._get_ros_python_version(distro)))
                 oe_skip_keys = map(
                     lambda skip_key: yoctoRecipe.convert_to_oe_name(skip_key),
                     skip_keys
@@ -636,7 +656,7 @@ class yoctoRecipe(object):
                         'ROS_SUPERFLORE_GENERATED_BUILDTOOLS_%s' %
                         distro.upper(),
                         yoctoRecipe.generated_native_recipes) + '\n')
-                conf_file.write('ROS_SUPERFLORE_GENERATED_BUILDTOOLS_append ='
+                conf_file.write('ROS_SUPERFLORE_GENERATED_BUILDTOOLS:append ='
                                 ' " ${ROS_SUPERFLORE_GENERATED_BUILDTOOLS_%s}"'
                                 '\n\n' % distro.upper())
                 conf_file.write(yoctoRecipe.generate_multiline_variable(
@@ -660,21 +680,17 @@ class yoctoRecipe(object):
                     + ' they are added, override\n# the settings in'
                     + ' ros-distro.inc .\n')
                 """
-                Drop trailing "}" so that "..._foo-native" sorts after
-                "..._foo".
+                Drop UNRESOLVED_DEP_REF_PREFIX and trailing "}"
+                so that "..._foo-native" sorts after "..._foo".
                 """
-                unresolved = [p[0:-1] for p in yoctoRecipe.platform_deps
-                              if p.startswith(
-                                UNRESOLVED_PLATFORM_PKG_REFERENCE_PREFIX)]
-                for p in sorted(unresolved):
-                    """
-                    PN is last underscore-separated field. NB the trailing '}'
-                    has already been removed.
-                    """
-                    pn = p.split('_')[-1]
+                unresolved = [
+                    p[len(UNRESOLVED_DEP_REF_PREFIX):-1]
+                    for p in yoctoRecipe.platform_deps if p.startswith(
+                        UNRESOLVED_DEP_REF_PREFIX)]
+                for dep in sorted(unresolved):
                     conf_file.write(
-                        UNRESOLVED_PLATFORM_PKG_PREFIX + pn + ' = "UNRESOLVED-'
-                        + pn + '"\n')
+                        UNRESOLVED_DEP_PREFIX + dep + ' = "' +
+                        UNRESOLVED_DEP_PREFIX + dep + '"\n')
 
                 ok('Wrote {0}'.format(conf_path))
         except OSError as e:
@@ -693,7 +709,8 @@ class yoctoRecipe(object):
                 rosdep_resolve_file.write(
                     '# {}/rosdep-resolve.yaml\n'.format(distro))
                 cache_as_dict_of_list = {
-                    k: list(v) for k, v in yoctoRecipe.rosdep_cache.items()}
+                    k: sorted(list(v)) for k, v in
+                    yoctoRecipe.rosdep_cache.items()}
                 rosdep_resolve_file.write(yaml.dump(
                     cache_as_dict_of_list, default_flow_style=False))
                 ok('Wrote {0}'.format(rosdep_resolve_path))

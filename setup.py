@@ -61,13 +61,13 @@ install_requires = [
     'docker',
     'pyyaml',
     'pygithub',
-    'catkin_pkg >= 0.4.0',
+    'catkin_pkg >= 0.4.10',
     'rospkg >= 1.1.8',
 ]
 
 setup(
     name='superflore',
-    version=append_local_version_label('0.3.2'),
+    version=append_local_version_label('0.3.3'),
     packages=find_packages(exclude=['tests', 'tests.*']),
     author='Hunter L. Allen',
     author_email='hunterlallen@protonmail.com',
