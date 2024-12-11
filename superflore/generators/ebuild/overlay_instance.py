@@ -82,7 +82,6 @@ class RosOverlay(object):
         dock.map_directory(self.repo.repo_dir, '/tmp/ros-overlay')
         for distro in regen_dict.keys():
             chunk_list = []
-            chunk_count = 0
             pkg_list = regen_dict[distro]
             while len(pkg_list) > 0:
                 current_chunk = list()
@@ -96,7 +95,8 @@ class RosOverlay(object):
             info("key_lists: '%s'" % chunk_list)
             for chunk in chunk_list:
                 for pkg in chunk:
-                    pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(distro, pkg)
+                    pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(distro,
+                                                                    pkg)
                     dock.add_bash_command('cd {0}'.format(pkg_dir))
                     dock.add_bash_command('repoman manifest')
                 try:
