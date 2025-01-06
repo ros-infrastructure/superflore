@@ -33,7 +33,8 @@ org = "Open Source Robotics Foundation"
 
 def regenerate_pkg(
     overlay, pkg, rosdistro, preserve_existing, srcrev_cache,
-    skip_keys, external_repos, generated_elements_dir = "elements/generated"
+    skip_keys, external_repos, generated_elements_dir = "elements/generated",
+    exclude_source=False,
 ):
     pkg_names = get_package_names(rosdistro)[0]
     if pkg not in pkg_names:
@@ -96,7 +97,8 @@ def regenerate_pkg(
         overlay.repo.remove_file(existing, True)
     try:
         current = bst_element(
-            rosdistro, pkg, srcrev_cache, skip_keys, repo_dir, external_repos
+            rosdistro, pkg, srcrev_cache, skip_keys, repo_dir, external_repos,
+            exclude_source=exclude_source,
         )
     except InvalidPackage as e:
         err('Invalid package: ' + str(e))
@@ -141,7 +143,9 @@ def regenerate_pkg(
 
 def _gen_element_for_package(
     rosdistro, pkg_name, pkg, repo, ros_pkg,
-    pkg_rosinstall, srcrev_cache, skip_keys, repo_dir, external_repos
+    pkg_rosinstall, srcrev_cache, skip_keys, repo_dir, external_repos,
+    *,
+    exclude_source,
 ):
     pkg_names = get_package_names(rosdistro)
     pkg_dep_walker = DependencyWalker(rosdistro)
@@ -170,6 +174,7 @@ def _gen_element_for_package(
         skip_keys,
         repo_dir,
         external_repos,
+        exclude_source=exclude_source,
     )
     # add build dependencies
     for bdep in pkg_build_deps:
@@ -196,7 +201,9 @@ def _gen_element_for_package(
 
 class bst_element(object):
     def __init__(
-        self, rosdistro, pkg_name, srcrev_cache, skip_keys, repo_dir, external_repos
+        self, rosdistro, pkg_name, srcrev_cache, skip_keys, repo_dir, external_repos,
+        *,
+        exclude_source,
     ):
         pkg = rosdistro.release_packages[pkg_name]
         repo = rosdistro.repositories[pkg.repository_name].release_repository
@@ -208,7 +215,8 @@ class bst_element(object):
 
         self.element = _gen_element_for_package(
             rosdistro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall,
-            srcrev_cache, skip_keys, repo_dir, external_repos
+            srcrev_cache, skip_keys, repo_dir, external_repos,
+            exclude_source=exclude_source,
         )
 
     def element_text(self):
