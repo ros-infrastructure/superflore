@@ -37,7 +37,9 @@ from superflore.utils import info
 class BstElement(object):
     def __init__(
         self, component_name, pkg_name, pkg_xml, rosdistro, src_uri,
-        srcrev_cache, skip_keys, repo_dir, external_repos
+        srcrev_cache, skip_keys, repo_dir, external_repos,
+        *,
+        exclude_source,
     ):
         self.repo_dir = repo_dir
         self.external_repos = external_repos
@@ -84,6 +86,7 @@ class BstElement(object):
             srcrev_cache[self.src_uri] = self.get_srcrev()
         self.srcrev = srcrev_cache[self.src_uri]
         self.skip_keys = skip_keys
+        self.exclude_source = exclude_source
 
     def get_license_line(self):
         self.license_line = ''
@@ -96,6 +99,18 @@ class BstElement(object):
                 self.license_line = str(i)
                 break
 
+    def get_repo_org_and_name(self):
+        """
+        Parse out the github org and repo name github archive, e.g.
+        ros2-gbp and ament_lint-release
+        from
+        https://github.com/ros2-gbp/ament_lint-release/archive/release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
+        """
+        github_start = 'https://github.com/'
+        structure = self.src_uri.replace(github_start, '')
+        dirs = structure.split('/')
+        return (dirs[0], dirs[1])
+
     def get_repo_src_uri(self):
         """
         Parse out the git repository SRC_URI out of github archive, e.g.
@@ -103,10 +118,8 @@ class BstElement(object):
         from
         https://github.com/ros2-gbp/ament_lint-release/archive/release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
         """
-        github_start = 'https://github.com/'
-        structure = self.src_uri.replace(github_start, '')
-        dirs = structure.split('/')
-        return "github:%s/%s" % (dirs[0], dirs[1])
+        org, name = self.get_repo_org_and_name()
+        return "github:%s/%s" % (org, name)
 
     def get_repo_branch_name(self):
         """
@@ -156,6 +169,29 @@ class BstElement(object):
             "git ls-remote" % (self.get_repo_tag_name(),
                                self.get_repo_src_uri()))
         return "INVALID"
+
+    def __github_arbitrary_ref(self, ref):
+        org, name = self.get_repo_org_and_name()
+        return "https://github.com/{}/{}/tree/{}".format(org, name, ref)
+
+    def github_branch_url(self):
+        """
+        Get a url for the branch on github from a github archive SRC_URI, e.g.
+        https://github.com/ros2-gbp/ament_lint-release/tree/release/bouncy/ament_cmake_copyright
+        from
+        https://github.com/ros2-gbp/ament_lint-release/archive/release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
+        """
+        return self.__github_arbitrary_ref(self.get_repo_branch_name())
+
+    def github_commit_url(self):
+        """
+        Get a url for the commit on github from a github archive SRC_URI, e.g.
+        https://github.com/ros2-gbp/ament_lint-release/tree/48bf1aa1cb083a884fbc8520ced00523255aeaed
+        from
+        https://github.com/ros2-gbp/ament_lint-release/archive/release/bouncy/ament_cmake_copyright/0.5.2-0.tar.gz
+        """
+        return self.__github_arbitrary_ref(self.srcrev)
+
 
     def add_build_depend(self, bdepend, pkg):
         if bdepend not in self.skip_keys:
@@ -243,6 +279,8 @@ class BstElement(object):
         if self.homepage:
             header += '# Homepage: ' + self.homepage + '\n'
         header += '# Source URI: ' + self.src_uri + '\n'
+        header += '# Git branch: ' + self.github_branch_url() + '\n'
+        header += '# Git commit: ' + self.github_commit_url() + '\n'
         if self.license:
             header += '# License: ' + " & ".join(self.license) + '\n'
         header += '\n'
@@ -292,7 +330,11 @@ class BstElement(object):
         source["track"] = self.get_repo_branch_name()
         source["ref"] = self.srcrev
         sources.append(source)
-        element["sources"] = sources
+
+        if self.exclude_source:
+            info(f"Source for {self.name} excluded.")
+        else:
+            element["sources"] = sources
 
         includepath = "includes/" + \
                       self.convert_dep_name(self.component) + "/" + \
@@ -302,7 +344,7 @@ class BstElement(object):
             with open(fullincludepath) as incfile:
                 include = yaml.safe_load(incfile)
                 for listkey in ["build-depends", "runtime-depends", "sources"]:
-                    if listkey in include:
+                    if listkey in include and listkey in element:
                         # Append generated list to list from include file
                         element[listkey] = {"(<)": element[listkey]}
                 # BuildStream include directive

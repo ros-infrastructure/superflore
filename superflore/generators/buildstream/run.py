@@ -75,6 +75,12 @@ def main():
             default="elements/generated",
             help='directory for generated bst elements',
             type=str)
+    parser.add_argument(
+            '--exclude-sources-for',
+            default=[],
+            nargs='+',
+            help='do not generate sources for the specified packages',
+            type=str)
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     skip_keys = set(args.skip_keys) if args.skip_keys else set()
@@ -146,6 +152,7 @@ def main():
             if args.only:
                 distro = get_distro(args.ros_distro)
                 packages = args.only
+                exclude_sources_for = args.exclude_sources_for
                 include_dependencies = True
                 if include_dependencies:
                     packages = set(packages) | \
@@ -165,6 +172,7 @@ def main():
                             srcrev_cache,
                             skip_keys=skip_keys,
                             external_repos=external_repos,
+                            exclude_source=pkg in exclude_sources_for
                         )
                     except KeyError:
                         err("No package to satisfy key '%s' available "
