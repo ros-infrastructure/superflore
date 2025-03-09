@@ -407,11 +407,11 @@ class yoctoRecipe(object):
         else:
             ret += 'DESCRIPTION = "None"\n'
         # author
-        ret += 'AUTHOR = "' + self.maintainer + '"\n'
+        ret += 'AUTHOR = "' + self.maintainer.strip() + '"\n'
         if self.author:
-            ret += 'ROS_AUTHOR = "' + self.author + '"\n'
+            ret += 'ROS_AUTHOR = "' + self.author.strip() + '"\n'
         if self.homepage:
-            ret += 'HOMEPAGE = "' + self.homepage + '"\n'
+            ret += 'HOMEPAGE = "' + self.homepage.strip() + '"\n'
         # section
         ret += 'SECTION = "devel"\n'
         # license
