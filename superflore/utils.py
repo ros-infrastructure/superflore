@@ -24,9 +24,9 @@ import time
 from typing import Dict
 import urllib.request
 
-from pkg_resources import DistributionNotFound, get_distribution
 from superflore.exceptions import UnknownPlatform
 from superflore.rosdep_support import get_cached_index, resolve_rosdep_key
+from superflore.version import VERSION
 from termcolor import colored
 
 
@@ -835,11 +835,7 @@ def retry_on_exception(callback, *args, max_retries=5, num_retry=0,
 
 
 def get_superflore_version():
-    try:
-        version = get_distribution("superflore").version
-    except DistributionNotFound:
-        version = 'Unknown'
-    return version
+    return VERSION
 
 
 def get_utcnow_timestamp_str():
