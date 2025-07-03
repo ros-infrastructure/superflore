@@ -17,8 +17,7 @@ import string
 import sys
 import time
 
-from pkg_resources import parse_version
-from superflore import __version__
+from superflore.version import VERSION
 from superflore.exceptions import UnknownPlatform
 from superflore.exceptions import UnresolvedDependency
 from superflore.TempfileManager import TempfileManager
@@ -261,6 +260,7 @@ class TestUtils(unittest.TestCase):
 
     def test_get_superflore_version(self):
         """Test get SuperFlore version"""
-        if __version__ != 'unset':
-            self.assertGreaterEqual(parse_version(get_superflore_version()),
-                                    parse_version('0.2.1'))
+        if VERSION != 'unset':
+            self.assertRegex(get_superflore_version(),
+                             r"^(\d{2}|[1-9]|0\.(\d{2}|[4-9]|3\.(\d{2}|[4-9]|3)))",
+                             "superflore version is lower than the last modification of this test.")
