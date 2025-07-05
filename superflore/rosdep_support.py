@@ -45,7 +45,6 @@ def get_cached_index():
 
 
 def get_view(os_name, os_version, ros_distro):
-    global view_cache
     key = os_name + os_version + ros_distro
     if key not in view_cache:
         value = get_catkin_view(ros_distro, os_name, os_version, False)
