@@ -333,7 +333,7 @@ class yoctoRecipe(object):
         assignment = '{0} = "'.format(var)
         expression = '"\n'
         if container:
-            expression = ' \\' + cls.get_spacing_prefix()
+            expression = '\\' + cls.get_spacing_prefix()
             expression += cls.get_spacing_prefix().join(
                 [item + ' \\' for item in container]) + '\n"\n'
         return assignment + expression
