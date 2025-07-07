@@ -35,7 +35,7 @@ class TestEbuildOutput(unittest.TestCase):
         """Test Ebuild Format"""
         ebuild = self.get_ebuild()
         ebuild.add_run_depend('p2os_driver')
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         with open('tests/ebuild/simple_expected.ebuild', 'r') as expect_file:
             s = expect_file.read()
             correct_text = re.sub('Copyright 2017', 'Copyright ' + strftime("%Y", gmtime()), s)
@@ -47,7 +47,7 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_build_depend('fake_package', False)
         with self.assertRaises(UnresolvedDependency):
-            ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+            ebuild_text = ebuild.get_ebuild_text()
         self.assertTrue('fake_package' in ebuild.get_unresolved())
 
     def test_bad_external_run_depend(self):
@@ -56,14 +56,14 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_run_depend('fake_package', False)
         with self.assertRaises(UnresolvedDependency):
-            ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+            ebuild_text = ebuild.get_ebuild_text()
 
     def test_external_build_depend(self):
         """Test External Build Dependency"""
         ebuild = self.get_ebuild()
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_build_depend('cmake', False)
-        ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        ebuild_text = ebuild.get_ebuild_text()
         self.assertTrue('dev-util/cmake' in ebuild_text)
 
     def test_external_run_depend(self):
@@ -71,7 +71,7 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild = self.get_ebuild()
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_run_depend('cmake', False)
-        ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        ebuild_text = ebuild.get_ebuild_text()
         self.assertTrue('dev-util/cmake' in ebuild_text)
 
     def test_rdepend_depend(self):
@@ -95,7 +95,7 @@ class TestEbuildOutput(unittest.TestCase):
         """Test build depends when internal/external"""
         ebuild = self.get_ebuild()
         ebuild.add_build_depend('p2os_driver', True)
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('p2os_driver' in ebuild.depends)
         self.assertFalse('p2os_driver' in ebuild.depends_external)
         self.assertTrue('ros-lunar/p2os_driver' in got_text)
@@ -118,7 +118,7 @@ class TestEbuildOutput(unittest.TestCase):
         """Test DEPEND only packages"""
         ebuild = self.get_ebuild()
         ebuild.add_run_depend('pkg-config', False)
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('pkg-config' in ebuild.depends_external)
         self.assertTrue('virtual/pkgconfig' in got_text)
 
@@ -146,20 +146,20 @@ class TestEbuildOutput(unittest.TestCase):
         """Test The python_3 Boolean"""
         ebuild = self.get_ebuild()
         ebuild.python_3 = False
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('PYTHON_COMPAT=( python2_7 )' in got_text)
 
     def test_default_python2_python3(self):
         """Test That Python2/3 Is the Default"""
         ebuild = self.get_ebuild()
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('PYTHON_COMPAT=( python{2_7,3_5,3_6} )' in got_text)
 
     def test_has_patches(self):
         """Test Patch Code Generation"""
         ebuild = self.get_ebuild()
         ebuild.has_patches = True;
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('EPATCH_SOURCE="${FILESDIR}"' in got_text)
         self.assertTrue('EPATCH_SUFFIX="patch"' in got_text)
         self.assertTrue('EPATCH_FORCE="yes"' in got_text)
@@ -168,7 +168,7 @@ class TestEbuildOutput(unittest.TestCase):
     def test_lacks_patches(self):
         """Test Non-Patched Code Generation"""
         ebuild = self.get_ebuild()
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertFalse('EPATCH_SOURCE="${FILESDIR}"' in got_text)
         self.assertFalse('EPATCH_SUFFIX="patch"' in got_text)
         self.assertFalse('EPATCH_FORCE="yes"' in got_text)
@@ -178,37 +178,37 @@ class TestEbuildOutput(unittest.TestCase):
         """Test Filter Flags for OpenCV3"""
         ebuild = self.get_ebuild()
         ebuild.name = 'opencv3'
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue("filter-flags '-march=*' '-mcpu=*' '-mtune=*'" in got_text)
 
     def test_stage_filter_flags(self):
         """Test Filter Flags for Stage"""
         ebuild = self.get_ebuild()
         ebuild.name = 'stage'
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue("filter-flags '-std=*'" in got_text)
 
     def test_distro_variable_mapping(self):
         ebuild = self.get_ebuild()
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('ROS_DISTRO="lunar"' in got_text)
         ebuild.distro = 'kinetic'
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('ROS_DISTRO="kinetic"' in got_text)
 
     def test_catkin_nonbinary_mode(self):
         ebuild = self.get_ebuild()
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertFalse('BUILD_BINARY="0"' in got_text)
         ebuild.name = 'catkin'
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         self.assertTrue('BUILD_BINARY="0"' in got_text)
 
     def test_issue_117(self):
         """Test for ros-infrastructure/superflore#117"""
         ebuild = self.get_ebuild()
         ebuild.upstream_license = ['BSD,LGPL,Apache 2.0']
-        got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+        got_text = ebuild.get_ebuild_text()
         # grab the license line
         license_line = [line for line in got_text.split('\n') if "LICENSE" in line][0]
         self.assertEqual(license_line, 'LICENSE="( BSD LGPL Apache-2.0 )"')

@@ -82,4 +82,14 @@ def get_parser(
             nargs='+',
             help='packages to skip during regeneration'
         )
+        parser.add_argument(
+            '--license-org',
+            help='the distributor in copyright line of generated files',
+            type=str,
+        )
+        parser.add_argument(
+            '--license-text',
+            help='the license text in copyright line of generated files',
+            type=str,
+        )
     return parser

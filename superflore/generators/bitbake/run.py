@@ -54,6 +54,11 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
     skip_keys = set(args.skip_keys) if args.skip_keys else set()
+
+    if args.license_org:
+        yoctoRecipe.org = args.license_org
+    if args.license_text:
+        yoctoRecipe.org_license = args.license_text
     if args.pr_only:
         if args.dry_run:
             parser.error('Invalid args! cannot dry-run and file PR')
