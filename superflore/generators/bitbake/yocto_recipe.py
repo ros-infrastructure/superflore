@@ -495,7 +495,7 @@ class yoctoRecipe(object):
         ret += 'SRC_URI = "git://' + self.get_repo_src_uri() + \
             ';${ROS_BRANCH};protocol=https"\n'
         ret += 'SRCREV = "' + self.srcrev + '"\n'
-        ret += 'S = "${WORKDIR}/git"\n\n'
+        ret += '\n'
         ret += 'ROS_BUILD_TYPE = "' + self.build_type + '"\n'
         # Inherits
         ret += '\n' + self.get_bottom_inherit_line()
