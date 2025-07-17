@@ -155,7 +155,7 @@ def main():
                     markup=''), delta])
                 overlay.commit_changes(args.ros_distro, commit_msg)
                 if args.dry_run:
-                    save_pr(overlay, args.only, '', pr_comment, title=title)
+                    save_pr(overlay, delta, '', pr_comment, title=title)
                     sys.exit(0)
                 file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro,
                         title=title)
