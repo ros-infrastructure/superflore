@@ -27,6 +27,7 @@ from collections import defaultdict
 import hashlib
 from subprocess import DEVNULL, PIPE, Popen
 
+from packaging.version import Version
 from superflore.exceptions import NoPkgXml
 from superflore.exceptions import UnresolvedDependency
 from superflore.PackageMetadata import PackageMetadata
@@ -43,6 +44,19 @@ import yaml
 
 UNRESOLVED_DEP_PREFIX = 'ROS_UNRESOLVED_DEP-'
 UNRESOLVED_DEP_REF_PREFIX = '${'+UNRESOLVED_DEP_PREFIX
+
+yocto_releases = {
+    # name : version
+    'kirkstone': '4.0',
+    'langdale': '4.1',
+    'mickledore': '4.2',
+    'nanbield': '4.3',
+    'scarthgap': '5.0',
+    'styhead': '5.1',
+    'walnascar': '5.2',
+    'whinlatter': '5.3',
+    'wrynose': '6.0',
+}
 
 
 class yoctoRecipe(object):
@@ -61,8 +75,8 @@ class yoctoRecipe(object):
     max_component_name = 0
 
     def __init__(
-        self, component_name, num_pkgs, pkg_name, pkg_xml, rosdistro, src_uri,
-        srcrev_cache, skip_keys
+        self, component_name, num_pkgs, pkg_name, pkg_xml, rosdistro,
+        yocto_release, src_uri, srcrev_cache, skip_keys
     ):
         self.component = component_name
         yoctoRecipe.max_component_name = max(
@@ -71,6 +85,7 @@ class yoctoRecipe(object):
         self.num_pkgs = num_pkgs
         self.name = pkg_name
         self.distro = rosdistro.name
+        self.release = yocto_release
         self.version = get_pkg_version(rosdistro, pkg_name, is_oe=True)
         self.src_uri = src_uri
         self.pkg_xml = pkg_xml
@@ -495,11 +510,21 @@ class yoctoRecipe(object):
         ret += 'SRC_URI = "git://' + self.get_repo_src_uri() + \
             ';${ROS_BRANCH};protocol=https"\n'
         ret += 'SRCREV = "' + self.srcrev + '"\n'
-        ret += 'S = "${WORKDIR}/git"\n\n'
+        if (self.release):
+            if Version(self._get_yocto_version(self.release)) < \
+               Version(yocto_releases['styhead']):
+                ret += 'S = "${WORKDIR}/git"\n\n'
         ret += 'ROS_BUILD_TYPE = "' + self.build_type + '"\n'
         # Inherits
         ret += '\n' + self.get_bottom_inherit_line()
         return ret
+
+    @staticmethod
+    def _get_yocto_version(release):
+        if release in yocto_releases:
+            return yocto_releases[release]
+        else:
+            return None
 
     @staticmethod
     def _get_ros_version(distro):

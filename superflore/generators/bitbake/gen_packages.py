@@ -31,8 +31,8 @@ org = "Open Source Robotics Foundation"
 
 
 def regenerate_pkg(
-    overlay, pkg, rosdistro, preserve_existing, srcrev_cache,
-    skip_keys
+    overlay, pkg, rosdistro, preserve_existing, yocto_release,
+    srcrev_cache, skip_keys
 ):
     pkg_names = get_package_names(rosdistro)[0]
     if pkg not in pkg_names:
@@ -106,7 +106,7 @@ def regenerate_pkg(
         previous_version = existing[idx_version:].rstrip('.bb')
     try:
         current = oe_recipe(
-            rosdistro, pkg, srcrev_cache, skip_keys
+            rosdistro, yocto_release, pkg, srcrev_cache, skip_keys
         )
     except InvalidPackage as e:
         err('Invalid package: ' + str(e))
@@ -159,7 +159,7 @@ def regenerate_pkg(
 
 
 def _gen_recipe_for_package(
-    rosdistro, pkg_name, pkg, repo, ros_pkg,
+    rosdistro, yocto_release, pkg_name, pkg, repo, ros_pkg,
     pkg_rosinstall, srcrev_cache, skip_keys
 ):
     pkg_names = get_package_names(rosdistro)
@@ -189,6 +189,7 @@ def _gen_recipe_for_package(
         pkg_name,
         pkg_xml,
         rosdistro,
+        yocto_release,
         src_uri,
         srcrev_cache,
         skip_keys,
@@ -222,7 +223,7 @@ def _gen_recipe_for_package(
 
 class oe_recipe(object):
     def __init__(
-        self, rosdistro, pkg_name, srcrev_cache, skip_keys
+        self, rosdistro, yocto_release, pkg_name, srcrev_cache, skip_keys
     ):
         pkg = rosdistro.release_packages[pkg_name]
         repo = rosdistro.repositories[pkg.repository_name].release_repository
@@ -233,8 +234,8 @@ class oe_recipe(object):
         )
 
         self.recipe = _gen_recipe_for_package(
-            rosdistro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall,
-            srcrev_cache, skip_keys
+            rosdistro, yocto_release, pkg_name, pkg, repo, ros_pkg,
+            pkg_rosinstall, srcrev_cache, skip_keys
         )
 
     def recipe_text(self):
