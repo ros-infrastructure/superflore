@@ -150,15 +150,15 @@ def main():
             regen_dict[args.ros_distro] = to_commit
             overlay.regenerate_manifests(regen_dict)
             overlay.commit_changes(args.ros_distro)
+            delta = "Regenerated: '%s'\n" % args.only
             if args.dry_run:
                 save_pr(
                     overlay,
-                    args.only,
+                    delta,
                     missing_deps=gen_missing_deps_msg(missing_depends),
                     comment=pr_comment
                 )
                 sys.exit(0)
-            delta = "Regenerated: '%s'\n" % args.only
             file_pr(
                 overlay,
                 delta,
