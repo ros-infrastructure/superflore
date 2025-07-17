@@ -15,3 +15,4 @@ pygithub
 catkin_pkg
 rospkg
 setuptools
+packaging

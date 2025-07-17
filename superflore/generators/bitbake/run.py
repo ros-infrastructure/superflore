@@ -21,6 +21,7 @@ from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_pkg
 from superflore.generators.bitbake.ros_meta import RosMeta
+from superflore.generators.bitbake.yocto_recipe import yocto_releases
 from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
@@ -49,6 +50,13 @@ def main():
     parser.add_argument(
         '--tar-archive-dir',
         help='location to store archived packages',
+        type=str
+    )
+    parser.add_argument(
+        '--yocto-release',
+        help="create recipes for the specified Yocto release",
+        choices=yocto_releases.keys(),
+        required=False,
         type=str
     )
     args = parser.parse_args(sys.argv[1:])
@@ -130,6 +138,7 @@ def main():
                             pkg,
                             distro,
                             False,  # preserve_existing
+                            args.yocto_release,
                             srcrev_cache,
                             skip_keys=skip_keys,
                         )
@@ -173,6 +182,7 @@ def main():
                         overlay,
                         regenerate_pkg,
                         preserve_existing,
+                        args.yocto_release,
                         srcrev_cache,
                         skip_keys,
                         skip_keys=skip_keys,
