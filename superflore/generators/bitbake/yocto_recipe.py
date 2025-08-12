@@ -512,8 +512,9 @@ class yoctoRecipe(object):
         ret += 'SRCREV = "' + self.srcrev + '"\n'
         if (self.release):
             if Version(self._get_yocto_version(self.release)) < \
-               Version(yocto_releases['styhead']):
-                ret += 'S = "${WORKDIR}/git"\n\n'
+               Version(yocto_releases['whinlatter']):
+                ret += 'S = "${WORKDIR}/git"\n'
+        ret += '\n'
         ret += 'ROS_BUILD_TYPE = "' + self.build_type + '"\n'
         # Inherits
         ret += '\n' + self.get_bottom_inherit_line()
