@@ -808,8 +808,9 @@ def download_file(url, filename):
         raise e
 
 
-def retry_on_exception(callback, *args, max_retries=5, num_retry=0,
-                       retry_msg='', error_msg='', sleep_secs=0.125):
+def retry_on_exception(callback, *args, max_retries=10, num_retry=0,
+                       retry_msg='', error_msg='', sleep_secs=1,
+                       max_sleep_secs=60):
     try:
         return callback(*args)
     except Exception as e:
@@ -823,15 +824,18 @@ def retry_on_exception(callback, *args, max_retries=5, num_retry=0,
                 warn('{0} {1} {2}/{3}...'.format(str(e), retry_msg,
                      num_retry, max_retries))
             time.sleep(sleep_secs)
-            if num_retry <= 6:
-                sleep_secs *= 2
-            else:
-                sleep_secs = 0.125
+            # Keep backing off at increasing intervals, capped at
+            # max_sleep_secs, rather than resetting to a short interval.
+            # This matters most when many CI jobs are retrying against
+            # GitHub concurrently: a short/reset interval keeps them all
+            # hammering the rate limit instead of letting it clear.
+            sleep_secs = min(sleep_secs * 2, max_sleep_secs)
         elif num_retry == 0:
             warn('{0}'.format(str(e)))
         return retry_on_exception(callback, *args, max_retries=max_retries,
                                   num_retry=num_retry+1, retry_msg=retry_msg,
-                                  error_msg=error_msg, sleep_secs=sleep_secs)
+                                  error_msg=error_msg, sleep_secs=sleep_secs,
+                                  max_sleep_secs=max_sleep_secs)
 
 
 def get_superflore_version():

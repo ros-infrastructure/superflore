@@ -228,7 +228,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(retry_on_exception(callback_basic, 1), 'Success')
         # Checks failure case
         with self.assertRaises(Exception):
-            retry_on_exception(callback_basic, 2)
+            retry_on_exception(callback_basic, 2, max_retries=1,
+                                sleep_secs=0.01)
         # Checks callback can receive multiple params
         self.assertEqual(retry_on_exception(callback_params, 3, 4), 'Success')
         # Checks it doesn't retry when max_retries is zero; runs just once
@@ -244,19 +245,24 @@ class TestUtils(unittest.TestCase):
         # Checks it gets retried 2 times before succeeding at the 3rd
         callback_retries.limit = 0
         self.assertEqual(retry_on_exception(
-            callback_retries, 3, max_retries=3), 3)
+            callback_retries, 3, max_retries=3, sleep_secs=0.01), 3)
         # Checks it gets retried 3 times before giving up fully
         callback_retries.limit = -1
         with self.assertRaises(Exception):
-            retry_on_exception(callback_retries, 4, max_retries=3)
+            retry_on_exception(callback_retries, 4, max_retries=3,
+                                sleep_secs=0.01)
         self.assertEqual(callback_retries.limit, 3)
-        # Check that when retrying 9 times it'll sleep at least 16 seconds
-        # 0 + 0.125 + 0.25 + 0.5 + 1 + 2 + 4 + 8 + 0.125 = 16 seconds
+        # Check that the backoff interval doubles on each retry, capped at
+        # max_sleep_secs, and does NOT reset to a short interval once it
+        # hits the cap (it used to, which defeated the point of backing
+        # off under sustained rate limiting)
+        # 0 + 0.01 + 0.02 + 0.04 + 0.08 + 0.08 = 0.23 seconds
         time_before = time.time()
         with self.assertRaises(Exception):
-            retry_on_exception(callback_basic, 2, max_retries=9)
+            retry_on_exception(callback_basic, 2, max_retries=6,
+                                sleep_secs=0.01, max_sleep_secs=0.08)
         elapsed_time = time.time()-time_before
-        self.assertAlmostEqual(elapsed_time, 16, places=0)
+        self.assertAlmostEqual(elapsed_time, 0.23, delta=0.1)
 
     def test_get_superflore_version(self):
         """Test get SuperFlore version"""
