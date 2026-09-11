@@ -39,9 +39,6 @@ from superflore.utils import warn
 
 no_python3 = ['tf']
 
-org = "Open Source Robotics Foundation"
-org_license = "BSD"
-
 
 def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     version = get_pkg_version(distro, pkg)
@@ -246,4 +243,4 @@ class gentoo_ebuild(object):
         return self.metadata_xml.get_metadata_text()
 
     def ebuild_text(self):
-        return self.ebuild.get_ebuild_text(org, org_license)
+        return self.ebuild.get_ebuild_text()
