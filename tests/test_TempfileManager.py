@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import os
-
-from superflore.TempfileManager import TempfileManager
-from tempfile import mkdtemp
 import shutil
 import unittest
+from tempfile import mkdtemp
+
+from superflore.TempfileManager import TempfileManager
 
 
 class TestTempfileManager(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestTempfileManager(unittest.TestCase):
         # clean up
         self.assertTrue(os.path.exists('%s/test' % tmp))
         shutil.rmtree('%s' % tmp)
-        
+
     @unittest.skip(
         'relies on hitting a permission-restricted path, unreliable when '
         'CI runs as root'
@@ -38,6 +38,6 @@ class TestTempfileManager(unittest.TestCase):
     def test_failed_to_create(self):
         """Test making a directory in a bad location"""
         with self.assertRaises(OSError):
-            with TempfileManager('/root/bad_permissions') as tmp:
+            with TempfileManager('/root/bad_permissions'):
                 # code should not enter here
                 pass

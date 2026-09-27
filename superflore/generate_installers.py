@@ -13,21 +13,18 @@
 # limitations under the License.
 
 from rosinstall_generator.distro import get_package_names
+
 from superflore.exceptions import UnknownBuildType
-from superflore.utils import err
-from superflore.utils import get_pkg_version
-from superflore.utils import info
-from superflore.utils import ok
-from superflore.utils import warn
+from superflore.utils import err, get_pkg_version, info, ok, warn
 
 
 def generate_installers(
-    distro,                  # ros distro
-    overlay,                 # repo instance
-    gen_pkg_func,            # function to call for generating
+    distro,  # ros distro
+    overlay,  # repo instance
+    gen_pkg_func,  # function to call for generating
     preserve_existing=True,  # don't regenerate if installer exists
-    *args,                   # any additional args for gen_pkg_func
-    **kwargs                 # any additional keyword arguments
+    *args,  # any additional args for gen_pkg_func
+    **kwargs,  # any additional keyword arguments
 ):
     distro_name = distro.name
     pkg_names = get_package_names(distro)
@@ -59,22 +56,19 @@ def generate_installers(
                     # don't replace the installer
                     succeeded += 1
                     continue
-                failed_msg = "{0}%: Failed to generate".format(percent)
+                failed_msg = '{0}%: Failed to generate'.format(percent)
                 failed_msg += " %s for package '%s'!" % (what_generating, pkg)
                 err(failed_msg)
                 failed = failed + 1
                 continue
-            success_msg = 'Successfully generated %s for package' % \
-                what_generating
-            ok('{0}%: {1} \'{2}\'.'.format(percent, success_msg, pkg))
+            success_msg = 'Successfully generated %s for package' % what_generating
+            ok("{0}%: {1} '{2}'.".format(percent, success_msg, pkg))
             succeeded += 1
             if not current_info:
                 changes.append('{0} {1}'.format(installer_name, version))
             elif current_info != version:
                 changes.append(
-                    '{0} {1} --> {2}'.format(
-                        installer_name, current_info, version
-                    )
+                    '{0} {1} --> {2}'.format(installer_name, current_info, version)
                 )
             installers.append(pkg)
         except UnknownBuildType as ub:
@@ -86,17 +80,17 @@ def generate_installers(
             failed = failed + 1
         except KeyError:
             failed_msg = 'Failed to generate %s' % what_generating
-            err("{0}%: {1} for package {2}!".format(percent, failed_msg, pkg))
+            err('{0}%: {1} for package {2}!'.format(percent, failed_msg, pkg))
             bad_installers.append(pkg)
             failed = failed + 1
     results = 'Generated {0} / {1}'.format(succeeded, failed + succeeded)
     results += ' for distro {0}'.format(distro_name)
-    info("------ {0} ------\n".format(results))
+    info('------ {0} ------\n'.format(results))
 
     if len(borkd_pkgs) > 0:
-        warn("Unresolved:")
+        warn('Unresolved:')
         for broken in borkd_pkgs.keys():
-            warn("{}:".format(broken))
-            warn("  {}".format(borkd_pkgs[broken]))
+            warn('{}:'.format(broken))
+            warn('  {}'.format(borkd_pkgs[broken]))
 
     return installers, borkd_pkgs, changes

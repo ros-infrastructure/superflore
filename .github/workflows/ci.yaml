@@ -22,6 +22,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{matrix.python}}
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
       - name: Install dependencies
         run: |
           echo "Set locale"
@@ -42,13 +44,17 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install dpkg -y
           sudo apt-get install -y python3-rosdep
-          pip install -e ".[test]"
+          pip install -e ".[dev]"
       - name: Run tests
         run: |
           sudo rosdep init
           rosdep update
           python -m pytest --verbose
-          python -m 'flake8' superflore --import-order-style=google
+          ruff check superflore tests
+          ruff format --check superflore tests
+      - name: Type check (report-only)
+        continue-on-error: true
+        run: mypy
 
 
 

@@ -18,19 +18,21 @@ import os
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
-from rosinstall_generator.distro import _generate_rosinstall
-from rosinstall_generator.distro import get_package_names
+from rosinstall_generator.distro import _generate_rosinstall, get_package_names
+
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.ebuild.ebuild import Ebuild
 from superflore.generators.ebuild.metadata_xml import metadata_xml
 from superflore.PackageMetadata import PackageMetadata
-from superflore.utils import err
-from superflore.utils import get_distros
-from superflore.utils import get_pkg_version
-from superflore.utils import make_dir
-from superflore.utils import ok
-from superflore.utils import retry_on_exception
-from superflore.utils import warn
+from superflore.utils import (
+    err,
+    get_distros,
+    get_pkg_version,
+    make_dir,
+    ok,
+    retry_on_exception,
+    warn,
+)
 
 # TODO(allenh1): This is a blacklist of things that
 # do not yet support Python 3. This will be updated
@@ -39,14 +41,13 @@ from superflore.utils import warn
 
 no_python3 = ['tf']
 
-org = "Open Source Robotics Foundation"
-org_license = "BSD"
+org = 'Open Source Robotics Foundation'
+org_license = 'BSD'
 
 
 def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     version = get_pkg_version(distro, pkg)
-    ebuild_name =\
-        '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro.name, pkg, version)
+    ebuild_name = '/ros-{0}/{1}/{1}-{2}.ebuild'.format(distro.name, pkg, version)
     ebuild_name = overlay.repo.repo_dir + ebuild_name
     patch_path = '/ros-{}/{}/files'.format(distro.name, pkg)
     patch_path = overlay.repo.repo_dir + patch_path
@@ -55,9 +56,7 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
     pkg_names = get_package_names(distro)[0]
     patches = None
     if os.path.exists(patch_path):
-        patches = [
-            f for f in glob.glob('%s/*.patch' % patch_path)
-        ]
+        patches = [f for f in glob.glob('%s/*.patch' % patch_path)]
     if pkg not in pkg_names:
         raise RuntimeError("Unknown package '%s'" % (pkg))
     # otherwise, remove a (potentially) existing ebuild.
@@ -87,35 +86,31 @@ def regenerate_pkg(overlay, pkg, distro, preserve_existing=False):
         metadata_text = current.metadata_text()
     except UnresolvedDependency:
         dep_err = 'Failed to resolve required dependencies for'
-        err("{0} package {1}!".format(dep_err, pkg))
+        err('{0} package {1}!'.format(dep_err, pkg))
         unresolved = current.ebuild.get_unresolved()
         for dep in unresolved:
-            err(" unresolved: \"{}\"".format(dep))
+            err(' unresolved: "{}"'.format(dep))
         return None, current.ebuild.get_unresolved(), None
     except KeyError as ke:
-        err("Failed to parse data for package {}!".format(pkg))
+        err('Failed to parse data for package {}!'.format(pkg))
         raise ke
-    make_dir(
-        "{}/ros-{}/{}".format(overlay.repo.repo_dir, distro.name, pkg)
-    )
+    make_dir('{}/ros-{}/{}'.format(overlay.repo.repo_dir, distro.name, pkg))
     success_msg = 'Successfully generated ebuild for package'
-    ok('{0} \'{1}\'.'.format(success_msg, pkg))
+    ok("{0} '{1}'.".format(success_msg, pkg))
 
     try:
         ebuild_file = '{0}/ros-{1}/{2}/{2}-{3}.ebuild'.format(
-            overlay.repo.repo_dir,
-            distro.name, pkg, version
+            overlay.repo.repo_dir, distro.name, pkg, version
         )
-        ebuild_file = open(ebuild_file, "w")
+        ebuild_file = open(ebuild_file, 'w')
         metadata_file = '{0}/ros-{1}/{2}/metadata.xml'.format(
-            overlay.repo.repo_dir,
-            distro.name, pkg
+            overlay.repo.repo_dir, distro.name, pkg
         )
-        metadata_file = open(metadata_file, "w")
+        metadata_file = open(metadata_file, 'w')
         ebuild_file.write(ebuild_text)
         metadata_file.write(metadata_text)
     except Exception as e:
-        err("Failed to write ebuild/metadata to disk!")
+        err('Failed to write ebuild/metadata to disk!')
         raise e
     return current, previous_version, pkg
 
@@ -128,8 +123,11 @@ def _package_condition_context(rosdistro_name):
     elif distro_properties['distribution_type'] == 'ros1':
         ros_version = '1'
     else:
-        err("Superflore does not handle the distribution type '{}'".format(
-            distro_properties['distribution_type']))
+        err(
+            "Superflore does not handle the distribution type '{}'".format(
+                distro_properties['distribution_type']
+            )
+        )
         raise 'Invalid distribution_type for {}'.format(rosdistro_name)
     ros_python_version = None
     if distro_properties['python_version'] == 3:
@@ -137,38 +135,38 @@ def _package_condition_context(rosdistro_name):
     elif distro_properties['python_version'] == 2:
         ros_python_version = '2'
     else:
-        err("Superflore does not handle the python version '{}'".format(
-            distro_properties['python_version']))
+        err(
+            "Superflore does not handle the python version '{}'".format(
+                distro_properties['python_version']
+            )
+        )
         raise 'Invalid python_version for {}'.format(rosdistro_name)
     return {
-            'ROS_DISTRO': rosdistro_name,
-            'ROS_VERSION': ros_version,
-            'ROS_PYTHON_VERSION': ros_python_version}
+        'ROS_DISTRO': rosdistro_name,
+        'ROS_VERSION': ros_version,
+        'ROS_PYTHON_VERSION': ros_python_version,
+    }
 
 
-def _gen_metadata_for_package(
-    distro, pkg_name, repo, ros_pkg, pkg_rosinstall
-):
+def _gen_metadata_for_package(distro, pkg_name, repo, ros_pkg, pkg_rosinstall):
     pkg_metadata_xml = metadata_xml()
     try:
         pkg_xml = retry_on_exception(ros_pkg.get_package_xml, distro.name)
     except Exception:
-        warn("fetch metadata for package {}".format(pkg_name))
+        warn('fetch metadata for package {}'.format(pkg_name))
         return pkg_metadata_xml
     package_condition_context = _package_condition_context(distro.name)
-    pkg = PackageMetadata(pkg_xml,
-                          evaluate_condition_context=package_condition_context)
+    pkg = PackageMetadata(pkg_xml, evaluate_condition_context=package_condition_context)
     pkg_metadata_xml.upstream_email = pkg.upstream_email
     pkg_metadata_xml.upstream_name = pkg.upstream_name
     pkg_metadata_xml.longdescription = pkg.longdescription
-    pkg_metadata_xml.upstream_bug_url =\
-        repo.url.replace("-release", "").replace(".git", "/issues")
+    pkg_metadata_xml.upstream_bug_url = repo.url.replace('-release', '').replace(
+        '.git', '/issues'
+    )
     return pkg_metadata_xml
 
 
-def _gen_ebuild_for_package(
-    distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
-):
+def _gen_ebuild_for_package(distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall):
     pkg_ebuild = Ebuild()
 
     pkg_ebuild.distro = distro.name
@@ -176,13 +174,13 @@ def _gen_ebuild_for_package(
     pkg_names = get_package_names(distro)
     package_condition_context = _package_condition_context(distro.name)
     pkg_dep_walker = DependencyWalker(
-        distro,
-        evaluate_condition_context=package_condition_context)
+        distro, evaluate_condition_context=package_condition_context
+    )
 
-    pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
-    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
-    pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, "run")
-    pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, "test")
+    pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, 'buildtool')
+    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, 'build')
+    pkg_run_deps = pkg_dep_walker.get_depends(pkg_name, 'run')
+    pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, 'test')
 
     pkg_keywords = ['x86', 'amd64', 'arm', 'arm64']
 
@@ -210,10 +208,9 @@ def _gen_ebuild_for_package(
     try:
         pkg_xml = retry_on_exception(ros_pkg.get_package_xml, distro.name)
     except Exception:
-        warn("fetch metadata for package {}".format(pkg_name))
+        warn('fetch metadata for package {}'.format(pkg_name))
         return pkg_ebuild
-    pkg = PackageMetadata(pkg_xml,
-                          evaluate_condition_context=package_condition_context)
+    pkg = PackageMetadata(pkg_xml, evaluate_condition_context=package_condition_context)
     pkg_ebuild.upstream_license = pkg.upstream_license
     pkg_ebuild.description = pkg.description
     pkg_ebuild.homepage = pkg.homepage
@@ -227,16 +224,16 @@ class gentoo_ebuild(object):
         repo = distro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
 
-        pkg_rosinstall =\
-            _generate_rosinstall(pkg_name, repo.url,
-                                 get_release_tag(repo, pkg_name), True)
+        pkg_rosinstall = _generate_rosinstall(
+            pkg_name, repo.url, get_release_tag(repo, pkg_name), True
+        )
 
-        self.metadata_xml =\
-            _gen_metadata_for_package(distro, pkg_name,
-                                      repo, ros_pkg, pkg_rosinstall)
-        self.ebuild =\
-            _gen_ebuild_for_package(distro, pkg_name,
-                                    pkg, repo, ros_pkg, pkg_rosinstall)
+        self.metadata_xml = _gen_metadata_for_package(
+            distro, pkg_name, repo, ros_pkg, pkg_rosinstall
+        )
+        self.ebuild = _gen_ebuild_for_package(
+            distro, pkg_name, pkg, repo, ros_pkg, pkg_rosinstall
+        )
         self.ebuild.has_patches = has_patches
 
         if pkg_name in no_python3:

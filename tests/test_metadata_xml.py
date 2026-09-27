@@ -12,19 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.generators.ebuild.metadata_xml import metadata_xml
-import xmltodict
 import unittest
+
+import xmltodict
+
+from superflore.generators.ebuild.metadata_xml import metadata_xml
 
 
 class TestMetadataXml(unittest.TestCase):
     def get_metadata_xml(self):
         xml = metadata_xml()
-        xml.upstream_name = "Someone Important"
-        xml.upstream_email = "someone@example.com"
-        xml.upstream_bug_url = "https://bugzilla.someone.com"
-        xml.maintainer_type = "person"
-        xml.longdescription = "A ROS node that does cool stuff"
+        xml.upstream_name = 'Someone Important'
+        xml.upstream_email = 'someone@example.com'
+        xml.upstream_bug_url = 'https://bugzilla.someone.com'
+        xml.maintainer_type = 'person'
+        xml.longdescription = 'A ROS node that does cool stuff'
         return xml.get_metadata_text()
 
     def test_metadata_format(self):
@@ -35,4 +37,6 @@ class TestMetadataXml(unittest.TestCase):
         who = metadata['upstream']['maintainer']
         self.assertEqual(who['email'], 'someone@example.com')
         self.assertEqual(who['name'], 'Someone Important')
-        self.assertEqual(metadata['upstream']['bugs-to'], 'https://bugzilla.someone.com')
+        self.assertEqual(
+            metadata['upstream']['bugs-to'], 'https://bugzilla.someone.com'
+        )

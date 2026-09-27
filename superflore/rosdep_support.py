@@ -34,6 +34,7 @@ from rosdep2 import create_default_installer_context
 from rosdep2.catkin_support import get_catkin_view
 from rosdep2.lookup import ResolutionError
 from rosdep2.rosdistrohelper import get_index
+
 from superflore.exceptions import UnresolvedDependency
 
 DEFAULT_ROS_DISTRO = 'indigo'
@@ -68,27 +69,20 @@ def resolve_more_for_os(rosdep_key, view, installer, os_name, os_version):
     d = view.lookup(rosdep_key)
     os_installers = _installer_ctx.get_os_installer_keys(os_name)
     default_os_installer = _installer_ctx.get_default_os_installer_key(os_name)
-    inst_key, rule = d.get_rule_for_platform(os_name, os_version,
-                                             os_installers,
-                                             default_os_installer)
+    inst_key, rule = d.get_rule_for_platform(
+        os_name, os_version, os_installers, default_os_installer
+    )
     assert inst_key in os_installers
     return installer.resolve(rule), inst_key, default_os_installer
 
 
-def resolve_rosdep_key(
-    key,
-    os_name,
-    os_version,
-    ros_distro=None,
-    ignored=None
-):
+def resolve_rosdep_key(key, os_name, os_version, ros_distro=None, ignored=None):
     ignored = ignored or []
     try:
         installer_key = _installer_ctx.get_default_os_installer_key(os_name)
     except KeyError:
         raise UnresolvedDependency(
-            "could not resolve package {} for os {}."
-            .format(key, os_name)
+            'could not resolve package {} for os {}.'.format(key, os_name)
         )
     installer = _installer_ctx.get_installer(installer_key)
     ros_distro = ros_distro or DEFAULT_ROS_DISTRO
@@ -97,6 +91,5 @@ def resolve_rosdep_key(
         return resolve_more_for_os(key, view, installer, os_name, os_version)
     except (KeyError, ResolutionError):
         raise UnresolvedDependency(
-            "could not resolve package {} for os {}."
-            .format(key, os_name)
+            'could not resolve package {} for os {}.'.format(key, os_name)
         )

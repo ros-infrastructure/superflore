@@ -17,15 +17,20 @@ class NixPackageSet:
 
     def get_text(self, distributor: str, license_name: str) -> str:
         ret = []
-        ret += dedent('''
+        ret += dedent("""
         # Copyright {} {}
         # Distributed under the terms of the {} license
 
         self: super: {{
 
-        ''').format(strftime("%Y", gmtime()), distributor, license_name)
-        ret.extend((" {0} = self.callPackage ./{0} {{}};\n\n"
-                   .format(NixPackage.normalize_name(pkg_name))
-                    for pkg_name in self.pkg_names))
-        ret += "}\n"
+        """).format(strftime('%Y', gmtime()), distributor, license_name)
+        ret.extend(
+            (
+                ' {0} = self.callPackage ./{0} {{}};\n\n'.format(
+                    NixPackage.normalize_name(pkg_name)
+                )
+                for pkg_name in self.pkg_names
+            )
+        )
+        ret += '}\n'
         return ''.join(ret)

@@ -17,23 +17,26 @@ from typing import Dict, Iterable
 
 from rosdistro import DistributionFile
 from rosinstall_generator.distro import get_package_names
+
 from superflore.exceptions import UnresolvedDependency
 from superflore.generators.nix.nix_package import NixPackage
 from superflore.generators.nix.nix_package_set import NixPackageSet
-from superflore.utils import err
-from superflore.utils import make_dir
-from superflore.utils import ok
-from superflore.utils import warn
+from superflore.utils import err, make_dir, ok, warn
 
-org = "Open Source Robotics Foundation"
-org_license = "BSD"
+org = 'Open Source Robotics Foundation'
+org_license = 'BSD'
 
-_version_regex = re.compile(r"version\s*=\s*\"([^\"]*)\"")
+_version_regex = re.compile(r'version\s*=\s*\"([^\"]*)\"')
 
 
-def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
-                   preserve_existing: bool, tar_dir: str,
-                   sha256_cache: Dict[str, str]):
+def regenerate_pkg(
+    overlay,
+    pkg: str,
+    distro: DistributionFile,
+    preserve_existing: bool,
+    tar_dir: str,
+    sha256_cache: Dict[str, str],
+):
     all_pkgs = set(get_package_names(distro)[0])
 
     if pkg not in all_pkgs:
@@ -41,8 +44,9 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
 
     normalized_pkg = NixPackage.normalize_name(pkg)
 
-    package_dir = os.path.join(overlay.repo.repo_dir, 'distros', distro.name,
-                               normalized_pkg)
+    package_dir = os.path.join(
+        overlay.repo.repo_dir, 'distros', distro.name, normalized_pkg
+    )
     package_file = os.path.join(package_dir, 'default.nix')
     make_dir(package_dir)
 
@@ -64,7 +68,7 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
             except IndexError:
                 pass
         if not previous_version:
-            warn("Failed to extract previous package version")
+            warn('Failed to extract previous package version')
 
     try:
         current = NixPackage(pkg, distro, tar_dir, sha256_cache, all_pkgs)
@@ -75,11 +79,10 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
     try:
         derivation_text = current.derivation.get_text(org, org_license)
     except UnresolvedDependency:
-        err("'Failed to resolve required dependencies for package {}!"
-            .format(pkg))
+        err("'Failed to resolve required dependencies for package {}!".format(pkg))
         unresolved = current.unresolved_dependencies
         for dep in unresolved:
-            err(" unresolved: \"{}\"".format(dep))
+            err(' unresolved: "{}"'.format(dep))
         return None, unresolved, None
     except Exception as e:
         err('Failed to generate derivation for package {}!'.format(pkg))
@@ -87,10 +90,10 @@ def regenerate_pkg(overlay, pkg: str, distro: DistributionFile,
 
     ok("Successfully generated derivation for package '{}'.".format(pkg))
     try:
-        with open('{0}'.format(package_file), "w") as recipe_file:
+        with open('{0}'.format(package_file), 'w') as recipe_file:
             recipe_file.write(derivation_text)
     except Exception as e:
-        err("Failed to write derivation to disk!")
+        err('Failed to write derivation to disk!')
         raise e
     return current, previous_version, normalized_pkg
 
@@ -103,8 +106,8 @@ def regenerate_pkg_set(overlay, distro_name: str, pkg_names: Iterable[str]):
     package_set = NixPackageSet(pkg_names)
 
     try:
-        with open(overlay_file, "w") as recipe_file:
+        with open(overlay_file, 'w') as recipe_file:
             recipe_file.write(package_set.get_text(org, org_license))
     except Exception as e:
-        err("Failed to write derivation to disk!")
+        err('Failed to write derivation to disk!')
         raise e

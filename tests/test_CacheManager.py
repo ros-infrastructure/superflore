@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import os
+import unittest
 
 from superflore.CacheManager import CacheManager
 from superflore.TempfileManager import TempfileManager
-import unittest
 
 
 class TestCacheManager(unittest.TestCase):

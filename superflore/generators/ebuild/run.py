@@ -16,6 +16,7 @@ import os
 import sys
 
 from rosinstall_generator.distro import get_distro
+
 from superflore.exceptions import NoGitHubAuthToken
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
@@ -23,18 +24,20 @@ from superflore.generators.ebuild.overlay_instance import RosOverlay
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
-from superflore.utils import clean_up
-from superflore.utils import err
-from superflore.utils import file_pr
-from superflore.utils import gen_delta_msg
-from superflore.utils import gen_missing_deps_msg
-from superflore.utils import get_distros_by_status
-from superflore.utils import info
-from superflore.utils import load_pr
-from superflore.utils import ok
-from superflore.utils import save_pr
-from superflore.utils import url_to_repo_org
-from superflore.utils import warn
+from superflore.utils import (
+    clean_up,
+    err,
+    file_pr,
+    gen_delta_msg,
+    gen_missing_deps_msg,
+    get_distros_by_status,
+    info,
+    load_pr,
+    ok,
+    save_pr,
+    url_to_repo_org,
+    warn,
+)
 
 
 def main():
@@ -94,15 +97,13 @@ def main():
         if not preserve_existing and not args.only:
             pr_comment = pr_comment or (
                 'Superflore ebuild generator began regeneration of all'
-                ' packages from ROS distro %s from ROS-Overlay commit %s.' % (
-                    selected_targets,
-                    overlay.repo.get_last_hash()
-                )
+                ' packages from ROS distro %s from ROS-Overlay commit %s.'
+                % (selected_targets, overlay.repo.get_last_hash())
             )
         elif not args.only:
             pr_comment = pr_comment or (
-                'Superflore ebuild generator ran update from ROS-Overlay ' +
-                'commit %s.' % (overlay.repo.get_last_hash())
+                'Superflore ebuild generator ran update from ROS-Overlay '
+                + 'commit %s.' % (overlay.repo.get_last_hash())
             )
         # generate installers
         total_installers = dict()
@@ -110,27 +111,21 @@ def main():
         total_changes = dict()
         if args.only:
             pr_comment = pr_comment or (
-                'Superflore ebuild generator began regeneration of ' +
-                'package(s) %s from commit %s.' % (
-                    args.only,
-                    overlay.repo.get_last_hash()
-                )
+                'Superflore ebuild generator began regeneration of '
+                + 'package(s) %s from commit %s.'
+                % (args.only, overlay.repo.get_last_hash())
             )
             missing_depends = set()
             to_commit = set()
             will_file_pr = False
             for pkg in args.only:
                 if pkg in skip_keys:
-                    warn("Package '%s' is in skip-keys list, skipping..."
-                         % pkg)
+                    warn("Package '%s' is in skip-keys list, skipping..." % pkg)
                     continue
                 info("Regenerating package '%s'..." % pkg)
                 try:
                     ebuild, deps, version = regenerate_pkg(
-                        overlay,
-                        pkg,
-                        get_distro(args.ros_distro),
-                        preserve_existing
+                        overlay, pkg, get_distro(args.ros_distro), preserve_existing
                     )
                     if not ebuild:
                         for dep in deps:
@@ -143,7 +138,7 @@ def main():
                     will_file_pr = True
             # if no packages succeeded, exit with error
             if not will_file_pr:
-                err("No packages generated successfully, exiting.")
+                err('No packages generated successfully, exiting.')
                 sys.exit(1)
             # Commit changes and file pull request
             regen_dict = dict()
@@ -156,27 +151,21 @@ def main():
                     overlay,
                     delta,
                     missing_deps=gen_missing_deps_msg(missing_depends),
-                    comment=pr_comment
+                    comment=pr_comment,
                 )
                 sys.exit(0)
-            file_pr(
-                overlay,
-                delta,
-                gen_missing_deps_msg(missing_depends),
-                pr_comment
-            )
+            file_pr(overlay, delta, gen_missing_deps_msg(missing_depends), pr_comment)
             ok('Successfully synchronized repositories!')
             sys.exit(0)
 
         for distro in selected_targets:
-            distro_installers, distro_broken, distro_changes =\
-                generate_installers(
-                    get_distro(distro),
-                    overlay=overlay,
-                    gen_pkg_func=regenerate_pkg,
-                    preserve_existing=preserve_existing,
-                    skip_keys=skip_keys,
-                )
+            distro_installers, distro_broken, distro_changes = generate_installers(
+                get_distro(distro),
+                overlay=overlay,
+                gen_pkg_func=regenerate_pkg,
+                preserve_existing=preserve_existing,
+                skip_keys=skip_keys,
+            )
             for key in distro_broken.keys():
                 for pkg in distro_broken[key]:
                     total_broken.add(pkg)
@@ -204,9 +193,7 @@ def main():
 
         if args.dry_run:
             info('Running in dry mode, not filing PR')
-            save_pr(
-                overlay, delta, missing_deps=missing_deps, comment=pr_comment
-            )
+            save_pr(overlay, delta, missing_deps=missing_deps, comment=pr_comment)
             sys.exit(0)
         file_pr(overlay, delta, missing_deps, comment=pr_comment)
 

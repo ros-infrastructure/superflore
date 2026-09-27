@@ -18,8 +18,7 @@ import shutil
 import subprocess
 import tempfile
 
-from superflore.utils import err
-from superflore.utils import info
+from superflore.utils import err, info
 
 
 class TempfileManager:
@@ -37,21 +36,19 @@ class TempfileManager:
             return self.arg_path
         else:
             self.temp_path = tempfile.mkdtemp()
-            info("Working in temporary directory %s" % self.temp_path)
+            info('Working in temporary directory %s' % self.temp_path)
         return self.temp_path
 
     def __exit__(self, *args):
         if self.temp_path:
-            info("Cleaning up temporary directory %s" % self.temp_path)
+            info('Cleaning up temporary directory %s' % self.temp_path)
             try:
                 shutil.rmtree(self.temp_path)
             except OSError as ex:
                 if ex.errno == errno.EPERM:
-                    err("Failed to rmtree %s" % self.temp_path)
-                    err("Escalating to sudo rm -rf %s" % self.temp_path)
-                    subprocess.check_call(
-                        ('sudo rm -rf %s' % self.temp_path).split()
-                    )
+                    err('Failed to rmtree %s' % self.temp_path)
+                    err('Escalating to sudo rm -rf %s' % self.temp_path)
+                    subprocess.check_call(('sudo rm -rf %s' % self.temp_path).split())
                 else:
                     raise
             self.temp_path = None

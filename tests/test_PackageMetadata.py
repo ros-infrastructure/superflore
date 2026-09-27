@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.PackageMetadata import PackageMetadata
 import unittest
+
+from superflore.PackageMetadata import PackageMetadata
 
 
 class TestPackageMetadata(unittest.TestCase):
@@ -24,8 +25,8 @@ class TestPackageMetadata(unittest.TestCase):
         ret = PackageMetadata(test_xml)
         self.assertEqual(ret.upstream_email, 'someone@example.com')
         self.assertEqual(ret.upstream_name, 'Someone')
-        self.assertEqual(ret.description, 'This is my package\'s description.')
-        self.assertEqual(ret.longdescription, 'This is my package\'s description.')
+        self.assertEqual(ret.description, "This is my package's description.")
+        self.assertEqual(ret.longdescription, "This is my package's description.")
         self.assertEqual(ret.homepage, 'http://wiki.ros.org/my_package')
         self.assertEqual(ret.build_type, 'my_builder')
 

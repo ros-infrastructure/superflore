@@ -16,30 +16,32 @@ from catkin_pkg.package import InvalidPackage
 from rosdistro.dependency_walker import DependencyWalker
 from rosdistro.manifest_provider import get_release_tag
 from rosdistro.rosdistro import RosPackage
-from rosinstall_generator.distro import _generate_rosinstall
-from rosinstall_generator.distro import get_package_names
+from rosinstall_generator.distro import _generate_rosinstall, get_package_names
+
 from superflore.exceptions import NoPkgXml
 from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
-from superflore.utils import err
-from superflore.utils import get_pkg_version
-from superflore.utils import make_dir
-from superflore.utils import ok
-from superflore.utils import retry_on_exception
-from superflore.utils import warn
+from superflore.utils import (
+    err,
+    get_pkg_version,
+    make_dir,
+    ok,
+    retry_on_exception,
+    warn,
+)
 
-org = "Open Source Robotics Foundation"
+org = 'Open Source Robotics Foundation'
 
 
 def regenerate_pkg(
-    overlay, pkg, rosdistro, preserve_existing, yocto_release,
-    srcrev_cache, skip_keys
+    overlay, pkg, rosdistro, preserve_existing, yocto_release, srcrev_cache, skip_keys
 ):
     pkg_names = get_package_names(rosdistro)[0]
     if pkg not in pkg_names:
         yoctoRecipe.not_generated_recipes.add(pkg)
-        raise RuntimeError("Unknown package '%s' available packages"
-                           " in selected distro: %s" %
-                           (pkg, get_package_names(rosdistro)))
+        raise RuntimeError(
+            "Unknown package '%s' available packages"
+            ' in selected distro: %s' % (pkg, get_package_names(rosdistro))
+        )
     try:
         version = get_pkg_version(rosdistro, pkg, is_oe=True)
     except KeyError as ke:
@@ -47,13 +49,12 @@ def regenerate_pkg(
         raise ke
     repo_dir = overlay.repo.repo_dir
     component_name = yoctoRecipe.convert_to_oe_name(
-        rosdistro.release_packages[pkg].repository_name)
+        rosdistro.release_packages[pkg].repository_name
+    )
     recipe = yoctoRecipe.convert_to_oe_name(pkg)
     # check for an existing recipe which was removed by clean_ros_recipe_dirs
     prefix = 'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb'.format(
-        yoctoRecipe._get_ros_version(rosdistro.name),
-        rosdistro.name,
-        recipe
+        yoctoRecipe._get_ros_version(rosdistro.name), rosdistro.name, recipe
     )
     existing = overlay.repo.git.status('--porcelain', '--', prefix)
     if existing:
@@ -61,38 +62,45 @@ def regenerate_pkg(
         # D  meta-ros2-eloquent/generated-recipes/variants/ros-base_0.8.3-1.bb
         # we want just the path with filename
         if len(existing.split('\n')) > 1:
-            warn('More than 1 recipe was output by "git status --porcelain '
-                 'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
-                 .format(
-                     yoctoRecipe._get_ros_version(rosdistro.name),
-                     rosdistro.name,
-                     recipe,
-                     existing))
-        if existing.split()[0] != 'D':
-            err('Unexpected output from "git status --porcelain '
-                'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
-                .format(
+            warn(
+                'More than 1 recipe was output by "git status --porcelain '
+                'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'.format(
                     yoctoRecipe._get_ros_version(rosdistro.name),
                     rosdistro.name,
                     recipe,
-                    existing))
+                    existing,
+                )
+            )
+        if existing.split()[0] != 'D':
+            err(
+                'Unexpected output from "git status --porcelain '
+                'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'.format(
+                    yoctoRecipe._get_ros_version(rosdistro.name),
+                    rosdistro.name,
+                    recipe,
+                    existing,
+                )
+            )
 
         existing = existing.split()[1]
     else:
         # If it isn't shown in git status, it could still exist as normal
         # unchanged file when --only option is being used
         import glob
+
         existing = glob.glob('{0}/{1}'.format(repo_dir, prefix))
         if existing:
             if len(existing) > 1:
-                err('More than 1 recipe was output by "git status '
+                err(
+                    'More than 1 recipe was output by "git status '
                     '--porcelain '
-                    'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'
-                    .format(
+                    'meta-ros{0}-{1}/generated-recipes/*/{2}_*.bb": "{3}"'.format(
                         yoctoRecipe._get_ros_version(rosdistro.name),
                         rosdistro.name,
                         recipe,
-                        existing))
+                        existing,
+                    )
+                )
             existing = existing[0]
 
     previous_version = None
@@ -105,9 +113,7 @@ def regenerate_pkg(
         idx_version = existing.rfind('_') + len('_')
         previous_version = existing[idx_version:].rstrip('.bb')
     try:
-        current = oe_recipe(
-            rosdistro, yocto_release, pkg, srcrev_cache, skip_keys
-        )
+        current = oe_recipe(rosdistro, yocto_release, pkg, srcrev_cache, skip_keys)
     except InvalidPackage as e:
         err('Invalid package: ' + str(e))
         yoctoRecipe.not_generated_recipes.add(pkg)
@@ -119,69 +125,76 @@ def regenerate_pkg(
     try:
         recipe_text = current.recipe_text()
     except NoPkgXml as nopkg:
-        err("Could not fetch pkg! {}".format(str(nopkg)))
+        err('Could not fetch pkg! {}'.format(str(nopkg)))
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     except KeyError as ke:
-        err("Failed to parse data for package {}! {}".format(pkg, str(ke)))
+        err('Failed to parse data for package {}! {}'.format(pkg, str(ke)))
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     make_dir(
-        "{0}/meta-ros{1}-{2}/generated-recipes/{3}".format(
-            repo_dir,
-            yoctoRecipe._get_ros_version(rosdistro.name),
-            rosdistro.name,
-            component_name
-        )
-    )
-    success_msg = 'Successfully generated recipe for package'
-    ok('{0} \'{1}\'.'.format(success_msg, pkg))
-    recipe_file_name = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/' \
-        '{4}_{5}.bb'.format(
+        '{0}/meta-ros{1}-{2}/generated-recipes/{3}'.format(
             repo_dir,
             yoctoRecipe._get_ros_version(rosdistro.name),
             rosdistro.name,
             component_name,
-            recipe,
-            version
         )
+    )
+    success_msg = 'Successfully generated recipe for package'
+    ok("{0} '{1}'.".format(success_msg, pkg))
+    recipe_file_name = '{0}/meta-ros{1}-{2}/generated-recipes/{3}/{4}_{5}.bb'.format(
+        repo_dir,
+        yoctoRecipe._get_ros_version(rosdistro.name),
+        rosdistro.name,
+        component_name,
+        recipe,
+        version,
+    )
     try:
-        with open('{0}'.format(recipe_file_name), "w") as recipe_file:
+        with open('{0}'.format(recipe_file_name), 'w') as recipe_file:
             ok('Writing recipe {0}'.format(recipe_file_name))
             recipe_file.write(recipe_text)
             yoctoRecipe.generated_components.add(component_name)
             yoctoRecipe.generated_recipes[recipe] = (version, component_name)
     except Exception:
-        err("Failed to write recipe to disk!")
+        err('Failed to write recipe to disk!')
         yoctoRecipe.not_generated_recipes.add(pkg)
         return None, [], None
     return current, previous_version, recipe
 
 
 def _gen_recipe_for_package(
-    rosdistro, yocto_release, pkg_name, pkg, repo, ros_pkg,
-    pkg_rosinstall, srcrev_cache, skip_keys
+    rosdistro,
+    yocto_release,
+    pkg_name,
+    pkg,
+    repo,
+    ros_pkg,
+    pkg_rosinstall,
+    srcrev_cache,
+    skip_keys,
 ):
     pkg_names = get_package_names(rosdistro)
     pkg_dep_walker = DependencyWalker(
         rosdistro,
-        evaluate_condition_context=yoctoRecipe._get_condition_context(
-            rosdistro.name))
-    pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, "buildtool")
-    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, "build")
-    pkg_build_export_deps = pkg_dep_walker.get_depends(
-        pkg_name, "build_export")
-    pkg_buildtool_export_deps = pkg_dep_walker.get_depends(
-        pkg_name, "buildtool_export")
-    pkg_exec_deps = pkg_dep_walker.get_depends(pkg_name, "exec")
-    pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, "test")
+        evaluate_condition_context=yoctoRecipe._get_condition_context(rosdistro.name),
+    )
+    pkg_buildtool_deps = pkg_dep_walker.get_depends(pkg_name, 'buildtool')
+    pkg_build_deps = pkg_dep_walker.get_depends(pkg_name, 'build')
+    pkg_build_export_deps = pkg_dep_walker.get_depends(pkg_name, 'build_export')
+    pkg_buildtool_export_deps = pkg_dep_walker.get_depends(pkg_name, 'buildtool_export')
+    pkg_exec_deps = pkg_dep_walker.get_depends(pkg_name, 'exec')
+    pkg_test_deps = pkg_dep_walker.get_depends(pkg_name, 'test')
     src_uri = pkg_rosinstall[0]['tar']['uri']
 
     # parse through package xml
     err_msg = 'Failed to fetch metadata for package {}'.format(pkg_name)
-    pkg_xml = retry_on_exception(ros_pkg.get_package_xml, rosdistro.name,
-                                 retry_msg='Could not get package xml!',
-                                 error_msg=err_msg)
+    pkg_xml = retry_on_exception(
+        ros_pkg.get_package_xml,
+        rosdistro.name,
+        retry_msg='Could not get package xml!',
+        error_msg=err_msg,
+    )
 
     pkg_recipe = yoctoRecipe(
         pkg.repository_name,
@@ -222,9 +235,7 @@ def _gen_recipe_for_package(
 
 
 class oe_recipe(object):
-    def __init__(
-        self, rosdistro, yocto_release, pkg_name, srcrev_cache, skip_keys
-    ):
+    def __init__(self, rosdistro, yocto_release, pkg_name, srcrev_cache, skip_keys):
         pkg = rosdistro.release_packages[pkg_name]
         repo = rosdistro.repositories[pkg.repository_name].release_repository
         ros_pkg = RosPackage(pkg_name, repo)
@@ -234,8 +245,15 @@ class oe_recipe(object):
         )
 
         self.recipe = _gen_recipe_for_package(
-            rosdistro, yocto_release, pkg_name, pkg, repo, ros_pkg,
-            pkg_rosinstall, srcrev_cache, skip_keys
+            rosdistro,
+            yocto_release,
+            pkg_name,
+            pkg,
+            repo,
+            ros_pkg,
+            pkg_rosinstall,
+            srcrev_cache,
+            skip_keys,
         )
 
     def recipe_text(self):

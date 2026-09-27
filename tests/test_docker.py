@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from superflore.docker import Docker
-from superflore.docker import NoDockerfileSupplied
 import unittest
 
-@unittest.skip(
-    'requires a live Docker daemon, not available in containerized CI'
-)
+from superflore.docker import Docker, NoDockerfileSupplied
+
+
+@unittest.skip('requires a live Docker daemon, not available in containerized CI')
 class TestDocker(unittest.TestCase):
     def test_init(self):
         """Test Docker __init__"""
@@ -63,34 +62,36 @@ class TestDocker(unittest.TestCase):
         """Test Docker run"""
         docker_instance = Docker()
         docker_instance.build('tests/docker/Dockerfile')
-        docker_instance.add_bash_command("echo Hello, docker")
+        docker_instance.add_bash_command('echo Hello, docker')
         docker_instance.run()
 
     def test_pull(self):
         """Test Docker pull"""
         docker_instance = Docker()
         docker_instance.pull('allenh1', 'ros_gentoo_base')
-        docker_instance.add_bash_command("echo Hello, Gentoo")
+        docker_instance.add_bash_command('echo Hello, Gentoo')
         docker_instance.run()
 
     def test_get_command(self):
         """Test the get_command function"""
         docker_instance = Docker()
-        docker_instance.add_bash_command("echo Hello, docker")
-        docker_instance.add_bash_command("echo command two.")
+        docker_instance.add_bash_command('echo Hello, docker')
+        docker_instance.add_bash_command('echo command two.')
         # get command string
         ret = docker_instance.get_command()
         self.assertEqual(ret, "bash -c 'echo Hello, docker && echo command two.'")
         # get command string with logging directory.
         ret = docker_instance.get_command('/root', 'log.txt')
-        expected = "bash -c 'echo Hello, docker &>> /root/log.txt "\
-                   "&& echo command two. &>> /root/log.txt'"
+        expected = (
+            "bash -c 'echo Hello, docker &>> /root/log.txt "
+            "&& echo command two. &>> /root/log.txt'"
+        )
         self.assertEqual(expected, ret)
 
     def test_logger_output(self):
         """Test the log file output"""
         docker_instance = Docker()
         docker_instance.pull('gentoo', 'stage3-amd64')
-        docker_instance.add_bash_command("echo Log Text!")
+        docker_instance.add_bash_command('echo Log Text!')
         docker_instance.run()
-        self.assertEqual(docker_instance.log, "Log Text!\n")
+        self.assertEqual(docker_instance.log, 'Log Text!\n')

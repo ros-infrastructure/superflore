@@ -15,29 +15,30 @@
 import os
 import sys
 
-from rosinstall_generator.distro import get_distro
-from rosinstall_generator.distro import get_package_names
+from rosinstall_generator.distro import get_distro, get_package_names
+
 from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
 from superflore.generators.bitbake.gen_packages import regenerate_pkg
 from superflore.generators.bitbake.ros_meta import RosMeta
-from superflore.generators.bitbake.yocto_recipe import yocto_releases
-from superflore.generators.bitbake.yocto_recipe import yoctoRecipe
+from superflore.generators.bitbake.yocto_recipe import yocto_releases, yoctoRecipe
 from superflore.parser import get_parser
 from superflore.repo_instance import RepoInstance
 from superflore.TempfileManager import TempfileManager
-from superflore.utils import clean_up
-from superflore.utils import err
-from superflore.utils import file_pr
-from superflore.utils import gen_delta_msg
-from superflore.utils import get_pr_text
-from superflore.utils import get_utcnow_timestamp_str
-from superflore.utils import info
-from superflore.utils import load_pr
-from superflore.utils import ok
-from superflore.utils import save_pr
-from superflore.utils import url_to_repo_org
-from superflore.utils import warn
+from superflore.utils import (
+    clean_up,
+    err,
+    file_pr,
+    gen_delta_msg,
+    get_pr_text,
+    get_utcnow_timestamp_str,
+    info,
+    load_pr,
+    ok,
+    save_pr,
+    url_to_repo_org,
+    warn,
+)
 
 
 def main():
@@ -46,18 +47,17 @@ def main():
         'Generate OpenEmbedded recipes for ROS packages',
         exclude_all=True,
         require_rosdistro=True,
-        require_dryrun=True)
+        require_dryrun=True,
+    )
     parser.add_argument(
-        '--tar-archive-dir',
-        help='location to store archived packages',
-        type=str
+        '--tar-archive-dir', help='location to store archived packages', type=str
     )
     parser.add_argument(
         '--yocto-release',
-        help="create recipes for the specified Yocto release",
+        help='create recipes for the specified Yocto release',
         choices=yocto_releases.keys(),
         required=False,
-        type=str
+        type=str,
     )
     args = parser.parse_args(sys.argv[1:])
     pr_comment = args.pr_comment
@@ -84,9 +84,7 @@ def main():
     """
     selected_targets = [args.ros_distro]
     preserve_existing = args.only
-    now = os.getenv(
-        'SUPERFLORE_GENERATION_DATETIME',
-        get_utcnow_timestamp_str())
+    now = os.getenv('SUPERFLORE_GENERATION_DATETIME', get_utcnow_timestamp_str())
     repo_org = 'ros'
     repo_name = 'meta-ros'
     if args.upstream_repo:
@@ -100,8 +98,7 @@ def main():
         overlay = RosMeta(
             _repo,
             not args.output_repository_path,
-            branch=(('superflore/{}'.format(now)) if not args.no_branch
-                    else None),
+            branch=(('superflore/{}'.format(now)) if not args.no_branch else None),
             org=repo_org,
             repo=repo_name,
             from_branch=args.upstream_branch,
@@ -128,8 +125,7 @@ def main():
                 distro = get_distro(args.ros_distro)
                 for pkg in args.only:
                     if pkg in skip_keys:
-                        warn("Package '%s' is in skip-keys list, skipping..."
-                             % pkg)
+                        warn("Package '%s' is in skip-keys list, skipping..." % pkg)
                         continue
                     info("Regenerating package '%s'..." % pkg)
                     try:
@@ -143,31 +139,40 @@ def main():
                             skip_keys=skip_keys,
                         )
                     except KeyError:
-                        err("No package to satisfy key '%s' available "
-                            "packages in selected distro: %s" %
-                            (pkg, get_package_names(distro)))
+                        err(
+                            "No package to satisfy key '%s' available "
+                            'packages in selected distro: %s'
+                            % (pkg, get_package_names(distro))
+                        )
                         sys.exit(1)
                 # Commit changes and file pull request
-                title =\
-                    '{{{0}}} Selected recipes generated from '\
-                    'files/{0}/generated/cache.yaml '\
-                    'as of {1}\n'.format(
-                            args.ros_distro,
-                            now)
+                title = (
+                    '{{{0}}} Selected recipes generated from '
+                    'files/{0}/generated/cache.yaml '
+                    'as of {1}\n'.format(args.ros_distro, now)
+                )
                 regen_dict = dict()
                 regen_dict[args.ros_distro] = args.only
                 delta = "Regenerated: '%s'\n" % args.only
                 overlay.add_generated_files(args.ros_distro)
-                commit_msg = '\n'.join([get_pr_text(
-                    comment=title + '\n' + pr_comment.replace(
-                        '**superflore**', 'superflore'),
-                    markup=''), delta])
+                commit_msg = '\n'.join(
+                    [
+                        get_pr_text(
+                            comment=title
+                            + '\n'
+                            + pr_comment.replace('**superflore**', 'superflore'),
+                            markup='',
+                        ),
+                        delta,
+                    ]
+                )
                 overlay.commit_changes(args.ros_distro, commit_msg)
                 if args.dry_run:
                     save_pr(overlay, delta, '', pr_comment, title=title)
                     sys.exit(0)
-                file_pr(overlay, delta, '', pr_comment, distro=args.ros_distro,
-                        title=title)
+                file_pr(
+                    overlay, delta, '', pr_comment, distro=args.ros_distro, title=title
+                )
                 ok('Successfully synchronized repositories!')
                 sys.exit(0)
 
@@ -176,32 +181,36 @@ def main():
                 yoctoRecipe.reset()
                 distro = get_distro(adistro)
 
-                distro_installers, _, distro_changes =\
-                    generate_installers(
-                        distro,
-                        overlay,
-                        regenerate_pkg,
-                        preserve_existing,
-                        args.yocto_release,
-                        srcrev_cache,
-                        skip_keys,
-                        skip_keys=skip_keys,
-                        is_oe=True,
-                    )
+                distro_installers, _, distro_changes = generate_installers(
+                    distro,
+                    overlay,
+                    regenerate_pkg,
+                    preserve_existing,
+                    args.yocto_release,
+                    srcrev_cache,
+                    skip_keys,
+                    skip_keys=skip_keys,
+                    is_oe=True,
+                )
                 total_changes[adistro] = distro_changes
                 total_installers[adistro] = distro_installers
                 yoctoRecipe.generate_ros_distro_inc(
-                    _repo, args.ros_distro, overlay.get_file_revision_logs(
-                        'meta-ros{0}-{1}/files/{1}/generated/cache.yaml'
-                        .format(
+                    _repo,
+                    args.ros_distro,
+                    overlay.get_file_revision_logs(
+                        'meta-ros{0}-{1}/files/{1}/generated/cache.yaml'.format(
                             yoctoRecipe._get_ros_version(args.ros_distro),
-                            args.ros_distro)),
-                    distro.release_platforms, skip_keys)
+                            args.ros_distro,
+                        )
+                    ),
+                    distro.release_platforms,
+                    skip_keys,
+                )
                 yoctoRecipe.generate_superflore_datetime_inc(
-                    _repo, args.ros_distro, now)
+                    _repo, args.ros_distro, now
+                )
                 yoctoRecipe.generate_rosdep_resolve(_repo, args.ros_distro)
-                yoctoRecipe.generate_newer_platform_components(
-                    _repo, args.ros_distro)
+                yoctoRecipe.generate_newer_platform_components(_repo, args.ros_distro)
                 overlay.add_generated_files(args.ros_distro)
 
         num_changes = 0
@@ -216,26 +225,37 @@ def main():
                 clean_up()
                 sys.exit(0)
             else:
-                info('But there are some changes in other regenerated files:'
-                     '%s' % summary)
+                info(
+                    'But there are some changes in other regenerated files:%s' % summary
+                )
 
         # remove duplicates
         delta = gen_delta_msg(total_changes, markup='')
         # Commit changes and file pull request
-        title = '{{{0}}} Sync to files/{0}/generated/'\
-            'cache.yaml as of {1}\n'.format(
-                args.ros_distro,
-                now)
-        commit_msg = '\n'.join([get_pr_text(
-            comment=title + '\n' +
-            pr_comment.replace('**superflore**', 'superflore'),
-            markup=''), delta])
+        title = '{{{0}}} Sync to files/{0}/generated/cache.yaml as of {1}\n'.format(
+            args.ros_distro, now
+        )
+        commit_msg = '\n'.join(
+            [
+                get_pr_text(
+                    comment=title
+                    + '\n'
+                    + pr_comment.replace('**superflore**', 'superflore'),
+                    markup='',
+                ),
+                delta,
+            ]
+        )
         overlay.commit_changes(args.ros_distro, commit_msg)
         delta = gen_delta_msg(total_changes)
         if args.dry_run:
             info('Running in dry mode, not filing PR')
             save_pr(
-                overlay, delta, '', pr_comment, title=title,
+                overlay,
+                delta,
+                '',
+                pr_comment,
+                title=title,
             )
             sys.exit(0)
         file_pr(overlay, delta, '', comment=pr_comment, title=title)

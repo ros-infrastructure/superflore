@@ -13,16 +13,13 @@
 # limitations under the License.
 
 from docker.errors import ContainerError
+
 from superflore.docker import Docker
-from superflore.utils import err
-from superflore.utils import info
-from superflore.utils import ok
+from superflore.utils import err, info, ok
 
 
 class GentooBuilder:
-    def __init__(
-        self, image_owner='allenh1', image_name='ros_gentoo_base'
-    ):
+    def __init__(self, image_owner='allenh1', image_name='ros_gentoo_base'):
         self.container = Docker()
         self.container.pull(image_owner, image_name)
         self.package_list = dict()

@@ -26,27 +26,17 @@ class PackageMetadata:
         self.upstream_license = pkg.licenses
         self.description = pkg.description
         if 'website' in [url.type for url in pkg.urls]:
-            self.homepage = [
-                url.url for url in pkg.urls if url.type == 'website'
-            ][0]
+            self.homepage = [url.url for url in pkg.urls if url.type == 'website'][0]
         elif len(pkg.urls) > 0:
-            self.homepage = [
-                url.url for url in pkg.urls
-            ][0]
+            self.homepage = [url.url for url in pkg.urls][0]
         self.longdescription = pkg.description
-        self.upstream_email = [
-            author.email for author in pkg.maintainers
-        ][0]
-        self.upstream_name = [
-            author.name for author in pkg.maintainers
-        ][0]
-        self.author_email = [
-            author.email for author in pkg.authors
-        ][0] if pkg.authors else ''
-        self.author_name = [
-            author.name for author in pkg.authors
-        ][0] if pkg.authors else ''
-        self.member_of_groups = [
-            group.name for group in pkg.member_of_groups
-        ]
+        self.upstream_email = [author.email for author in pkg.maintainers][0]
+        self.upstream_name = [author.name for author in pkg.maintainers][0]
+        self.author_email = (
+            [author.email for author in pkg.authors][0] if pkg.authors else ''
+        )
+        self.author_name = (
+            [author.name for author in pkg.authors][0] if pkg.authors else ''
+        )
+        self.member_of_groups = [group.name for group in pkg.member_of_groups]
         self.build_type = pkg.get_build_type()

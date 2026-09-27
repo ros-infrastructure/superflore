@@ -18,16 +18,14 @@ import shutil
 from git import Repo
 from git.exc import GitCommandError as GitGotGot
 from github import Github
-from superflore.utils import err
-from superflore.utils import info
-from superflore.utils import ok
-from superflore.utils import retry_on_exception
+
+from superflore.utils import err, info, ok, retry_on_exception
 
 
 class RepoInstance(object):
     def __init__(
-            self, repo_owner, repo_name, repo_dir=None, do_clone=True,
-            from_branch=''):
+        self, repo_owner, repo_name, repo_dir=None, do_clone=True, from_branch=''
+    ):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
         repo_url = 'https://github.com/{0}/{1}'
@@ -38,7 +36,8 @@ class RepoInstance(object):
         self.branch = self.from_branch
         if do_clone:
             self.repo = Repo.clone_from(
-                self.repo_url, self.repo_dir, branch=self.from_branch)
+                self.repo_url, self.repo_dir, branch=self.from_branch
+            )
         else:
             self.repo = Repo(repo_dir)
         self.git = self.repo.git
@@ -47,7 +46,7 @@ class RepoInstance(object):
         shutil.rmtree(self.repo_dir)
         msg = 'Cloning repo {0}/{1}'.format(self.repo_owner, self.repo_name)
         if self.repo_dir != self.repo_name:
-            msg += (' into directory {0}'.format(self.repo_dir))
+            msg += ' into directory {0}'.format(self.repo_dir)
         msg += '...'
         info(msg)
         self.repo = Repo.clone_from(self.repo_url, self.repo_dir)
@@ -108,16 +107,17 @@ class RepoInstance(object):
         info('Pushing changes to repo...')
         self.git.remote('add', 'github', pr_repo.html_url)
         retry_on_exception(
-            self.git.push, '-u', 'github', self.branch or branch,
-            retry_msg='Could not push', error_msg='Error during push',
+            self.git.push,
+            '-u',
+            'github',
+            self.branch or branch,
+            retry_msg='Could not push',
+            error_msg='Error during push',
             sleep_secs=0.0,
         )
         info('Filing pull-request...')
         pr = self.gh_upstream.create_pull(
-            title=title,
-            body=message,
-            base=self.from_branch,
-            head=pr_head
+            title=title, body=message, base=self.from_branch, head=pr_head
         )
         ok('Successfully filed a pull request.')
         ok('  %s' % pr.html_url)

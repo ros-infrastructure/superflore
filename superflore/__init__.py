@@ -4,6 +4,4 @@ __version__ = VERSION
 
 from .repo_instance import RepoInstance
 
-__all__ = [
-    'RepoInstance'
-]
+__all__ = ['RepoInstance']

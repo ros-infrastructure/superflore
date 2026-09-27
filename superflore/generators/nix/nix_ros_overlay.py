@@ -16,15 +16,20 @@ import os
 import time
 
 from superflore.repo_instance import RepoInstance
-from superflore.utils import info
-from superflore.utils import rand_ascii_str
+from superflore.utils import info, rand_ascii_str
 
 
 class NixRosOverlay(object):
-    def __init__(self, repo_dir, do_clone, org='lopsided98',
-                 repo='nix-ros-overlay', from_branch='', new_branch=True):
-        self.repo = RepoInstance(org, repo, repo_dir, do_clone,
-                                 from_branch=from_branch)
+    def __init__(
+        self,
+        repo_dir,
+        do_clone,
+        org='lopsided98',
+        repo='nix-ros-overlay',
+        from_branch='',
+        new_branch=True,
+    ):
+        self.repo = RepoInstance(org, repo, repo_dir, do_clone, from_branch=from_branch)
         if new_branch:
             self.branch_name = 'nix-bot-%s' % rand_ascii_str()
             info('Creating new branch {0}...'.format(self.branch_name))
@@ -44,9 +49,7 @@ class NixRosOverlay(object):
         if self.repo.git.status('--porcelain') == '':
             info('Nothing changed; no commit done')
         else:
-            timestamp = os.getenv(
-                'SUPERFLORE_GENERATION_DATETIME',
-                time.ctime())
+            timestamp = os.getenv('SUPERFLORE_GENERATION_DATETIME', time.ctime())
             commit_msg = commit_msg.format(timestamp, distro)
             if self.branch_name:
                 info('Committing to branch {0}...'.format(self.branch_name))
@@ -56,9 +59,6 @@ class NixRosOverlay(object):
 
     def pull_request(self, message, distro=None, title=''):
         if not title:
-            timestamp = os.getenv(
-                'SUPERFLORE_GENERATION_DATETIME',
-                time.ctime())
+            timestamp = os.getenv('SUPERFLORE_GENERATION_DATETIME', time.ctime())
             title = 'rosdistro sync, {0}'.format(timestamp)
-        self.repo.pull_request(message, title, branch=self.branch_name,
-                               fork=False)
+        self.repo.pull_request(message, title, branch=self.branch_name, fork=False)

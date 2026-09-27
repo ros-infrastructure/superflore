@@ -19,11 +19,16 @@ from superflore.utils import info
 
 class RosMeta(object):
     def __init__(
-        self, dir, do_clone, branch, org='ros', repo='meta-ros',
-        from_branch='', branch_name=''
+        self,
+        dir,
+        do_clone,
+        branch,
+        org='ros',
+        repo='meta-ros',
+        from_branch='',
+        branch_name='',
     ):
-        self.repo = RepoInstance(
-            org, repo, dir, do_clone, from_branch=from_branch)
+        self.repo = RepoInstance(org, repo, dir, do_clone, from_branch=from_branch)
         self.branch_name = branch
         if branch:
             info('Creating new branch {0}...'.format(self.branch_name))
@@ -34,17 +39,18 @@ class RosMeta(object):
         # https://github.com/ros-infrastructure/superflore/pull/273
         # but remove it here to make sure it gets deleted when new distro
         # release is being generated
-        files = 'meta-ros{0}-{1}/generated-recipes '\
-                'meta-ros{0}-{1}/conf/ros-distro/include/{1}/generated '\
-                'meta-ros{0}-{1}/files/{1}/generated/'\
-                'newer-platform-components.list '\
-                'meta-ros{0}-{1}/files/{1}/generated/rosdep-resolve.yaml '\
-                'meta-ros{0}-{1}/files/{1}/generated/'\
-                'superflore-change-summary.txt '.format(
-                    yoctoRecipe._get_ros_version(distro), distro)
-        info(
-            'Cleaning up:\n{0}'
-            .format(files))
+        files = (
+            'meta-ros{0}-{1}/generated-recipes '
+            'meta-ros{0}-{1}/conf/ros-distro/include/{1}/generated '
+            'meta-ros{0}-{1}/files/{1}/generated/'
+            'newer-platform-components.list '
+            'meta-ros{0}-{1}/files/{1}/generated/rosdep-resolve.yaml '
+            'meta-ros{0}-{1}/files/{1}/generated/'
+            'superflore-change-summary.txt '.format(
+                yoctoRecipe._get_ros_version(distro), distro
+            )
+        )
+        info('Cleaning up:\n{0}'.format(files))
         self.repo.git.rm('-rf', '--ignore-unmatch', files.split())
 
     def commit_changes(self, distro, commit_msg):
@@ -66,37 +72,55 @@ class RosMeta(object):
 
     def add_generated_files(self, distro):
         info('Adding changes...')
-        self.repo.git.add('meta-ros{0}-{1}/generated-recipes'.format(
-            yoctoRecipe._get_ros_version(distro), distro))
-        self.repo.git.add('meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
-                          'generated/*.inc'.format(
-                              yoctoRecipe._get_ros_version(distro), distro))
-        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
-                          'rosdep-resolve.yaml'.format(
-                              yoctoRecipe._get_ros_version(distro), distro))
-        self.repo.git.add('meta-ros{0}-{1}/files/{1}/generated/'
-                          'newer-platform-components.list'.format(
-                              yoctoRecipe._get_ros_version(distro), distro))
+        self.repo.git.add(
+            'meta-ros{0}-{1}/generated-recipes'.format(
+                yoctoRecipe._get_ros_version(distro), distro
+            )
+        )
+        self.repo.git.add(
+            'meta-ros{0}-{1}/conf/ros-distro/include/{1}/generated/*.inc'.format(
+                yoctoRecipe._get_ros_version(distro), distro
+            )
+        )
+        self.repo.git.add(
+            'meta-ros{0}-{1}/files/{1}/generated/rosdep-resolve.yaml'.format(
+                yoctoRecipe._get_ros_version(distro), distro
+            )
+        )
+        self.repo.git.add(
+            'meta-ros{0}-{1}/files/{1}/generated/newer-platform-components.list'.format(
+                yoctoRecipe._get_ros_version(distro), distro
+            )
+        )
 
     def get_change_summary(self, distro):
         sep = '-' * 5
-        return '\n'.join([
-            sep,
-            self.repo.git.status('--porcelain'),
-            sep,
-            self.repo.git.diff(
-                'HEAD',
-                'meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
-                'generated/*.inc'.format(
-                    yoctoRecipe._get_ros_version(distro), distro)),
-            sep,
-            self.repo.git.diff(
-                'HEAD',
-                'meta-ros{0}-{1}/files/{1}/generated/'
-                'newer-platform-components.list'.format(
-                    yoctoRecipe._get_ros_version(distro), distro),
-                'meta-ros{0}-{1}/files/{1}/generated/'
-                'rosdep-resolve.yaml'.format(
-                    yoctoRecipe._get_ros_version(distro), distro)
-            ),
-        ]) + '\n'
+        return (
+            '\n'.join(
+                [
+                    sep,
+                    self.repo.git.status('--porcelain'),
+                    sep,
+                    self.repo.git.diff(
+                        'HEAD',
+                        'meta-ros{0}-{1}/conf/ros-distro/include/{1}/'
+                        'generated/*.inc'.format(
+                            yoctoRecipe._get_ros_version(distro), distro
+                        ),
+                    ),
+                    sep,
+                    self.repo.git.diff(
+                        'HEAD',
+                        'meta-ros{0}-{1}/files/{1}/generated/'
+                        'newer-platform-components.list'.format(
+                            yoctoRecipe._get_ros_version(distro), distro
+                        ),
+                        'meta-ros{0}-{1}/files/{1}/generated/'
+                        'rosdep-resolve.yaml'.format(
+                            yoctoRecipe._get_ros_version(distro), distro
+                        ),
+                    ),
+                ]
+            )
+            + '\n'
+        )

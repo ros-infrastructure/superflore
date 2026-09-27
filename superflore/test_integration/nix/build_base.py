@@ -13,11 +13,10 @@
 # limitations under the License.
 
 from docker.errors import ContainerError
+
 from superflore.docker import Docker
 from superflore.generators.nix.nix_package import NixPackage
-from superflore.utils import err
-from superflore.utils import info
-from superflore.utils import ok
+from superflore.utils import err, info, ok
 
 
 class NixBuilder:
@@ -28,17 +27,18 @@ class NixBuilder:
 
     def add_target(self, ros_distro, pkg):
         pkg = NixPackage.normalize_name(pkg)
-        self.package_list[
-            'rosPackages.{}.{}'.format(ros_distro, pkg)] = 'unknown'
+        self.package_list['rosPackages.{}.{}'.format(ros_distro, pkg)] = 'unknown'
 
     def run(self, verbose=True, log_file=None):
         info('testing Nix package integrity')
 
-        nix_ros_overlay_url = 'https://github.com/lopsided98/nix-ros-overlay' \
-                              '/archive/master.tar.gz'
+        nix_ros_overlay_url = (
+            'https://github.com/lopsided98/nix-ros-overlay/archive/master.tar.gz'
+        )
         for pkg in sorted(self.package_list.keys()):
             self.container.add_sh_command(
-                'nix-build {} -A {}'.format(nix_ros_overlay_url, pkg))
+                'nix-build {} -A {}'.format(nix_ros_overlay_url, pkg)
+            )
             try:
                 self.container.run(rm=True, show_cmd=True, log_file=log_file)
                 self.package_list[pkg] = 'building'

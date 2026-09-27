@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import re
+import unittest
 
 from rosinstall_generator.distro import get_distro
+
 from superflore.exceptions import UnknownBuildType
 from superflore.generate_installers import generate_installers
-import unittest
 
 
 def _gen_package(overlay, pkg, distro, preserve_existing, collector):
@@ -71,7 +72,7 @@ class TestGenerateInstallers(unittest.TestCase):
             get_distro('lunar'), None, _gen_package, False, acc
         )
         # since we don't do anything, there should be no failures.
-        self.assertEqual(broken,{})
+        self.assertEqual(broken, {})
         # make sure all packages got indexed
         self.assertEqual(sorted(acc), sorted(inst))
 
@@ -86,7 +87,7 @@ class TestGenerateInstallers(unittest.TestCase):
         # total list should have all packages in acc
         self.assertEqual(sorted(total_list), sorted(acc))
         # find missing packages, generate the change
-        missing = [p for p in acc if not p in inst]
+        missing = [p for p in acc if p not in inst]
         # compare the contents
         self.assertEqual(sorted(broken), sorted(missing))
 
@@ -100,7 +101,7 @@ class TestGenerateInstallers(unittest.TestCase):
         total_list = inst + broken
         # total list should have less than acc
         self.assertNotEqual(sorted(total_list), sorted(broken))
-        missing = [p for p in acc if not p in total_list]
+        missing = [p for p in acc if p not in total_list]
         # should only have 'p2os' packages
         non_p2os = [p for p in missing if 'p2os' not in p]
         self.assertEqual(non_p2os, [])
@@ -118,7 +119,7 @@ class TestGenerateInstallers(unittest.TestCase):
 
     def test_changes(self):
         """Tests changes represented by generate installers"""
-        changes_re = '(([a-zA-Z]|\_|[0-9])+)\ [0-9]\.[0-9]\.[0-9]("-r"[0-9])?'
+        changes_re = r'(([a-zA-Z]|\_|[0-9])+)\ [0-9]\.[0-9]\.[0-9]("-r"[0-9])?'
         acc = list()
         inst, broken, changes = generate_installers(
             get_distro('lunar'), None, _create_if_p2os, True, acc

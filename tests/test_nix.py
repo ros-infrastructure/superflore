@@ -16,24 +16,30 @@ import unittest
 
 from superflore.generators.nix.nix_expression import NixLicense
 
-class TestNixLicense(unittest.TestCase):
 
+class TestNixLicense(unittest.TestCase):
     def test_known_license(self):
-        l = NixLicense('GPL 3')
-        self.assertEqual(l.nix_code, 'gpl3')
+        license = NixLicense('GPL 3')
+        self.assertEqual(license.nix_code, 'gpl3')
 
     def test_unknown_license(self):
-        l = NixLicense("some license")
-        self.assertEqual(l.nix_code, '"some-license"')
+        license = NixLicense('some license')
+        self.assertEqual(license.nix_code, '"some-license"')
 
     def test_public_domain(self):
-        l = NixLicense("Public Domain")
-        self.assertEqual(l.nix_code, 'publicDomain')
+        license = NixLicense('Public Domain')
+        self.assertEqual(license.nix_code, 'publicDomain')
 
-    def test_escape_quote(self):
-        l = NixLicense(r'license with "quotes" and \backslash" ');
-        self.assertEqual(l.nix_code, r'"license-with-\"quotes\"-and-\\backslash"')
+    def test_escape_quote_backslash(self):
+        license = NixLicense(r'license with "quotes" and \backslash" ')
+        self.assertEqual(
+            license.nix_code,
+            r'"license-with-\"quotes\"-and-\\backslash\"-"',
+        )
 
-    def test_escape_quote(self):
-        l = NixLicense('some license with the "${" sequence');
-        self.assertEqual(l.nix_code, r'"some-license-with-the-\"\${\"-sequence"')
+    def test_escape_quote_dollar_brace(self):
+        license = NixLicense('some license with the "${" sequence')
+        self.assertEqual(
+            license.nix_code,
+            r'"some-license-with-the-\"\${\"-sequence"',
+        )

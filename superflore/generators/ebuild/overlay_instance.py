@@ -18,18 +18,22 @@ import time
 import docker
 from superflore.docker import Docker
 from superflore.repo_instance import RepoInstance
-from superflore.utils import info
-from superflore.utils import rand_ascii_str
+from superflore.utils import info, rand_ascii_str
 
 
 class RosOverlay(object):
     def __init__(
-        self, repo_dir, do_clone, org='ros', repo='ros-overlay',
-        from_branch='', new_branch=True
+        self,
+        repo_dir,
+        do_clone,
+        org='ros',
+        repo='ros-overlay',
+        from_branch='',
+        new_branch=True,
     ):
         self.repo = RepoInstance(
-            org, repo, repo_dir=repo_dir, do_clone=do_clone,
-            from_branch=from_branch)
+            org, repo, repo_dir=repo_dir, do_clone=do_clone, from_branch=from_branch
+        )
         if new_branch:
             self.branch_name = 'gentoo-bot-%s' % rand_ascii_str()
             info('Creating new branch {0}...'.format(self.branch_name))
@@ -53,9 +57,7 @@ class RosOverlay(object):
                 commit_msg = 'regenerate ros-{1}, {0}'
             else:
                 commit_msg = 'rosdistro sync, {0}'
-            timestamp = os.getenv(
-                'SUPERFLORE_GENERATION_DATETIME',
-                time.ctime())
+            timestamp = os.getenv('SUPERFLORE_GENERATION_DATETIME', time.ctime())
             commit_msg = commit_msg.format(timestamp, distro)
             self.repo.git.commit(m='{0}'.format(commit_msg))
 
@@ -64,21 +66,14 @@ class RosOverlay(object):
         regen_dict,
         image_owner='allenh1',
         image_name='ros_gentoo_base',
-        split_limit=1000
+        split_limit=1000,
     ):
-        info(
-            "Pulling docker image '%s/%s:latest'..." % (
-                image_owner, image_name
-            )
-        )
+        info("Pulling docker image '%s/%s:latest'..." % (image_owner, image_name))
         dock = Docker()
         dock.pull(image_owner, image_name)
         info('Running docker image...')
         info('Generating manifests...')
-        dock.map_directory(
-            '/home/%s/.gnupg' % os.getenv('USER'),
-            '/root/.gnupg'
-        )
+        dock.map_directory('/home/%s/.gnupg' % os.getenv('USER'), '/root/.gnupg')
         dock.map_directory(self.repo.repo_dir, '/tmp/ros-overlay')
         for distro in regen_dict.keys():
             chunk_list = []
@@ -95,8 +90,7 @@ class RosOverlay(object):
             info("key_lists: '%s'" % chunk_list)
             for chunk in chunk_list:
                 for pkg in chunk:
-                    pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(distro,
-                                                                    pkg)
+                    pkg_dir = '/tmp/ros-overlay/ros-{0}/{1}'.format(distro, pkg)
                     dock.add_bash_command('cd {0}'.format(pkg_dir))
                     dock.add_bash_command('repoman manifest')
                 try:
@@ -108,8 +102,6 @@ class RosOverlay(object):
 
     def pull_request(self, message, overlay=None, title=''):
         if not title:
-            timestamp = os.getenv(
-                'SUPERFLORE_GENERATION_DATETIME',
-                time.ctime())
+            timestamp = os.getenv('SUPERFLORE_GENERATION_DATETIME', time.ctime())
             title = 'rosdistro sync, {0}'.format(timestamp)
         self.repo.pull_request(message, title)

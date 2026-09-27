@@ -33,6 +33,16 @@ Then install and run the application.
  $ pip install .
 ```
 
+Development:
+============
+Install the package in editable mode along with the test/lint tools, and
+enable the pre-commit hooks so lint and format checks run automatically:
+
+```
+ $ pip install -e ".[dev]"
+ $ pre-commit install
+```
+
 Gentoo Usage:
 =============
 

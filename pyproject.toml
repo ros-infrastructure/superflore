@@ -47,11 +47,11 @@ superflore-check-ebuilds = "superflore.test_integration.gentoo:main"
 [project.optional-dependencies]
 test = [
     "pytest",
-    "flake8",
-    "flake8-import-order",
-    "pep8",
 ]
 dev = [
+    "ruff",
+    "pre-commit",
+    "mypy",
     "superflore[test]",
 ]
 
@@ -59,3 +59,28 @@ dev = [
 packages = { find = { exclude = ["tests", "tests.*"] } }
 
 [tool.setuptools_scm]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.mypy]
+# Type checking is opt-in per module: only files that already carry some
+# type annotations are checked, and errors from unlisted modules pulled in
+# via imports are silenced so the checked boundary stays explicit. This
+# runs report-only in CI (see ci.yaml); expand `files` opportunistically as
+# modules gain annotations, rather than as a dedicated typing sweep.
+files = [
+    "superflore/generators/nix/nix_expression.py",
+    "superflore/generators/nix/gen_packages.py",
+    "superflore/generators/nix/nix_package.py",
+    "superflore/generators/nix/nix_package_set.py",
+    "superflore/utils.py",
+]
+ignore_missing_imports = true
+follow_imports = "silent"

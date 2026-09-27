@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import sys
+import unittest
 
 from superflore.parser import get_parser
-import unittest
 
 
 class TestParserSetup(unittest.TestCase):

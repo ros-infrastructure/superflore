@@ -15,9 +15,10 @@
 import argparse
 import sys
 
+import yaml
+
 from superflore.test_integration.nix.build_base import NixBuilder
 from superflore.utils import get_distros_by_status
-import yaml
 
 
 def main():
@@ -34,31 +35,17 @@ def main():
         '--ros-distro',
         help='distro(s) to check',
         type=str,
-        nargs="+",
-        default=get_distros_by_status('active')
+        nargs='+',
+        default=get_distros_by_status('active'),
+    )
+    parser.add_argument('--pkgs', help='packages to build', type=str, nargs='+')
+    parser.add_argument(
+        '-f', help='build packages specified by the input file', type=str
     )
     parser.add_argument(
-        '--pkgs',
-        help='packages to build',
-        type=str,
-        nargs='+'
+        '-v', '--verbose', help='show output from docker', action='store_true'
     )
-    parser.add_argument(
-        '-f',
-        help='build packages specified by the input file',
-        type=str
-    )
-    parser.add_argument(
-        '-v',
-        '--verbose',
-        help='show output from docker',
-        action="store_true"
-    )
-    parser.add_argument(
-        '--log-file',
-        help='location to store the log file',
-        type=str
-    )
+    parser.add_argument('--log-file', help='location to store the log file', type=str)
     args = parser.parse_args(sys.argv[1:])
 
     if args.f:

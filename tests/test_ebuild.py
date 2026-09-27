@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from time import gmtime, strftime
 import re
-
-from superflore.generators.ebuild.ebuild import Ebuild
-from superflore.generators.ebuild.ebuild import ebuild_keyword
-from superflore.exceptions import UnresolvedDependency
 import unittest
+from time import gmtime, strftime
+
+from superflore.exceptions import UnresolvedDependency
+from superflore.generators.ebuild.ebuild import Ebuild, ebuild_keyword
 
 
 @unittest.skip('Gentoo/ebuild support needs updating; tests currently fail')
@@ -39,7 +38,9 @@ class TestEbuildOutput(unittest.TestCase):
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         with open('tests/ebuild/simple_expected.ebuild', 'r') as expect_file:
             s = expect_file.read()
-            correct_text = re.sub('Copyright 2017', 'Copyright ' + strftime("%Y", gmtime()), s)
+            correct_text = re.sub(
+                'Copyright 2017', 'Copyright ' + strftime('%Y', gmtime()), s
+            )
         self.assertEqual(got_text, correct_text)
 
     def test_bad_external_build_depend(self):
@@ -48,7 +49,7 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_build_depend('fake_package', False)
         with self.assertRaises(UnresolvedDependency):
-            ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+            ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('fake_package' in ebuild.get_unresolved())
 
     def test_bad_external_run_depend(self):
@@ -57,7 +58,7 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.add_run_depend('p2os_driver')
         ebuild.add_run_depend('fake_package', False)
         with self.assertRaises(UnresolvedDependency):
-            ebuild_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
+            ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
 
     def test_external_build_depend(self):
         """Test External Build Dependency"""
@@ -159,7 +160,7 @@ class TestEbuildOutput(unittest.TestCase):
     def test_has_patches(self):
         """Test Patch Code Generation"""
         ebuild = self.get_ebuild()
-        ebuild.has_patches = True;
+        ebuild.has_patches = True
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         self.assertTrue('EPATCH_SOURCE="${FILESDIR}"' in got_text)
         self.assertTrue('EPATCH_SUFFIX="patch"' in got_text)
@@ -211,5 +212,5 @@ class TestEbuildOutput(unittest.TestCase):
         ebuild.upstream_license = ['BSD,LGPL,Apache 2.0']
         got_text = ebuild.get_ebuild_text('Open Source Robotics Foundation', 'BSD')
         # grab the license line
-        license_line = [line for line in got_text.split('\n') if "LICENSE" in line][0]
+        license_line = [line for line in got_text.split('\n') if 'LICENSE' in line][0]
         self.assertEqual(license_line, 'LICENSE="( BSD LGPL Apache-2.0 )"')

@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from getpass import getpass
 import os
 import sys
+from getpass import getpass
 
 import docker
 from superflore.TempfileManager import TempfileManager
-from superflore.utils import err
-from superflore.utils import info
-from superflore.utils import ok
+from superflore.utils import err, info, ok
 
 
 class Docker(object):
@@ -43,8 +41,10 @@ class Docker(object):
 
     def build(self, dockerfile):
         dockerfile_directory = os.path.dirname(dockerfile)
-        if not (os.path.isdir(dockerfile_directory) and
-                os.path.isfile('%s/Dockerfile' % dockerfile_directory)):
+        if not (
+            os.path.isdir(dockerfile_directory)
+            and os.path.isfile('%s/Dockerfile' % dockerfile_directory)
+        ):
             raise NoDockerfileSupplied(
                 'You must supply the location of the Dockerfile.'
             )
@@ -53,15 +53,14 @@ class Docker(object):
     def login(self):
         # TODO(allenh1): add OAuth here, and fall back on user input
         # if the OAuth doesn't exist (however one finds that).
-        if not ('DOCKER_USERNAME' in os.environ and
-                'DOCKER_PASSWORD' in os.environ):
+        if not ('DOCKER_USERNAME' in os.environ and 'DOCKER_PASSWORD' in os.environ):
             if os.isatty(sys.stdin.fileno()):
                 user = getpass('Docker username:')
                 pswd = getpass('Docker password:')
             else:
                 raise RuntimeError(
-                    "Please set 'DOCKER_USERNAME' and 'DOCKER_PASSWORD'" +
-                    " when not in interactive mode."
+                    "Please set 'DOCKER_USERNAME' and 'DOCKER_PASSWORD'"
+                    + ' when not in interactive mode.'
                 )
         else:
             user = os.environ['DOCKER_USERNAME']
@@ -77,14 +76,10 @@ class Docker(object):
     def get_command(self, logging_dir=None, logging_file=None):
         if logging_dir:
             cmd = "bash -c '"
-            cmd += (
-                " &>> %s/%s && " % (
-                    logging_dir, logging_file
-                )
-            ).join(self.bash_cmds)
-            cmd += (" &>> %s/%s'" % (logging_dir, logging_file))
+            cmd += (' &>> %s/%s && ' % (logging_dir, logging_file)).join(self.bash_cmds)
+            cmd += " &>> %s/%s'" % (logging_dir, logging_file)
         else:
-            cmd = "bash -c '" + " && ".join(self.bash_cmds) + "'"
+            cmd = "bash -c '" + ' && '.join(self.bash_cmds) + "'"
         return cmd
 
     def run(self, rm=True, show_cmd=False, privileged=False, log_file=None):
@@ -114,11 +109,11 @@ class Docker(object):
                     privileged=privileged,
                     volumes=self.directory_map,
                 )
-                ok("Docker container exited.")
+                ok('Docker container exited.')
                 if log_file:
                     info("Log file: '%s/%s'" % (tmp, log_name))
             except docker.errors.ContainerError:
-                err("Docker container exited with errors.")
+                err('Docker container exited with errors.')
                 if log_file:
                     info("Log file: '%s/%s'" % (tmp, log_name))
                 # save log, then raise.
