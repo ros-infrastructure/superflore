@@ -61,7 +61,7 @@ packages = { find = { exclude = ["tests", "tests.*"] } }
 [tool.setuptools_scm]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
