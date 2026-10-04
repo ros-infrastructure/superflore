@@ -15,7 +15,6 @@
 import os
 import sys
 
-from rosinstall_generator.distro import get_distro
 from rosinstall_generator.distro import get_package_names
 from superflore.CacheManager import CacheManager
 from superflore.generate_installers import generate_installers
@@ -31,6 +30,7 @@ from superflore.utils import err
 from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
 from superflore.utils import get_pr_text
+from superflore.utils import get_rosdistro
 from superflore.utils import get_utcnow_timestamp_str
 from superflore.utils import info
 from superflore.utils import load_pr
@@ -125,7 +125,7 @@ def main():
             srcrev_filename = None
         with CacheManager(srcrev_filename) as srcrev_cache:
             if args.only:
-                distro = get_distro(args.ros_distro)
+                distro = get_rosdistro(args.ros_distro, cached=not args.uncached_distro)
                 for pkg in args.only:
                     if pkg in skip_keys:
                         warn("Package '%s' is in skip-keys list, skipping..."
@@ -174,7 +174,7 @@ def main():
             overlay.clean_ros_recipe_dirs(args.ros_distro)
             for adistro in selected_targets:
                 yoctoRecipe.reset()
-                distro = get_distro(adistro)
+                distro = get_rosdistro(adistro, cached=not args.uncached_distro)
 
                 distro_installers, _, distro_changes =\
                     generate_installers(

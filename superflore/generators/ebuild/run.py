@@ -15,7 +15,6 @@
 import os
 import sys
 
-from rosinstall_generator.distro import get_distro
 from superflore.exceptions import NoGitHubAuthToken
 from superflore.generate_installers import generate_installers
 from superflore.generators.ebuild.gen_packages import regenerate_pkg
@@ -29,6 +28,7 @@ from superflore.utils import file_pr
 from superflore.utils import gen_delta_msg
 from superflore.utils import gen_missing_deps_msg
 from superflore.utils import get_distros_by_status
+from superflore.utils import get_rosdistro
 from superflore.utils import info
 from superflore.utils import load_pr
 from superflore.utils import ok
@@ -129,7 +129,7 @@ def main():
                     ebuild, deps, version = regenerate_pkg(
                         overlay,
                         pkg,
-                        get_distro(args.ros_distro),
+                        get_rosdistro(args.ros_distro, cached=not args.uncached_distro),
                         preserve_existing
                     )
                     if not ebuild:
@@ -171,7 +171,7 @@ def main():
         for distro in selected_targets:
             distro_installers, distro_broken, distro_changes =\
                 generate_installers(
-                    get_distro(distro),
+                    get_rosdistro(distro, cached=not args.uncached_distro),
                     overlay=overlay,
                     gen_pkg_func=regenerate_pkg,
                     preserve_existing=preserve_existing,

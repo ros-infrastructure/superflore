@@ -62,6 +62,10 @@ def get_parser(
             help='generate only the specified packages'
         )
         parser.add_argument(
+            '--uncached-distro',
+            help='Recreate the ros distribution rather than downloading a cached version',
+            action='store_true')
+        parser.add_argument(
             '--pr-comment',
             help='comment to add to the PR',
             type=str

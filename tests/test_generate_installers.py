@@ -14,9 +14,9 @@
 
 import re
 
-from rosinstall_generator.distro import get_distro
 from superflore.exceptions import UnknownBuildType
 from superflore.generate_installers import generate_installers
+from superflore.utils install get_rosdistro
 import unittest
 
 
@@ -68,7 +68,7 @@ class TestGenerateInstallers(unittest.TestCase):
         acc = list()
         # attempt to generate the installers
         inst, broken, changes = generate_installers(
-            get_distro('lunar'), None, _gen_package, False, acc
+            get_rosdistro('lunar', cached=True), None, _gen_package, False, acc
         )
         # since we don't do anything, there should be no failures.
         self.assertEqual(broken,{})
@@ -79,7 +79,7 @@ class TestGenerateInstallers(unittest.TestCase):
         """Test for an unresolved dependency"""
         acc = list()
         inst, broken, changes = generate_installers(
-            get_distro('lunar'), None, _fail_if_p2os, False, acc
+            get_rosdistro('lunar', cached=True), None, _fail_if_p2os, False, acc
         )
         broken = [b for b in broken]
         total_list = inst + broken
@@ -94,7 +94,7 @@ class TestGenerateInstallers(unittest.TestCase):
         """Test how skipped packages are handled"""
         acc = list()
         inst, broken, changes = generate_installers(
-            get_distro('lunar'), None, _skip_if_p2os, True, acc
+            get_rosdistro('lunar', cached=True), None, _skip_if_p2os, True, acc
         )
         broken = [b for b in broken]
         total_list = inst + broken
@@ -109,7 +109,7 @@ class TestGenerateInstallers(unittest.TestCase):
         """Test exceptions"""
         acc = list()
         inst, broken, changes = generate_installers(
-            get_distro('lunar'), None, _raise_exceptions, True, acc
+            get_rosdistro('lunar', cached=True), None, _raise_exceptions, True, acc
         )
         # anything with a 'k', 'l', or a 'b' has been skipped
         for p in inst:
@@ -121,7 +121,7 @@ class TestGenerateInstallers(unittest.TestCase):
         changes_re = '(([a-zA-Z]|\_|[0-9])+)\ [0-9]\.[0-9]\.[0-9]("-r"[0-9])?'
         acc = list()
         inst, broken, changes = generate_installers(
-            get_distro('lunar'), None, _create_if_p2os, True, acc
+            get_rosdistro('lunar', cached=True), None, _create_if_p2os, True, acc
         )
         found = False
         for c in changes:
